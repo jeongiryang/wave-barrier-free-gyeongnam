@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { withRouteCoverage } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi } from "./fixtures";
@@ -12,7 +13,7 @@ test("external directions preserve the public departure, destination and selecte
   await openRouteDetails(page);
   await withRouteCoverage(page);
   const panel = page.locator(".route-compare-panel");
-  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
+  await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
   await expect(panel.locator(".route-option")).toHaveCount(2);
   for (const [label, mode] of [["자동차", "car"], ["대중교통", "traffic"], ["도보", "walk"], ["자전거", "bicycle"]]) {
     await panel.getByRole("group", { name: "이동수단별 예상 시간" }).getByRole("button", { name: new RegExp(label) }).click();
@@ -31,7 +32,7 @@ test("the second itinerary journey exports its own departure instead of the dail
   await openRouteDetails(page);
   await withRouteCoverage(page);
   const coverage = page.locator(".itinerary-route-coverage");
-  await withRouteCoverage(page, async () => { await coverage.getByRole("combobox", { name: "이동수단", exact: true }).selectOption("car"); });
+  await withRouteCoverage(page, async () => { await chooseWaveOption(coverage.getByRole("combobox", { name: "이동수단", exact: true }), "car"); });
   await expect(coverage.locator('[role="status"]')).toContainText("전체 2구간 중 2구간 확인");
   await expect(coverage.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
   await withRouteCoverage(page, async () => { await expect(coverage.getByRole("button", { name: "이 구간 지도에서 보기", exact: true })).toHaveCount(2); });
@@ -54,7 +55,7 @@ test("device distance preserves the public journey and keeps coordinates out of 
   await openPlannerMap(page);
   await openRouteDetails(page);
   await withRouteCoverage(page);
-  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
+  await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
   await expect(page.locator(".route-option")).toHaveCount(2);
   const coverage = page.locator(".itinerary-route-coverage");
   // The map's selected-leg lookup and the automatic itinerary lookup finish

@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPublicShellApi, mockPlannerApi, openItinerary } from './fixtures';
@@ -166,7 +167,7 @@ test('an actual visit-date edit invalidates an older Naru proposal and a later m
   await closeChat(page);
   await page.getByRole('button', { name: '용지호수공원 일정 수정', exact: true }).click();
   const editor = page.getByRole('dialog', { name: '용지호수공원 수정', exact: true });
-  await editor.getByRole('combobox', { name: '방문 날짜', exact: true }).selectOption('2026-10-09');
+  await chooseWaveOption(editor.getByRole('combobox', { name: '방문 날짜', exact: true }), '2026-10-09');
   await editor.getByRole('button', { name: '적용', exact: true }).click();
   const dateChanged = await snapshot(page);
   expect(dateChanged.schedule.scheduleAssignments['1002']).toBe('2026-10-09');
@@ -183,7 +184,7 @@ test('an actual visit-date edit invalidates an older Naru proposal and a later m
   await page.getByRole('group', { name: '일정 날짜', exact: true }).getByRole('button', { name: /^1일차/ }).click();
   await page.getByRole('button', { name: '경남도립미술관 일정 수정', exact: true }).click();
   const manual = page.getByRole('dialog', { name: '경남도립미술관 수정', exact: true });
-  await manual.getByRole('combobox', { name: '경남도립미술관 머무는 시간', exact: true }).selectOption('120');
+  await chooseWaveOption(manual.getByRole('combobox', { name: '경남도립미술관 머무는 시간', exact: true }), '120');
   await manual.getByRole('button', { name: '적용', exact: true }).click();
   const changed = await snapshot(page);
   expect(changed.ids).toContain('1003'); expect(changed.schedule.visitMinutesByPlaceId['1001']).toBe(120);

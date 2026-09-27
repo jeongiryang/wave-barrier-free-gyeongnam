@@ -47,7 +47,11 @@ export default function LandingIntro() {
       let seen = document.documentElement.dataset.introSeen === "1";
       try { seen ||= sessionStorage.getItem("wave-arrival-session-v1") === "done"; } catch { /* Do not block entry. */ }
       const booting = document.documentElement.hasAttribute("data-intro-pending");
-      if (media.matches || document.documentElement.dataset.motion === "calm" || (!replay && (seen || window.location.hash || (!booting && window.scrollY > 24)))) { reveal(); return; }
+      // A visitor may already be using the server-rendered page while scripts
+      // load. Automatic playback must not take that control's keyboard focus.
+      const focused = document.activeElement;
+      const interacting = focused instanceof HTMLElement && focused !== document.body && focused !== document.documentElement && !node.contains(focused);
+      if (media.matches || document.documentElement.dataset.motion === "calm" || (!replay && (seen || interacting || window.location.hash || (!booting && window.scrollY > 24)))) { reveal(); return; }
       playing = true; ready.current = false;
       setLeaving(false);
       setGeneration(value=>value+1); setActive(true);

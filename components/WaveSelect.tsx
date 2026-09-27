@@ -11,6 +11,8 @@ export default function WaveSelect({ ref, icon, ...props }: SelectHTMLAttributes
   const [portal, setPortal] = useState<Element | null>(null);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<{ value: string; text: string; disabled: boolean }[]>([]);
+  const enhanceFocused = useRef(false);
+  const enhanced = items.length > 0;
   const [label, setLabel] = useState(props['aria-label'] || props.title || '선택');
   const [selected, setSelected] = useState('');
   const [active, setActive] = useState(0);
@@ -18,6 +20,7 @@ export default function WaveSelect({ ref, icon, ...props }: SelectHTMLAttributes
   useLayoutEffect(() => {
     const node = native.current;
     if (!node) return;
+    if (document.activeElement === node) enhanceFocused.current = true;
     const next = Array.from(node.options).map(option => ({ value: option.value, text: option.text, disabled: option.disabled || Boolean(option.closest('optgroup')?.disabled) }));
     setItems(current => JSON.stringify(current) === JSON.stringify(next) ? current : next);
     setSelected(node.value);
@@ -26,6 +29,12 @@ export default function WaveSelect({ ref, icon, ...props }: SelectHTMLAttributes
     clone?.querySelectorAll('.wave-select,select').forEach(child => child.remove());
     setLabel(props['aria-label'] || labelled || clone?.textContent?.trim() || props.title || '선택');
   }, [props.children, props.value, props.defaultValue, props['aria-label'], props['aria-labelledby'], props.title]);
+  useLayoutEffect(() => {
+    if (enhanced && enhanceFocused.current) {
+      enhanceFocused.current = false;
+      trigger.current?.focus({ preventScroll: true });
+    }
+  }, [enhanced]);
   function close() { setOpen(false); trigger.current?.focus({ preventScroll: true }); }
   function choose(index: number) {
     const node = native.current, item = items[index];
@@ -55,7 +64,8 @@ export default function WaveSelect({ ref, icon, ...props }: SelectHTMLAttributes
       if (!anchor) return;
       if (innerHeight - anchor.getBoundingClientRect().bottom < 160) anchor.scrollIntoView({ block: 'center', behavior: 'instant' });
       const rect = anchor.getBoundingClientRect();
-      if (rect) setPlacement(current => ({ ...current, top: rect.bottom + 8, left: Math.max(12, Math.min(rect.left, innerWidth - current.width - 12)), maxHeight: Math.max(80, Math.min(280, innerHeight - rect.bottom - 20)) }));
+      const width = Math.min(Math.max(rect.width, 180), innerWidth - 24);
+      setPlacement({ top: rect.bottom + 8, left: Math.max(12, Math.min(rect.left, innerWidth - width - 12)), width, maxHeight: Math.max(80, Math.min(280, innerHeight - rect.bottom - 20)) });
     };
     document.addEventListener('pointerdown', dismiss);
     window.addEventListener('scroll', reposition, true);
@@ -69,12 +79,12 @@ export default function WaveSelect({ ref, icon, ...props }: SelectHTMLAttributes
     // Scroll only the menu: scrollIntoView can also move the page and its anchor.
     if (option.offsetTop < list.scrollTop) list.scrollTop = option.offsetTop;
     else if (option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = option.offsetTop + option.offsetHeight - list.clientHeight;
-  }, [active, open]);
+  }, [active, open, placement.maxHeight, placement.width]);
   return <span className="wave-select">
-    <select {...props} ref={node => { native.current = node; if (typeof ref === 'function') ref(node); else if (ref) ref.current = node; }} tabIndex={-1} aria-hidden="true" className="wave-select-native" onFocus={() => trigger.current?.focus()} onInvalid={() => trigger.current?.focus()} />
-    <button ref={trigger} type="button" role="combobox" title={icon ? `${label}: ${items.find(item => item.value === selected)?.text || ''}` : props.title} data-icon-action={icon ? '' : undefined} aria-label={label} aria-expanded={open} aria-controls={open ? id : undefined} aria-haspopup="listbox" disabled={props.disabled || !items.length} aria-busy={!items.length} className={`wave-select-trigger ${props.className || ''}`} style={props.style} onClick={() => open ? close() : show()} onKeyDown={event => { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) { event.preventDefault(); show(); } }}>
+    <select {...props} ref={node => { native.current = node; if (typeof ref === 'function') ref(node); else if (ref) ref.current = node; }} tabIndex={enhanced ? -1 : props.tabIndex} aria-hidden={enhanced || undefined} className={enhanced ? 'wave-select-native' : `wave-select-trigger ${props.className || ''}`} onFocus={() => { if (enhanced) trigger.current?.focus(); }} onInvalid={() => trigger.current?.focus()} />
+    {enhanced && <button ref={trigger} type="button" role="combobox" title={icon ? `${label}: ${items.find(item => item.value === selected)?.text || ''}` : props.title} data-icon-action={icon ? '' : undefined} aria-label={label} aria-expanded={open} aria-controls={open ? id : undefined} aria-haspopup="listbox" disabled={props.disabled} className={`wave-select-trigger ${props.className || ''}`} style={props.style} onClick={() => open ? close() : show()} onKeyDown={event => { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) { event.preventDefault(); show(); } }}>
       {icon ? <NightIcon name={icon} size={20}/> : items.find(item => item.value === selected)?.text || '\u00a0'}
-    </button>
+    </button>}
     {open && portal && createPortal(<div ref={menu} id={id} role="listbox" aria-label={label} aria-activedescendant={`${id}-${active}`} tabIndex={-1} className="wave-select-menu" style={placement} data-placement="below" onKeyDown={event => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); }
       else if (event.key === 'Tab') { close(); }

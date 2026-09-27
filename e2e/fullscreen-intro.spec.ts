@@ -13,7 +13,7 @@ test('first visit shows the logo intro with keyboard skip and session-only compl
   await page.keyboard.press('Escape'); await expect(scene).toBeHidden();
   expect(await page.evaluate(()=>sessionStorage.getItem('wave-arrival-session-v1'))).toBe('done');
   await page.reload(); await storyReady(page); await expect(scene).toBeHidden();
-  await expect(page.getByRole('link',{name:'여행지 둘러보기',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'여행지 검색',exact:true})).toBeVisible();
 });
 
 test('reduced motion bypasses intro without loading its renderer',async({page})=>{
@@ -24,7 +24,7 @@ test('reduced motion bypasses intro without loading its renderer',async({page})=
   await expect(page.locator('.arrival-scene')).toBeHidden();
   await expect(page.locator('#arrival-boot')).toHaveCount(0);
   expect(requests.filter(url=>/wave-intro(?:\.|-)/.test(url))).toEqual([]);
-  await expect(page.getByRole('link',{name:'여행지 둘러보기',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'여행지 검색',exact:true})).toBeVisible();
 });
 
 test('blocked scripts leave the page readable without a boot overlay',async({page})=>{
@@ -33,6 +33,7 @@ test('blocked scripts leave the page readable without a boot overlay',async({pag
   await page.goto('/',{waitUntil:'domcontentloaded'});
   await expect(page.locator('#arrival-boot')).toHaveCount(0);
   await expect(page.locator('.arrival-scene')).toBeHidden();
-  await expect(page.locator('.landing-actions a')).toBeVisible();
-  await expect(page.locator('.landing-actions a')).toHaveAttribute('href','/planner');
+  await expect(page.locator('.night-hero-search button[type=submit]')).toBeVisible();
+  await expect(page.locator('.night-hero-search')).toHaveAttribute('action','/planner');
+  await expect(page.locator('.night-hero-search button[type=submit]')).toBeEnabled();
 });

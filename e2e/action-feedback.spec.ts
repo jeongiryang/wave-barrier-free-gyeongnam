@@ -69,3 +69,62 @@ test('a blocked trip write reports failure and never shows saved feedback', asyn
   await expect(add).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.simple-results > .simple-place-list .place-save-feedback').first()).toBeEmpty();
 });
+for (const responseStatus of [200, 401, 503]) test(`late like status ${responseStatus} after logout cannot change guest state, redirect or announce feedback`,async({page,context})=>{
+ let signedIn=true, started=false, release!:()=>void; const pending=new Promise<void>(r=>{release=r;});
+ const post={id:'session-like-check',category:'review',title:'계정 경계 공감 확인',content:'로컬 합성 기록',authorName:'검증',createdAt:Date.now(),updatedAt:Date.now(),region:'창원',likeCount:0,commentCount:0,likedByMe:false,isOwner:false};
+ await context.route('**/*',route=>{const u=new URL(route.request().url());if(u.origin!=='http://127.0.0.1:4173')return route.abort();if(u.pathname.startsWith('/api/'))return route.fulfill({status:503,json:{error:'Unconfigured synthetic request'}});return route.continue();});
+ // Both tabs use one synthetic account state; no external API requests are allowed.
+ async function install(p: import('@playwright/test').Page){
+ await mockPublicShellApi(p);
+ await p.route('**/api/auth/get-session',r=>r.fulfill({json:signedIn?{user:{id:'old-user',name:'이전 사용자',email:'old@example.test'},session:{id:'synthetic-session'}}:null}));
+ await p.route('**/api/auth/sign-out',r=>{signedIn=false;return r.fulfill({json:{success:true}});});
+ await p.route('**/api/community/posts/session-like-check',r=>{return r.fulfill({json:{post,comments:[]}});});
+ }
+ await install(page);
+ await page.route('**/api/community/posts/session-like-check/like',async r=>{started=true;await pending;await r.fulfill({status:responseStatus,json:responseStatus===200?{liked:true,likeCount:1}:{error:'이전 계정의 실패'}}).catch(()=>{});});
+ await page.addInitScript(()=>{(window as unknown as {qaToasts:unknown[]}).qaToasts=[];window.addEventListener('wave:action-toast',event=>(window as unknown as {qaToasts:unknown[]}).qaToasts.push((event as CustomEvent).detail));});
+ await page.goto('/community/session-like-check');const like=page.locator('.community-like');await expect(like).toBeEnabled();await like.click();await expect.poll(()=>started).toBe(true);
+ try{
+ const other=await context.newPage();await install(other);await other.goto('/community/session-like-check');
+ await other.getByRole('button',{name:'WAVE 이용 안내 메뉴',exact:true}).click();
+ await other.locator('.wave-header').getByRole('button',{name:'계정 관리',exact:true}).click();
+ await other.getByRole('button',{name:'로그아웃',exact:true}).click();
+ await expect.poll(()=>signedIn).toBe(false);await page.bringToFront();
+ await expect(page.getByRole('button',{name:'로그인하고 댓글 쓰기',exact:true})).toBeVisible();
+ await expect(like).toHaveAttribute('aria-pressed','false');await expect(like).toBeEnabled();
+ const response=page.waitForResponse(r=>r.url().endsWith('/api/community/posts/session-like-check/like'));release();await (await response).finished();await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+ await expect(like).toHaveAttribute('aria-pressed','false');await expect(page).toHaveURL(/\/community\/session-like-check$/);expect(await page.evaluate(()=>(window as unknown as {qaToasts:unknown[]}).qaToasts)).toEqual([]);await expect(page.locator('.detail-message')).toHaveCount(0);
+ }finally{release();}
+});
+
+
+
+
+for (const status of [200, 503]) test(`late like status ${status} after leaving article does not leak feedback`, async ({ page }) => {
+  await page.route('**/*', route => {
+    const url = new URL(route.request().url());
+    if (url.origin !== 'http://127.0.0.1:4173') return route.abort();
+    if (url.pathname.startsWith('/api/')) return route.fulfill({ status: 503, json: { error: 'Unconfigured synthetic request' } });
+    return route.continue();
+  });
+  await mockPublicShellApi(page);
+  await page.route('**/api/auth/get-session', route => route.fulfill({ json: { user: { id: 'leaving-user', name: '검증 여행자' }, session: { id: 'synthetic' } } }));
+  const post = { id: 'leaving-check', category: 'review', title: '이전 글의 공감 확인', content: '합성 기록', authorName: '검증', createdAt: Date.now(), updatedAt: Date.now(), region: '창원', likeCount: 0, commentCount: 0, likedByMe: false, isOwner: false };
+  await page.route('**/api/community/posts/leaving-check', route => route.fulfill({ json: { post, comments: [] } }));
+  await page.route('**/api/community/posts?*', route => route.fulfill({ json: { posts: [], page: 1, hasMore: false } }));
+  let started = false, release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/community/posts/leaving-check/like', async route => { started = true; await pending; await route.fulfill({ status, json: status === 200 ? { liked: true, likeCount: 1 } : { error: '이전 글의 실패' } }).catch(() => {}); });
+  await page.addInitScript(() => { (window as unknown as { qaToasts: unknown[] }).qaToasts = []; window.addEventListener('wave:action-toast', event => (window as unknown as { qaToasts: unknown[] }).qaToasts.push((event as CustomEvent).detail)); });
+  await page.goto('/community/leaving-check');
+  await page.locator('.community-like').click(); await expect.poll(() => started).toBe(true);
+  try {
+    await page.locator('.detail-back').click(); await expect(page).toHaveURL(/\/community$/);
+    await expect(page.locator('.community-like')).toHaveCount(0);
+    const response = page.waitForResponse(r => r.url().endsWith('/api/community/posts/leaving-check/like'));
+    release(); await (await response).finished();
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    expect(await page.evaluate(() => (window as unknown as { qaToasts: unknown[] }).qaToasts)).toEqual([]);
+    await expect(page).toHaveURL(/\/community$/);
+  } finally { release(); }
+});

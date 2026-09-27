@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool, naruDialog } from "./naru-tool-fixtures";
 import { openSupportMenu } from "./support-menu";
 import { expect, type Page } from "@playwright/test";
@@ -120,7 +121,7 @@ export async function changeMapLanguage(page: Page, english: boolean) {
   await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
   if (await preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).getAttribute('aria-expanded') !== 'true') await preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
-  await preferences.getByRole("combobox", { name: /^(언어|Language)$/ }).selectOption(english ? "en" : "ko");
+  await chooseWaveOption(preferences.getByRole("combobox", { name: /^(언어|Language)$/ }), english ? "en" : "ko");
   await preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   await page.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
 }

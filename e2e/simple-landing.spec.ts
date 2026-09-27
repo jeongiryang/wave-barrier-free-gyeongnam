@@ -1,7 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { regionShowcaseAlbums } from "../features/landing/region-showcase-photos";
-import { arrivalPlaybackReady, pauseCurrentClock } from './landing-contract';
+import { arrivalPlaybackReady, pauseCurrentClock, expectUsableTarget } from './landing-contract';
+import { waveSelectNative } from './wave-select-fixture';
 import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
 import { awardHeroImage, mockAwardHero } from './landing-photo-fixture';
 
@@ -32,7 +34,7 @@ async function freshAnimatedArrival(page: Page) {
 test("approved arrival completes its 12.731-second playback and exposes keyboard dismissal", async ({ page }) => {
   await freshAnimatedArrival(page);
   const scene = page.locator(".arrival-scene");
-  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
+  const action = page.locator(".landing-hero-split").getByRole("button", { name: "여행지 검색", exact: true });
   await expect(scene).toHaveAttribute("open", "");
   await arrivalPlaybackReady(page);
   await expect(scene.locator('img, video')).toHaveCount(0);
@@ -59,7 +61,7 @@ test("approved arrival completes its 12.731-second playback and exposes keyboard
 test("the skip action exposes the real planning link", async ({ page }) => {
   await freshAnimatedArrival(page);
   await page.locator(".arrival-scene").getByRole("button", { name: "건너뛰기" }).click();
-  await page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true }).click();
+  await page.locator(".landing-hero-split").getByRole("button", { name: "여행지 검색", exact: true }).click();
   await expect(page).toHaveURL(url => url.pathname === "/planner");
   expect(await page.evaluate(() => sessionStorage.getItem("wave-arrival-session-v1"))).toBe("done");
 });
@@ -69,7 +71,7 @@ test("keyboard users can dismiss the arrival with Escape", async ({ page }) => {
   await freshAnimatedArrival(page);
   await page.keyboard.press("Escape");
   await expect(page.locator(".arrival-scene")).toBeHidden();
-  const action = page.locator(".landing-hero-split").getByRole("link", { name: "여행지 둘러보기", exact: true });
+  const action = page.locator(".landing-hero-split").getByRole("button", { name: "여행지 검색", exact: true });
   await action.focus(); await expect(action).toBeFocused();
 });
 
@@ -85,16 +87,29 @@ for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the 
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  const hero = page.locator(".landing-hero-split"), copy = hero.locator(".landing-hero-copy"), photograph = page.locator(".landing-opening .award-panorama");
+  const hero = page.locator(".landing-hero-split"), copy = hero.locator(".landing-hero-copy"), scenery = page.locator('.scenic-background-home'), photograph = scenery.locator('.award-panorama');
   await expect(copy).toBeVisible();
-  const planning = page.locator('.landing-actions a');
-  // Hydration can precede Vite's client stylesheet handoff. Wait for the
-  // required paint, then inspect its colors; a missing gradient still fails.
-  await expect(planning).toHaveCSS('background-image', /linear-gradient\(/);
-  const gradient = await planning.evaluate(node => getComputedStyle(node).backgroundImage);
-  expect(gradient).toContain('linear-gradient');
-  expect(gradient).toContain('rgb(45, 107, 183)');
-  expect(gradient).toContain('rgb(110, 49, 220)');
+  const search = hero.locator('.night-hero-search');
+  const region = search.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true });
+  const planning = search.getByRole('button', { name: '여행지 검색', exact: true });
+  await expect(search).toHaveAttribute('action', '/planner');
+  await expect(planning).toHaveAttribute('type', 'submit');
+  await expect(waveSelectNative(region)).toHaveAttribute('name', 'region');
+  await expectUsableTarget(region);
+  await region.press('ArrowDown');
+  const menu = page.getByRole('listbox', { name: '어디로 떠나고 싶으세요?', exact: true });
+  await expect(menu).toBeVisible();
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(region).toBeFocused();
+  await expect(region).toHaveText('거제');
+  await expect(waveSelectNative(region)).toHaveValue('거제');
+  await page.keyboard.press('Tab');
+  await expect(planning).toBeFocused();
+  await expectUsableTarget(planning);
+  expect((await new AxeBuilder({ page }).include('.night-hero-search').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await expect(scenery).toHaveCSS('position', 'fixed');
   await expect(photograph.locator("img")).toBeVisible();
   await expect.poll(() => photograph.locator("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const copyBox = (await copy.boundingBox())!, photoBox = (await photograph.boundingBox())!;
@@ -105,6 +120,14 @@ for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the 
   await expect(photograph.locator("img")).toHaveAttribute("src", awardHeroImage);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: info.outputPath(`simple-hero-${width}.png`) });
+
+  // Complete the submitted form with the keyboard, then inspect the independent
+  // eighteen-region gallery on a fresh landing render.
+  await planning.press('Enter');
+  await expect(page).toHaveURL(url => url.pathname === '/planner' && url.searchParams.get('region') === '거제');
+  await expect(waveSelectNative(page.getByRole('combobox', { name: '여행 지역', exact: true }))).toHaveValue('거제');
+  await page.goto('/');
+  await expect(search).toBeVisible();
 
   const grid = page.locator(".simple-region-grid"), cards = grid.locator("article");
   await expect(cards).toHaveCount(firstRegions.length);

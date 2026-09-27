@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
@@ -37,7 +38,7 @@ for (const theme of ["light", "dark"] as const) test(`English preference with Ko
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const stop = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   expect(await language(stop)).toBe("ko");
-  await stop.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption("2026-10-09");
+  await chooseWaveOption(stop.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-10-09");
   await stop.getByRole("button", { name: "적용", exact: true }).click();
   await itinerary.getByRole("button", { name: /^2일차/ }).click(); await expect(rows).toContainText("경남도립미술관");
   await expect(rows.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true })).toBeDisabled();
@@ -59,7 +60,7 @@ for (const theme of ["light", "dark"] as const) test(`English preference with Ko
   for (const width of [320, 960, 1366]) {
     await page.setViewportSize({ width, height: 844 });
     editor = await settings(page); await editor.getByLabel("하루 시작", { exact: true }).focus();
-    for (const control of await editor.locator("input,select,button").all()) {
+    for (const control of await editor.locator("input,button").all()) {
       if (!await control.isVisible()) continue;
       const box = await control.boundingBox(); expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.x + box!.width).toBeLessThanOrEqual(width);
       expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
@@ -82,13 +83,13 @@ test("changing locale updates translated journey evidence while preserving Korea
   await tools(page); await closeNaruTool(page); await openSupportMenu(page);
   const preferences = page.locator(".preference-controls:visible");
   await preferences.getByLabel("Open preferences", { exact: true }).click();
-  await preferences.getByLabel("Language", { exact: true }).selectOption("ko");
+  await chooseWaveOption(preferences.getByRole('combobox', { name: "Language", ...{ exact: true } }), "ko");
   await expect(page.locator(".itinerary-route-coverage")).toContainText("경로가 있어도 휠체어 통행");
   await expect(receipt).toHaveText(notice, { useInnerText: true }); expect(await records(page)).toEqual(before);
-  await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+  await chooseWaveOption(preferences.getByRole('combobox', { name: "언어", ...{ exact: true } }), "en");
   await expect(page.locator(".itinerary-route-coverage")).toContainText("Route availability does not confirm wheelchair access");
   await expect(receipt).toHaveText(notice, { useInnerText: true }); expect(await records(page)).toEqual(before);
-  await preferences.getByLabel("Language", { exact: true }).focus(); await expect(preferences.getByLabel("Language", { exact: true })).toBeFocused();
+  await preferences.getByRole('combobox', { name: "Language", ...{ exact: true } }).focus(); await expect(preferences.getByRole('combobox', { name: "Language", ...{ exact: true } })).toBeFocused();
 });
 
 test("optional audio loads on request and a missing module leaves itinerary editing usable", async ({ page }) => {

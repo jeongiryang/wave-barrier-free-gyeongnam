@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { withRouteCoverage } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -23,7 +24,7 @@ for (const continuing of [false, true]) test(`a delayed automatic search ${conti
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await region.focus();
-    await region.selectOption("창원");
+    await chooseWaveOption(region, "창원");
     await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "true");
     if (continuing) await page.keyboard.press("Shift+Tab");
     const focused = await page.evaluateHandle(() => document.activeElement);
@@ -74,7 +75,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     // real first-map request distinct from the automatic coverage being held;
     // later mode changes now correctly reuse coverage rather than fetch twice.
     await page.locator(".wave-header").locator(".wave-my-trips").click();
-    await page.locator(".simple-initial-setup").getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
+    await chooseWaveOption(page.locator(".simple-initial-setup").getByRole("combobox", { name: "이동 수단", exact: true }), "car");
     await openPlannerMap(page);
     await openRouteDetails(page);
     await withRouteCoverage(page);
@@ -120,7 +121,7 @@ test("route selection stays under the pointer while map rendering settles", asyn
   await openPlannerMap(page);
   await openRouteDetails(page);
   await withRouteCoverage(page);
-  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
+  await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
   const arrival = page.locator("#itinerary-stop-1001 time");
   await expect(arrival).toHaveText("10:25");
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();

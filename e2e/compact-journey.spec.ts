@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { prepareStory, storyReady, firstRegions, expectNoOverflow } from "./landing-contract";
@@ -7,7 +8,7 @@ test("compact browsing preserves an existing undated trip when replacing the old
   await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toBeEnabled(); await region.selectOption("창원");
+  await expect(region).toBeEnabled(); await chooseWaveOption(region, "창원");
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   const saved = await page.evaluate(() => localStorage.getItem("wave-current-trip-v1"));
   await page.evaluate(() => {

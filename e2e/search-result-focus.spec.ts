@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { openNaruTool, naruDialog } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -31,7 +32,7 @@ async function prepare(page: Page, en = false, crowdRate?: number) {
 }
 
 async function collectMuseum(page: Page, en: boolean) {
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await page.getByRole("button", { name: en ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-09-20" });
 }
@@ -139,7 +140,7 @@ test("keyboard region selection updates results without stealing input focus or 
   const before = { url: page.url(), history: await page.evaluate(() => history.length) };
   await region.focus();
   await region.press("Home"); await region.press("ArrowDown"); await region.press("Enter");
-  await expect(region).toHaveValue("창원");
+  await expect(waveSelectNative(region)).toHaveValue("창원");
   await expect(page.locator("#places")).toBeVisible();
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator("#places .simple-results h2").first()).toHaveText(en ? "창원 places" : "창원 여행지");
@@ -205,7 +206,7 @@ test("a pending automatic search keeps keyboard input usable and does not duplic
   });
   await region.focus();
   await region.press("Home"); await region.press("ArrowDown"); await region.press("Enter");
-  await expect(region).toHaveValue("창원");
+  await expect(waveSelectNative(region)).toHaveValue("창원");
   try {
     await expect.poll(() => requests).toBe(1);
     await expect(region).toBeFocused();
@@ -226,7 +227,7 @@ for (const end of ["cancel", "complete", "elsewhere"] as const) test("all-journe
   await openNaruTool(page, '이동 구간 확인');
   const coverage = page.locator(".itinerary-route-coverage");
   const transport = coverage.getByRole("combobox");
-  await transport.selectOption("car");
+  await chooseWaveOption(transport, "car");
   const check = coverage.locator(".coverage-actions button").first();
   await expect(coverage.getByRole("status")).toHaveText(en ? "1 of 1 journeys found for this transport" : "선택한 이동수단: 전체 1구간 중 1구간 확인");
   await expect(check).toHaveAttribute("aria-busy", "false");

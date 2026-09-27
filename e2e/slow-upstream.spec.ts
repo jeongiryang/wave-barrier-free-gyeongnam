@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { routeTools } from './departure-fixtures';
 import { expect, test } from "@playwright/test";
 import { CLIENT_BUDGET_MS, SERVER_BUDGET_MS } from "../lib/request-budget.js";
@@ -44,7 +45,7 @@ test("느리지만 성공한 경로 응답을 버리지 않는다", async ({ pag
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.locator('.simple-place-row').first().locator('.simple-place-add').click(); await openItinerary(page); await routeTools(page);
-  await page.locator(".itinerary-route-coverage select").selectOption("car");
+  await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car");
   await expect(page.locator('.simple-stops')).toContainText('경남도립미술관');
   await expect(page.locator('.itinerary-route-coverage')).toContainText('25분 · Kakao Mobility', { timeout: 25_000 });
 });

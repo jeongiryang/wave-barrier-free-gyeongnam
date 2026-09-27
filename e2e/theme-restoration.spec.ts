@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -43,7 +44,7 @@ for (const source of ["archive", "shared"] as const) test(`${source}: restoring 
   await setup(page);
   if (source === "archive") {
     await page.goto("/planner");
-    await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+    await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
     await page.getByRole("button", { name: "자연·휴양", exact: true }).click();
     await page.getByRole("button", { name: "음식", exact: true }).click();
     await selectAccessPath(page);
@@ -114,7 +115,7 @@ for (const color of ["light", "dark"]) test(`shared redesign protects the curren
   await setup(page);
   await page.addInitScript(color => localStorage.setItem("wave-theme", color), color);
   await page.goto("/planner");
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await page.getByRole("button", { name: "자연·휴양", exact: true }).click();
   await selectAccessPath(page);
   await addAndSave(page);

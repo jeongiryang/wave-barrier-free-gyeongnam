@@ -12,22 +12,25 @@ test('landing photographs rotate promptly without consecutive repeats and respec
   });
   await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
   await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.clock.install();
   await page.goto('/');
-  for (const section of ['.landing-opening']) {
+  for (const section of ['.scenic-background-home']) {
     const panorama = page.locator(`${section} .award-panorama`);
     await panorama.scrollIntoViewIfNeeded();
     await expect(panorama).toHaveAttribute('data-paused', 'false');
     await expect(panorama.locator('img')).toHaveCount(3);
-    await expect.poll(() => panorama.locator('img').evaluateAll(images => images.every(img => (img as HTMLImageElement).complete))).toBe(true);
+    await expect.poll(() => panorama.locator('img').evaluateAll(images => images.every(img => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth > 0))).toBe(true);
     const first = await panorama.locator('img.is-current').getAttribute('src');
     await expect(panorama.locator('img.is-current')).not.toHaveAttribute('src', first!, { timeout: 6500 });
   }
   await expect(page.locator('.landing-finale img, .landing-finale .award-panorama-credit')).toHaveCount(0);
   await expect(page.locator('.night-feature-content #naru')).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const current = page.locator('.landing-opening img.is-current');
-  await expect(page.locator('.landing-opening .award-panorama')).toHaveAttribute('data-paused', 'true');
+  const current = page.locator('.scenic-background-home img.is-current');
+  await expect(page.locator('.scenic-background-home .award-panorama')).toHaveAttribute('data-paused', 'true');
   const still = await current.getAttribute('src');
-  await page.waitForTimeout(4800);
+  // The approved fixed scenery rotates every six seconds. Advance past an
+  // entire interval to prove reduced motion stopped its timer.
+  await page.clock.fastForward(7000);
   await expect(current).toHaveAttribute('src', still!);
 });

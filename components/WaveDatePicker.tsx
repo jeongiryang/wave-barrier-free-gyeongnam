@@ -2,7 +2,7 @@
 import NightIcon from './NightIcon';
 
 
-import { useEffect, useId, useImperativeHandle, useRef, useState, useSyncExternalStore, type InputHTMLAttributes, type KeyboardEvent, type Ref } from 'react';
+import { useCallback, useEffect, useId, useImperativeHandle, useRef, useState, useSyncExternalStore, type InputHTMLAttributes, type KeyboardEvent, type Ref } from 'react';
 import { createPortal } from 'react-dom';
 import './wave-date-picker.css';
 
@@ -34,6 +34,23 @@ export default function WaveDatePicker({ label, value, onChange, min: minimum, m
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 12, maxHeight: 420 });
+  const positionCalendar = useCallback(() => {
+    const button = opener.current;
+    if (!button) return;
+    if (innerHeight - button.getBoundingClientRect().bottom < 440) { button.scrollIntoView({ block: 'start', behavior: 'instant' }); if (!button.closest('dialog')) window.scrollBy({ top: -96, behavior: 'instant' }); }
+    const rect = button.getBoundingClientRect();
+    setPosition({ top: rect.bottom + 8, left: Math.max(12, Math.min(rect.left, innerWidth - 372)), maxHeight: Math.max(100, innerHeight - rect.bottom - 20) });
+  }, []);
+  useEffect(() => {
+    let frame = 0;
+    const reposition = () => {
+      if (!dialog.current?.open) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(positionCalendar);
+    };
+    window.addEventListener('resize', reposition);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', reposition); };
+  }, [positionCalendar]);
   const [month, setMonth] = useState(() => (parse(value) || new Date()));
   const [active, setActive] = useState(value);
   const allowed = (date: string) => (!min || date >= min) && (!max || date <= max);
@@ -52,12 +69,7 @@ export default function WaveDatePicker({ label, value, onChange, min: minimum, m
     const next = clamp(iso(parse(value) || new Date()));
     setActive(next);
     setMonth(parse(next)!);
-    const button = opener.current;
-    if (button) {
-      if (innerHeight - button.getBoundingClientRect().bottom < 440) { button.scrollIntoView({ block: 'start', behavior: 'instant' }); if (!button.closest('dialog')) window.scrollBy({ top: -96, behavior: 'instant' }); }
-      const rect = button.getBoundingClientRect();
-      setPosition({ top: rect.bottom + 8, left: Math.max(12, Math.min(rect.left, innerWidth - 372)), maxHeight: Math.max(100, innerHeight - rect.bottom - 20) });
-    }
+    positionCalendar();
     dialog.current?.showModal();
     requestAnimationFrame(() => dialog.current?.querySelector<HTMLButtonElement>(`[data-date="${next}"]`)?.focus({ preventScroll: true }));
   }
@@ -89,10 +101,10 @@ export default function WaveDatePicker({ label, value, onChange, min: minimum, m
     <input {...inputProps} ref={input} aria-label={label || inputProps?.['aria-label']} type="text" inputMode="numeric" placeholder={inputProps?.placeholder || 'YYYY-MM-DD'} value={value} min={minimum} max={maximum}
       pattern="\d{4}-\d{2}-\d{2}" maxLength={10} onChange={event => { inputProps?.onChange?.(event); if (!inputProps?.onChange) onChange(event.target.value); }}
       onKeyDown={event => { inputProps?.onKeyDown?.(event); if (!event.defaultPrevented && event.key === 'ArrowDown' && event.altKey) { event.preventDefault(); open(); } }} />
-    <button ref={opener} className="wave-date-open" type="button" disabled={inputProps?.disabled || inputProps?.readOnly} aria-label={`${label || calendarLabel} 달력 열기`} aria-haspopup="dialog" onClick={open}>
+    <button ref={opener} className="wave-date-open" type="button" disabled={inputProps?.disabled || inputProps?.readOnly} aria-label={`${label || calendarLabel} 달력 열기`} aria-haspopup="dialog" aria-controls={`${id}-calendar`} onClick={open}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="4"/><path d="M7 3v4m10-4v4M3 11h18"/></svg>
     </button>
-    {mounted && createPortal(<dialog ref={dialog} className="wave-date-dialog" style={position} data-placement="below" aria-labelledby={`${id}-title`} onKeyDown={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); event.stopPropagation(); close(); }}
+    {mounted && createPortal(<dialog ref={dialog} id={`${id}-calendar`} className="wave-date-dialog" style={position} data-placement="below" aria-labelledby={`${id}-title`} onKeyDown={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); event.stopPropagation(); close(); }}
       onClick={event => { event.stopPropagation(); if (event.target === event.currentTarget) { const bounds = event.currentTarget.getBoundingClientRect(); if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) close(); } }}>
       <h2 id={`${id}-title`} className="sr-only">{calendarLabel} 날짜 선택</h2>
       <div className="wave-date-month"><button type="button" disabled={Boolean(min && iso(first) <= min)} onClick={() => changeMonth(-1)} data-icon-action="" title="이전 달"><NightIcon name="left" size={20}/><span className="sr-only">이전 달</span></button>

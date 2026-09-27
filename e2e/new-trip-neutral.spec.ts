@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test } from "@playwright/test";
@@ -25,7 +26,7 @@ test("an explicit new region trip clears this trip's facilities and activities w
   const archive = await page.evaluate(() => JSON.parse(localStorage.getItem("wave-travel-book-v1") || "[]")[0]);
   await startNewTrip(page);
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toHaveValue("");
+  await expect(waveSelectNative(region)).toHaveValue("");
   await expect(activities.locator('[aria-pressed="true"]')).toHaveCount(0);
   const requests: URL[] = [];
   await page.route("**/api/wave?**", route => {
@@ -34,7 +35,7 @@ test("an explicit new region trip clears this trip's facilities and activities w
     requests.push(url);
     return route.fulfill({ json: { ...plan, places: [], stops: [] } });
   });
-  await region.focus(); await region.selectOption("고성");
+  await region.focus(); await chooseWaveOption(region, "고성");
   await expect(region).toBeFocused();
   await expect.poll(() => requests.length).toBe(1);
   expect(requests[0].searchParams.get("region")).toBe("고성");

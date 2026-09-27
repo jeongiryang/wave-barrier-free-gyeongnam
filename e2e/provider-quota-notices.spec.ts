@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { chooseTripConditions, mockPlannerApi, plan, openItinerary } from "./fixtures";
@@ -54,10 +55,10 @@ for (const en of [false,true]) {
     await expect(page.locator(".simple-empty")).toHaveCount(0);
     await expect(page.locator(".simple-place-row")).toHaveCount(0);
     const recovery=notice.getByRole('button', { name: en ? 'Retry' : '다시 시도', exact: true });
-    const before = calls; const conditions = await page.getByRole('combobox', { name: '여행 지역' }).inputValue();
+    const before = calls; const conditions = await waveSelectNative(page.getByRole('combobox', { name: '여행 지역' })).inputValue();
     await recovery.focus(); await page.keyboard.press('Enter');
     await expect.poll(() => calls).toBe(before + 1);
-    await expect(page.getByRole('combobox', { name: '여행 지역' })).toHaveValue(conditions);
+    await expect(waveSelectNative(page.getByRole('combobox', { name: '여행 지역' }))).toHaveValue(conditions);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
     const axe=await new AxeBuilder({page}).analyze();
     expect(axe.violations.filter(v=>v.impact==="critical"||v.impact==="serious")).toEqual([]);

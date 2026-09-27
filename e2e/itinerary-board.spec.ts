@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -79,7 +80,7 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
   expect(await current(page)).toMatchObject({ order: { mode: "manual", ids: ["1002", "1001"] }, schedule: { dayStartTime: "08:30" } });
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
-  await editor.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption("2026-09-02");
+  await chooseWaveOption(editor.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-09-02");
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect(rows).toHaveCount(1); await itinerary.getByRole("button", { name: /^2일차/ }).click();
   await expect(rows).toHaveCount(1); await expect(rows).toContainText("경남도립미술관");
@@ -118,7 +119,7 @@ test("다른 지역으로 이동해도 이전 지역 장소가 날짜별 일정�
   await page.goto("/planner?region=진주&travelStart=2026-09-20&travelEnd=2026-09-21");
   await page.getByRole("button", { name: "진주 수목원 일정에 담기", exact: true }).click();
   const before = await current(page);
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page);
   const itinerary = page.locator("#itinerary");

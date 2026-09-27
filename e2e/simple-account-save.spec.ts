@@ -1,4 +1,4 @@
-import { chooseWaveOption } from './wave-select-fixture';
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { closeNewTripMenu, newTripAction, startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -322,7 +322,7 @@ test("저장 응답 전에 다른 여행으로 전환하면 이전 응답은 새
   await newTripAction(other); await closeNewTripMenu(other);
   await startNewTrip(other);
   await newTripAction(other); await closeNewTripMenu(other);
-  await expect(other.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+  await expect(waveSelectNative(other.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   const fresh = await stored(other);
   expect(fresh.identity?.id).not.toBe(before.identity?.id);
   expect(fresh.identity?.binding).toBeNull();

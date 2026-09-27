@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
@@ -37,7 +38,7 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   await openItinerary(page);
   const board = page.locator("#itinerary");
   let editor = await editStop(page);
-  await editor.getByLabel("경남도립미술관 장소 고정", { exact: true }).selectOption("event");
+  await chooseWaveOption(editor.getByRole('combobox', { name: "경남도립미술관 장소 고정", ...{ exact: true } }), "event");
   await editor.getByLabel("경남도립미술관 고정 도착 시각", { exact: true }).fill("13:00");
   await expect(editor.getByRole("combobox", { name: "방문 날짜", exact: true })).toBeDisabled();
   await expect(editor.getByRole("button", { name: "일정에서 빼기", exact: true })).toBeDisabled();
@@ -80,7 +81,7 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   for (const width of info.project.name.startsWith("desktop") ? [1440, 960] : [390, 320]) {
     await page.setViewportSize({ width, height: 960 });
     editor = await editStop(page);
-    await editor.getByLabel("경남도립미술관 장소 고정", { exact: true }).scrollIntoViewIfNeeded();
+    await editor.getByRole('combobox', { name: "경남도립미술관 장소 고정", ...{ exact: true } }).scrollIntoViewIfNeeded();
     await expect(editor.getByRole("combobox", { name: "방문 날짜", exact: true })).toBeDisabled();
     await expect(editor.getByRole("button", { name: "일정에서 빼기", exact: true })).toBeDisabled();
     await page.screenshot({ path: info.outputPath(`fixed-${width}.png`) });
@@ -108,7 +109,7 @@ test("fixed visits keep their date and order, and return deadlines follow the li
   expect(shares[0].profiles).toEqual([]);
   await share.getByRole("button", { name: "공유 닫기", exact: true }).click();
   editor = await editStop(page);
-  await editor.getByLabel("경남도립미술관 장소 고정", { exact: true }).selectOption("");
+  await chooseWaveOption(editor.getByRole('combobox', { name: "경남도립미술관 장소 고정", ...{ exact: true } }), "");
   await expect(editor.getByRole("combobox", { name: "방문 날짜", exact: true })).toBeEnabled();
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect(board.locator(".simple-stop > time").first()).not.toHaveText("13:00");

@@ -42,7 +42,7 @@ test("switching OS reduction on before scrolling prevents new regional motion an
   await page.setViewportSize({ width: 390, height: 568 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/"); await storyReady(page);
-  const action = page.locator(".landing-actions a");
+  const action = page.locator(".night-hero-search button[type=submit]");
   await action.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
   const previousCalls = await page.evaluate(() => [...((window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls || [])]);

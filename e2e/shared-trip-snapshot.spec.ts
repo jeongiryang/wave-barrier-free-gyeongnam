@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -56,8 +57,8 @@ async function visitDate(page: Page, name: string, value: string) {
   await page.getByRole("button", { name: `${name} 일정 수정`, exact: true }).click();
   const editor = page.getByRole("dialog", { name: `${name} 수정`, exact: true });
   const date = editor.getByRole("combobox", { name: "방문 날짜", exact: true });
-  if (await date.inputValue() === value) { await editor.getByRole("button", { name: "취소", exact: true }).click(); return; }
-  await date.selectOption(value);
+  if (await waveSelectNative(date).inputValue() === value) { await editor.getByRole("button", { name: "취소", exact: true }).click(); return; }
+  await chooseWaveOption(date, value);
   await editor.getByRole("button", { name: "적용", exact: true }).click();
 }
 async function copied(page: Page) { return page.evaluate(() => JSON.parse(sessionStorage.getItem("test-copied-links") || "[]")); }

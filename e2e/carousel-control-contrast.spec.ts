@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Locator } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
@@ -30,7 +31,7 @@ for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
-    await region.selectOption("창원");
+    await chooseWaveOption(region, "창원");
     const rows = page.locator(".simple-place-row");
     await expect(rows).toHaveCount(2);
     const row = rows.first();

@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
@@ -13,7 +14,7 @@ async function prepare(page: Page, en: boolean, theme: string, configure?: () =>
   }, { en, theme });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/planner");
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await expect(page.locator(".simple-results > .simple-place-list article")).toHaveCount(2);
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");

@@ -19,7 +19,7 @@ export function usePlaceDialogFocus(open: boolean, onClose: () => void, sidePane
       else { dialog.showModal(); document.body.style.overflow = 'hidden'; }
       dialog.scrollTop = scroll; focus?.focus({ preventScroll: true });
     };
-    present(); media.addEventListener('change', present);
+    present(); if (sidePanel) media.addEventListener('change', present);
     dialog.querySelector<HTMLElement>("h2")?.focus();
     const cancel = (event: Event) => { event.preventDefault(); onClose(); };
     dialog.addEventListener("cancel", cancel);
@@ -39,7 +39,7 @@ export function usePlaceDialogFocus(open: boolean, onClose: () => void, sidePane
     };
     dialog.addEventListener("keydown", containTab);
     return () => {
-      media.removeEventListener("change", present);
+      if (sidePanel) media.removeEventListener("change", present);
       dialog.removeEventListener("cancel", cancel);
       dialog.removeEventListener("keydown", containTab);
       if (dialog.open) dialog.close();

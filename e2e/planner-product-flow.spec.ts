@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -14,7 +15,7 @@ test("320px·390px·768px·1440px 직접 검색은 정보 상태·담기·되돌
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: width < 700 ? 844 : 900 });
     await page.goto("/planner");
-    await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+    await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
     const search = page.getByRole("combobox", { name: "여행지 검색", exact: true });
     await search.fill("파도 카페");
     await search.press("Enter");
@@ -50,7 +51,7 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     await expect(tabs.locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
-    await region.selectOption("창원");
+    await chooseWaveOption(region, "창원");
     await expect(page.locator(".simple-results").getByRole("heading", { name: "창원 여행지", exact: true })).toBeVisible();
     await expect(page.locator("#conditions")).toBeVisible();
     await expect(page.locator(".simple-itinerary-view")).toBeHidden();
@@ -77,7 +78,7 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     await expect(page.locator("#itinerary-stop-1001")).toHaveCount(0);
     await expect(page.locator("#conditions")).toBeVisible();
     await expect(tabs.locator(".wave-my-trips")).toHaveAttribute("href", "/travel-book");
-    await expect(region).toHaveValue("창원");
+    await expect(waveSelectNative(region)).toHaveValue("창원");
     await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
     await expect.poll(() => page.evaluate(() => {
       const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};
@@ -93,9 +94,10 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });
   await page.goto("/");
-  await expect(page.locator(".landing-actions a[href='/planner']")).toHaveAttribute("href", "/planner");
-  await page.locator(".landing-actions a[href='/planner']").click();
-  await expect(page).toHaveURL(/\/planner$/);
+  await expect(page.locator(".night-hero-search")).toHaveAttribute("action", "/planner");
+  await expect(page.locator(".night-hero-search button[type=submit]")).toHaveAttribute("type", "submit");
+  await page.locator(".night-hero-search button[type=submit]").click();
+  await expect(page).toHaveURL(url => url.pathname === "/planner");
 
   await page.goto("/planner#navigation");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
@@ -106,7 +108,7 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
   const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
   await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
   await picker.getByRole("button", { name: "적용 · 1개", exact: true }).click();
-  await region.selectOption("창원");
+  await chooseWaveOption(region, "창원");
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-09-20", end: "2026-09-21" });
   if ((page.viewportSize()?.width || 1440) < 1024) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();

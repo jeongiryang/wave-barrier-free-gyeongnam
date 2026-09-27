@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPublicShellApi, mockPlannerApi, openItinerary, plan } from './fixtures';
@@ -37,7 +38,7 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   await mockPlannerApi(page, {preserveView:true}); await mockPublicShellApi(page);
   await page.route('**/api/assistant', route => route.fulfill({json:{available:false}}));
   await page.goto('/planner');
-  await page.getByRole('combobox',{name:'여행 지역',exact:true}).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox',{name:'여행 지역',exact:true}), '창원');
   await page.getByRole('button',{name:'경남도립미술관 일정에 담기',exact:true}).click();
   await openItinerary(page,{start:'2026-10-14'});
   await expect(page.locator('.simple-more-trip-tools')).toHaveCount(0);
@@ -66,7 +67,7 @@ test('missing facility evidence can recover from an error without changing the s
   await mockPlannerApi(page, { preserveView: true });
   await mockPublicShellApi(page);
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
   const saved = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
   await page.locator('.simple-place-row h3 button').first().click();

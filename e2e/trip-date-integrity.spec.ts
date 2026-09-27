@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
@@ -31,7 +32,7 @@ async function prepare(page: Page, english: boolean, end = "2026-10-08", theme =
     await openSupportMenu(page);
     const preferences = page.locator(".preference-controls:visible"), trigger = preferences.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ });
     await trigger.click(); await expect(trigger).toBeFocused(); await expect(trigger).toBeInViewport();
-    await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+    await chooseWaveOption(preferences.getByRole('combobox', { name: "언어", ...{ exact: true } }), "en");
     await preferences.getByLabel("Open preferences", { exact: true }).click();
     const support = page.locator(".wave-support-menu");
     if (await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).getAttribute('aria-expanded') === 'true') await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
@@ -78,7 +79,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     const itinerary = await prepare(page, english, "2026-10-08", theme);
     await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
     const stop = page.getByRole("dialog", { name: "용지호수공원 수정", exact: true });
-    await stop.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption("2026-10-08");
+    await chooseWaveOption(stop.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-10-08");
     await stop.getByRole("button", { name: "적용", exact: true }).click();
     const editor = await settings(page);
     await editor.getByLabel("마지막 날", { exact: true }).fill("2026-10-07");
@@ -126,7 +127,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
       await expect(itinerary.locator(".simple-outside-dates")).toContainText("용지호수공원 · 2026-10-08");
       expect((await schedule(page)).scheduleAssignments["1002"]).toBe("2026-10-08");
       await itinerary.locator(".simple-outside-dates > div").filter({ hasText: "용지호수공원" }).getByRole("button", { name: "날짜 수정", exact: true }).click();
-      await stop.getByRole("combobox", { name: "방문 날짜", exact: true }).selectOption("2026-10-07");
+      await chooseWaveOption(stop.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-10-07");
       await stop.getByRole("button", { name: "적용", exact: true }).click();
       await expect(itinerary.locator(".simple-outside-dates")).toHaveCount(0);
       expect((await schedule(page)).scheduleAssignments["1002"]).toBe("2026-10-07");

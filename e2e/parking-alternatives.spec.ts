@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi } from './fixtures';
@@ -10,7 +11,7 @@ async function openParking(page: Page) {
   await mockPlannerApi(page, { plannerView: 'overview', savedPlaces: [place] });
   await page.route('**/api/wave?action=plan*', route => route.fulfill({ json: { mode: 'live', generatedAt: '2026-09-15T00:00:00Z', baseYm: '202609', places: [place], course: null, audio: null, stops: [], statuses: [] } satisfies PlanData }));
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.locator('.simple-place-row h3 button').first().click();
   const dialog = page.getByRole('dialog');
   await dialog.locator('summary').filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
@@ -135,7 +136,7 @@ test('current-position sorting requests permission only on its named action and 
   expect(await page.evaluate(() => (window as unknown as { parkingLocationCalls: () => number }).parkingLocationCalls())).toBe(0);
   await panel.getByRole('button', { name: '주변 주차장 보기', exact: true }).click();
   expect(await page.evaluate(() => (window as unknown as { parkingLocationCalls: () => number }).parkingLocationCalls())).toBe(0);
-  await panel.getByRole('combobox', { name: '기준 장소 선택', exact: true }).selectOption('parking:P1');
+  await chooseWaveOption(panel.getByRole('combobox', { name: '기준 장소 선택', exact: true }), 'parking:P1');
   expect(await page.evaluate(() => (window as unknown as { parkingLocationCalls: () => number }).parkingLocationCalls())).toBe(0);
   await panel.getByRole('button', { name: '현재 위치에서 가까운 순', exact: true }).click();
   await expect(panel.getByRole('status')).toContainText('이 기기 안에서만 비교');

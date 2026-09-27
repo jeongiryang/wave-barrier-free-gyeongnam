@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { closeNaruTool } from './naru-tool-fixtures';
 import { openDeparture, departureItem, routeTools } from './departure-fixtures';
 import AxeBuilder from "@axe-core/playwright";
@@ -25,7 +26,7 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   const check = page.getByRole("button", { name: en ? "Check all journeys" : "모든 구간 조회하기", exact: true });
   const mode = page.locator(".itinerary-route-coverage select");
   // This scenario verifies car fixtures; the current UI starts with transit.
-  await mode.selectOption("car");
+  await chooseWaveOption(mode, "car");
   await check.click();
   await expect(journeys).toContainText(count(1));
   await expect(journeys.locator('summary')).toContainText('일부 정보 있음');
@@ -35,10 +36,10 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   await expect(journeys).toContainText(count(2));
   await expect(journeys.locator('summary')).toContainText('조회한 정보 있음');
   await expect(mobility.locator('summary')).toContainText('확인할 정보 있음');
-  await mode.selectOption("walk");
+  await chooseWaveOption(mode, "walk");
   await expect(journeys).toContainText(count(0));
   await expect(journeys.locator('summary')).toContainText('확인할 정보 있음');
-  await mode.selectOption("car");
+  await chooseWaveOption(mode, "car");
   // Completed evidence is reusable only for the exact same mode and itinerary identity.
   await expect(journeys).toContainText(count(2));
   let resumeDate!: () => void; const dateGate = new Promise<void>(resolve => { resumeDate = resolve; });
@@ -47,7 +48,7 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   const stop = page.locator('.simple-stops > li').filter({ hasText: '용지호수공원' });
   await stop.getByRole('button', { name: '용지호수공원 일정 수정', exact: true }).click();
   const editor = page.getByRole('dialog', { name: '용지호수공원 수정', exact: true });
-  await editor.getByRole('combobox', { name: '방문 날짜', exact: true }).selectOption('2026-10-09');
+  await chooseWaveOption(editor.getByRole('combobox', { name: '방문 날짜', exact: true }), '2026-10-09');
   await editor.getByRole('button', { name: '적용', exact: true }).click();
   await openDeparture(page);
   await expect(journeys).toContainText('현재 일정과 선택한 이동수단의 경로를 확인하고 있습니다.');
@@ -73,7 +74,7 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   });
   try {
     await page.reload(); await openItinerary(page); await openDeparture(page); await routeTools(page);
-    await expect(mode).toHaveValue("car");
+    await expect(waveSelectNative(mode)).toHaveValue("car");
     await expect.poll(() => [...new Set(freshRoutes)].sort()).toEqual([
       "car/35.2422/128.6982/35.229/128.683",
       "car/35.2422/128.6982/35.238/128.691",

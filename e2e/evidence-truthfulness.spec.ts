@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openItinerary, plan } from "./fixtures";
 
@@ -10,7 +11,7 @@ test("명시적 편의 부재와 미확인은 분리하고 부재 장소는 일�
   await page.goto("/planner");
   await page.locator('.simple-facility-trigger').click();
   const picker=page.getByRole('dialog',{name:'필요한 편의',exact:true});await picker.getByRole('checkbox',{name:'접근로',exact:true}).check();await picker.getByRole('button',{name:/^적용/}).click();
-  await page.getByRole('combobox',{name:'여행 지역',exact:true}).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox',{name:'여행 지역',exact:true}), '창원');
   await expect(page.locator('.simple-results')).toContainText('선택한 편의가 모두 확인된 장소를 찾지 못했어요.');
   await expect(page.locator('.simple-results > .simple-place-list article')).toHaveCount(0);
   const exploration=page.getByRole('region',{name:'편의정보가 부족한 장소',exact:true});

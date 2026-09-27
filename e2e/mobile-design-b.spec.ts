@@ -23,10 +23,15 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
   }
   await page.setViewportSize({ width: 390, height: 844 });
   if (route === '/') {
-    await expect(page.locator('.landing-opening .award-panorama')).toBeVisible();
+    const background = page.locator('.scenic-background-home .award-panorama');
+    await expect(background).toBeVisible();
+    await expect(background.locator('img.is-current')).toBeVisible();
+    const backgroundBox = (await background.boundingBox())!;
+    expect(backgroundBox.x).toBe(0); expect(backgroundBox.y).toBe(0);
+    expect(backgroundBox.width).toBe(390); expect(backgroundBox.height).toBe(844);
     await expect(page.locator('.landing-hero-copy h1')).toHaveCSS('font-size', '32px');
     const shortcuts = page.locator('.night-feature-links');
-    await expect.poll(() => shortcuts.evaluate(node => node.previousElementSibling?.classList.contains('landing-opening'))).toBe(true);
+    await expect.poll(() => shortcuts.evaluate(node => Boolean(node.compareDocumentPosition(document.querySelector('#regions')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
     for (const link of (await shortcuts.getByRole('link').all()).slice(0, 4)) {
       await link.scrollIntoViewIfNeeded();
       const box = (await link.boundingBox())!;

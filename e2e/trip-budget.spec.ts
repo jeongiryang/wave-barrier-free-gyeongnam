@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool } from './naru-tool-fixtures';
 import fs from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
@@ -22,7 +23,7 @@ async function setup(page:Page){
 test('budget distinguishes unknown from zero, combines per-person and group costs and preserves saved input',async({page},info)=>{
  const panel=await setup(page),before=await page.evaluate(()=>localStorage.getItem('wave-trip-schedule-v1'));
  await expect(panel).toContainText('미확인 4항목');await expect(panel).toContainText('확인한 금액 0원');
- await panel.getByRole('combobox',{name:'함께하는 인원',exact:true}).selectOption('3');await panel.getByLabel('목표 예산 (원)',{exact:true}).fill('30000');await panel.getByRole('combobox',{name:'예산 기준',exact:true}).selectOption('person');
+ await chooseWaveOption(panel.getByRole('combobox',{name:'함께하는 인원',exact:true}), '3');await panel.getByLabel('목표 예산 (원)',{exact:true}).fill('30000');await chooseWaveOption(panel.getByRole('combobox',{name:'예산 기준',exact:true}), 'person');
  await panel.getByText('장소별 입장·이용요금',{exact:true}).click();await panel.getByLabel('경남도립미술관 입장·이용요금 (원)',{exact:true}).fill('5000');await panel.getByLabel('용지호수공원 입장·이용요금 (원)',{exact:true}).fill('0');
  await panel.locator('summary').filter({hasText:'식사·숙박과 추가 비용'}).click();await panel.getByRole('button',{name:'비용 항목 추가',exact:true}).click();await panel.getByLabel('항목 이름',{exact:true}).fill('점심');await panel.getByLabel('추가 금액 (원)',{exact:true}).fill('18000');
  await expect(panel).toContainText('확인한 금액 33,000원');await expect(panel).toContainText('전체 예산까지 57,000원 남았어요');await expect(panel).toContainText('미확인 2항목');

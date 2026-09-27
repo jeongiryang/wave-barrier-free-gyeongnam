@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails } from "./nearby-fixtures";
 import { expect, test } from "@playwright/test";
@@ -30,7 +31,7 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
     await openPlannerMap(page);
     await openRouteDetails(page);
     await withRouteCoverage(page);
-    await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
+    await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
     await expect(page.locator('.itinerary-route-coverage [role="status"]')).toContainText("전체 1구간 중 1구간 확인");
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();

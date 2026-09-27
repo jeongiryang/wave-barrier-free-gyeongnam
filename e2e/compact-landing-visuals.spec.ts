@@ -30,8 +30,13 @@ for (const theme of ["light", "dark"] as const) {
       }
       await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
       await expect(page.locator(".night-region-shortcuts button")).toHaveCount(5);
-      await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
-      for (const selector of [".landing-actions a", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
+      await expect(page.locator(".simple-naru-example")).toHaveAttribute("aria-label", "대화 예시");
+      await expect(page.locator(".simple-naru-example .example-undo")).toHaveAccessibleName("예시 일정에 적용");
+      await page.locator(".simple-naru-example .example-undo").click();
+      await expect(page.locator(".simple-naru-example .example-duration strong")).toHaveText("90분");
+      await page.getByRole("button", { name: "되돌리기", exact: true }).click();
+      await expect(page.locator(".simple-naru-example .example-duration strong")).toHaveText("60분");
+      for (const selector of ['.night-hero-search > button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
         await expectUsableTarget(page.locator(selector));
       }
       await expectNoOverflow(page);
@@ -51,14 +56,14 @@ for (const locale of ["ko", "en"] as const) {
     await skip.focus(); await skip.press("Enter");
     await expect(page.locator("#top")).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(page.locator("#landing-region")).toBeFocused();
+    const region = page.locator('.night-hero-search [role="combobox"]');
+    await expect(region).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.getByRole("button", {name:locale === "en" ? "Find places" : "여행지 검색",exact:true})).toBeFocused();
-    await page.keyboard.press("Tab");
-    const explore = page.locator(".landing-actions a");
-    await expect(explore).toBeFocused();
-    await expect(explore).toHaveAccessibleName(locale === "en" ? "Explore places" : "여행지 둘러보기");
-    await expect(explore).toHaveAttribute("href", "/planner");
+    const search = page.locator('.night-hero-search > button[type="submit"]');
+    await expect(search).toHaveAccessibleName(locale === "en" ? "Find places" : "여행지 검색");
+    await expect(page.locator('.night-hero-search')).toHaveAttribute('action', '/planner');
+    await expectUsableTarget(search);
     await expect(page.locator("#story .night-journey-input > .night-primary")).toHaveAttribute("href", /^\/planner\?region=/);
     await openLandingTools(page);
     await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAccessibleName(locale === "en" ? "Chat with Naru" : "나루와 대화하기");
@@ -68,5 +73,10 @@ for (const locale of ["ko", "en"] as const) {
     }
     await openSupportMenu(page); await expectUsableTarget(page.locator(".wave-support-menu .mobile-menu-link[href='/travel-book']"));
     await expectNoOverflow(page);
+    await page.keyboard.press('Escape'); await region.focus(); await region.press('ArrowDown');
+    await page.keyboard.press('Home'); await page.keyboard.press('Enter');
+    await expect(region).toHaveText('통영'); await page.keyboard.press('Tab');
+    await expect(search).toBeFocused(); await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(url => url.pathname === '/planner' && url.searchParams.get('region') === '통영');
   });
 }

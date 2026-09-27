@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { closeNaruTool } from './naru-tool-fixtures';
 import { openSupportMenu } from './support-menu';
 import AxeBuilder from '@axe-core/playwright';
@@ -48,8 +49,8 @@ test('language changes preserve departure evidence, calendar feedback and itiner
   await menu.getByRole('button', { name: '캘린더', exact: true }).click(); await expect(menu.getByRole('status')).toContainText('캘린더 파일을 내려받았어요'); await menu.getByRole('button', { name: '공유 닫기' }).click();
   const before = await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'));
   await openSupportMenu(page); const preferences = page.locator('.preference-controls:visible'); await preferences.getByLabel('Open preferences', { exact: true }).click();
-  await preferences.getByLabel('Language', { exact: true }).selectOption('ko'); await expect(page.getByRole('main')).toHaveAttribute('lang', 'ko');
-  await preferences.getByLabel('언어', { exact: true }).selectOption('en'); await expect(page.getByRole('main')).toHaveAttribute('lang', 'en');
+  await chooseWaveOption(preferences.getByRole('combobox', { name: 'Language', ...{ exact: true } }), 'ko'); await expect(page.getByRole('main')).toHaveAttribute('lang', 'ko');
+  await chooseWaveOption(preferences.getByRole('combobox', { name: '언어', ...{ exact: true } }), 'en'); await expect(page.getByRole('main')).toHaveAttribute('lang', 'en');
   expect(await page.evaluate(() => localStorage.getItem('wave-trip-schedule-v1'))).toBe(before); expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-saved-places') || '[]'))).toEqual(['1001']);
 });
 test('refresh preserves keyboard focus while waiting and after its response', async ({ page }) => {

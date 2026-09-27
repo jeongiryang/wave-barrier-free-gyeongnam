@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { withRouteCoverage } from "./nearby-fixtures";
 import { openPlannerMap, openRouteDetails, changeMapLanguage, ensureMapView } from "./nearby-fixtures";
 import AxeBuilder from "@axe-core/playwright";
@@ -16,7 +17,7 @@ async function prepare(page: Page, setup?: () => Promise<void>) {
   await openRouteDetails(page);
   await withRouteCoverage(page);
   await expect(page.locator(".simple-stops > li")).toHaveCount(1);
-  await withRouteCoverage(page, async () => { await page.locator(".itinerary-route-coverage select").selectOption("car"); });
+  await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
   // The selected map journey and the automatic itinerary check are separate
   // operations. Let the automatic check finish before measuring a later action.
   const coverage = page.locator(".itinerary-route-coverage");

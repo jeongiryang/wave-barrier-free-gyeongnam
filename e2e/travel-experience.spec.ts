@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -21,9 +22,8 @@ async function setup(page: Page) {
   await expect(
     page.getByRole("combobox", { name: "여행 지역", exact: true }),
   ).toBeEnabled();
-  await page
-    .getByRole("combobox", { name: "여행 지역", exact: true })
-    .selectOption("창원");
+  await chooseWaveOption(page
+    .getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   for (const p of plan.places)
     await page
       .getByRole("button", { name: `${p.name} 일정에 담기`, exact: true })
@@ -87,9 +87,8 @@ test("pace preview, apply and undo preserve itinerary; sensory reports and passp
     .getByRole("button", { name: "경남 여행여권", exact: true })
     .click();
   await page.getByLabel("참여 날짜", { exact: true }).fill("2026-09-15");
-  await page
-    .getByRole("combobox", { name: "참여 방식", exact: true })
-    .selectOption("story");
+  await chooseWaveOption(page
+    .getByRole("combobox", { name: "참여 방식", exact: true }), "story");
   await page.getByRole("button", { name: "내 여행여권에 기록" }).click();
   await expect(
     page.getByText("음성·글로 만난 풍경: 1개", { exact: true }),

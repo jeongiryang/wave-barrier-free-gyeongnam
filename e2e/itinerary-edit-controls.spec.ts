@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -16,7 +17,7 @@ for (const { en, theme, width } of [{ en: false, theme: "light", width: 960 }, {
       await openSupportMenu(page);
       const preferences = page.locator(".preference-controls:visible");
       await preferences.getByLabel("환경설정 열기", { exact: true }).click();
-      await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await chooseWaveOption(preferences.getByRole('combobox', { name: "언어", ...{ exact: true } }), "en");
       await preferences.getByLabel("Open preferences", { exact: true }).click();
       const support = page.locator(".wave-support-menu");
       if (await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).getAttribute('aria-expanded') === 'true') await support.getByRole('button', { name: /^(WAVE 이용 안내 메뉴|WAVE support menu)$/ }).click();
@@ -32,7 +33,7 @@ for (const { en, theme, width } of [{ en: false, theme: "light", width: 960 }, {
     const editButton = panel.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true });
     await editButton.focus(); await editButton.press("Enter");
     const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true }), date = editor.getByRole("combobox", { name: "방문 날짜", exact: true });
-    await date.selectOption("2026-10-09"); await editor.getByRole("button", { name: "적용", exact: true }).click();
+    await chooseWaveOption(date, "2026-10-09"); await editor.getByRole("button", { name: "적용", exact: true }).click();
     await expect(panel.locator(".simple-stops > li")).toHaveCount(0);
     await panel.getByRole("button", { name: /^3일차/ }).click();
     await expect(panel.locator(".simple-stops > li")).toHaveCount(1);
@@ -49,7 +50,7 @@ for (const { en, theme, width } of [{ en: false, theme: "light", width: 960 }, {
     }
     expect((await new AxeBuilder({ page }).include('dialog[aria-labelledby="trip-settings-title"]').analyze()).violations).toEqual([]);
     await settings.getByRole("button", { name: "취소", exact: true }).click();
-    await editButton.click(); await expect(date).toHaveValue("2026-10-09");
+    await editButton.click(); await expect(waveSelectNative(date)).toHaveValue("2026-10-09");
     for (const control of [date, editor.getByRole("button", { name: "일정에서 빼기", exact: true }), editor.getByRole("button", { name: "적용", exact: true })]) {
       const box = await control.boundingBox(); expect(box!.height).toBeGreaterThanOrEqual(44); expect(box!.width).toBeGreaterThanOrEqual(44);
     }

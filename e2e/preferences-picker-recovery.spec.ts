@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
@@ -17,7 +18,7 @@ for (const path of ["/planner", "/community"]) {
     await expect(language).toBeFocused();
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Enter");
-    await expect(details.getByRole("combobox", { name: "Language", exact: true })).toHaveValue("en");
+    await expect(waveSelectNative(details.getByRole("combobox", { name: "Language", exact: true }))).toHaveValue("en");
     await expect(details.getByText("Some pages are in Korean", { exact: true })).toBeVisible();
     // Original Korean content retains the document language; translated
     // sections carry their own language tags under the existing policy.

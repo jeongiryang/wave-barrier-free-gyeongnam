@@ -73,7 +73,8 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   // Measure the displayed, interactive page while retaining every target and size check.
   await expect(page.locator(".wave-header .wave-wordmark")).toBeVisible();
   await expect(page.locator(".wave-header .wave-my-trips")).toBeVisible();
-  const targets = page.locator(".wave-header .wave-wordmark, .wave-header nav a, .wave-header .wave-my-trips, .landing-actions a[href='/planner']");
+  await expect(page.locator('.night-hero-search > button[type="submit"]')).toHaveAccessibleName('여행지 검색');
+  const targets = page.locator('.wave-header .wave-wordmark, .wave-header nav a, .wave-header .wave-my-trips, .night-hero-search > button[type="submit"]');
   const sizes = await targets.evaluateAll((nodes) => nodes.map((node) => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || node.getAttribute("aria-label") || "조작", width: rect.width, height: rect.height };
@@ -83,7 +84,7 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "전체 18개 지역", exact: true }).click();
   await expect(page.locator(".simple-region-link")).toHaveCount(18);
-  sizes.push(...await page.locator(".simple-region-link, .simple-search-bar select, .simple-facility-trigger").evaluateAll(nodes => nodes.map(node => {
+  sizes.push(...await page.locator('.simple-region-link, .simple-search-bar [role="combobox"], .simple-facility-trigger').evaluateAll(nodes => nodes.map(node => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || "지역", width: rect.width, height: rect.height };
   })));

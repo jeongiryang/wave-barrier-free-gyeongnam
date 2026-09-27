@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 
@@ -10,7 +11,7 @@ test("Naru reveals restored and keyboard focus without moving a control during a
   await page.goto("/planner");
   const activity = page.getByRole("button", { name: "자연·휴양", exact: true });
   await expect(activity).toBeEnabled();
-  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+  await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   // Arrange a real selectable control below the fold and wide enough to overlap
   // the avatar. The hero's production spacing is independent of this focus race.
   await activity.evaluate(element => {

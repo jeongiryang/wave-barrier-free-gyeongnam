@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { prepareLandingMedia } from './landing-contract';
 
@@ -18,10 +19,11 @@ async function holdStartup(page: Page, path = '/') {
 }
 
 async function expectReadableLanding(page: Page) {
-  await expect(page.locator('#arrival-boot,.arrival-scene,.wave-intro,:modal')).toHaveCount(0);
+  await expect(page.locator('#arrival-boot,.arrival-scene[open],.wave-intro,:modal')).toHaveCount(0);
   await expect(page.locator('html')).not.toHaveAttribute('data-intro-pending');
   await expect(page.locator('#landing-title')).toBeVisible();
-  await expect(page.locator('.landing-actions a')).toBeVisible();
+  await expect(page.locator('.night-hero-search')).toBeVisible();
+  await expect(page.locator('.night-hero-search')).toHaveAttribute('action', '/planner');
   await expect(page.getByRole('button', { name: '여행지 검색', exact: true })).toBeVisible();
 }
 
@@ -39,7 +41,7 @@ for (const width of [390, 960, 1440]) test(`${width}px first paint exposes the r
   const held = await holdStartup(page);
   try {
     await expectReadableLanding(page);
-    const planning = page.locator('.landing-actions a');
+    const planning = page.getByRole('button', { name: '여행지 검색', exact: true });
     await tabTo(page, planning);
     const painted = await planning.evaluate(node => {
       const box = node.getBoundingClientRect();
@@ -70,19 +72,21 @@ for (const mode of ['seen', 'reduced'] as const) test(`${mode} visitors can read
   } finally { held.releaseApp(); }
 });
 
-for (const action of ['planning link', 'region search'] as const) test(`keyboard ${action} works before app hydration without an intro dismissal`, async ({ page }) => {
+for (const action of ['planning submit', 'region search'] as const) test(`keyboard ${action} works before app hydration without an intro dismissal`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const held = await holdStartup(page);
   try {
     await expectReadableLanding(page);
-    if (action === 'planning link') {
-      const planning = page.locator('.landing-actions a');
+    if (action === 'planning submit') {
+      const planning = page.getByRole('button', { name: '여행지 검색', exact: true });
       await tabTo(page, planning);
       await planning.press('Enter');
-      await expect(page).toHaveURL(/\/planner$/);
+      await expect(page).toHaveURL(url => url.pathname === '/planner');
     } else {
       const region = page.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true });
       await tabTo(page, region);
+      // While the entry is held, this is the visible, native SSR fallback.
+      await expect(region).toHaveJSProperty('tagName', 'SELECT');
       await region.selectOption('창원');
       await page.keyboard.press('Tab');
       const search = page.getByRole('button', { name: '여행지 검색', exact: true });
@@ -98,12 +102,12 @@ for (const path of ['/login', '/#regions']) test(`${path} intentional navigation
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const held = await holdStartup(page, path);
   try {
-    await expect(page.locator('#arrival-boot,.arrival-scene,.wave-intro')).toHaveCount(0);
+    await expect(page.locator('#arrival-boot,.arrival-scene[open],.wave-intro')).toHaveCount(0);
     await expect(page.locator('html')).not.toHaveAttribute('data-intro-pending');
     await expect(page.locator('main').first()).toBeVisible();
     held.releaseApp();
     await page.waitForFunction(hydrated);
-    await expect(page.locator('#arrival-boot,.arrival-scene,.wave-intro')).toHaveCount(0);
+    await expect(page.locator('#arrival-boot,.arrival-scene[open],.wave-intro')).toHaveCount(0);
     await expect(page.locator('main').first()).toBeVisible();
     expect(new URL(page.url()).pathname + new URL(page.url()).hash).toBe(path);
   } finally { held.releaseApp(); }
@@ -119,8 +123,34 @@ test('failed application and photo loading leave the first planning action usabl
   await expect.poll(() => failedEntries).toBeGreaterThan(0);
   expect(await page.evaluate(hydrated)).toBe(false);
   await expectReadableLanding(page);
-  const planning = page.locator('.landing-actions a');
+  const planning = page.getByRole('button', { name: '여행지 검색', exact: true });
   await tabTo(page, planning);
   await planning.press('Enter');
-  await expect(page).toHaveURL(/\/planner$/);
+  await expect(page).toHaveURL(url => url.pathname === '/planner');
+});
+
+test('a selected region and its keyboard focus survive native-to-custom hydration', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const held = await holdStartup(page);
+  try {
+    const region = page.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true });
+    await expect(region).toHaveJSProperty('tagName', 'SELECT');
+    await tabTo(page, region);
+    await region.press('Home');
+    await region.press('ArrowDown');
+    await expect(region).toHaveValue('거제');
+    await expect(region).toBeFocused();
+    held.releaseApp();
+    await page.waitForFunction(hydrated);
+    await expect(region).toHaveJSProperty('tagName', 'BUTTON');
+    await expect(region).toBeFocused();
+    await expect(region).toHaveText('거제');
+    await expect(waveSelectNative(region)).toHaveValue('거제');
+    await expectReadableLanding(page);
+    await page.keyboard.press('Tab');
+    const search = page.getByRole('button', { name: '여행지 검색', exact: true });
+    await expect(search).toBeFocused();
+    await search.press('Enter');
+    await expect(page).toHaveURL(url => url.pathname === '/planner' && url.searchParams.get('region') === '거제');
+  } finally { held.releaseApp(); }
 });

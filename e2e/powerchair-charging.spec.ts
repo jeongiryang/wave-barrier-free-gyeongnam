@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -26,7 +27,7 @@ async function openArrivalPreview(page: Page) {
   } satisfies PlanData }));
   await page.route("**/api/community/posts?*", (route) => route.fulfill({ json: { posts: [] } }));
   await page.goto("/planner");
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await page.locator(".simple-facility-trigger").click();
   const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
   await picker.getByRole("checkbox", { name: "장애인 주차구역", exact: true }).check();

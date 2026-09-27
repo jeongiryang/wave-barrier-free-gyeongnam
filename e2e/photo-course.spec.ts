@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { buildExifJpeg } from "../tests/helpers/exif-jpeg.mjs";
@@ -57,14 +58,14 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
   // EXIF coordinates group photos locally; they cannot infer a region that will
   // be sent to a provider. A typed place name does not grant that permission.
   await expect(placeName).toHaveValue("방문지 1");
-  await expect(stopRegion).toHaveValue("");
+  await expect(waveSelectNative(stopRegion)).toHaveValue("");
   await expect(officialLookup).toBeDisabled();
   expect(outgoingSpotPhotoUrls).toHaveLength(0);
   await placeName.fill("남해 독일마을");
-  await expect(stopRegion).toHaveValue("");
+  await expect(waveSelectNative(stopRegion)).toHaveValue("");
   await expect(officialLookup).toBeDisabled();
   expect(outgoingSpotPhotoUrls).toHaveLength(0);
-  await stopRegion.selectOption("남해");
+  await chooseWaveOption(stopRegion, "남해");
   await expect(officialLookup).toBeEnabled();
   expect(outgoingSpotPhotoUrls).toHaveLength(0);
 
@@ -81,7 +82,7 @@ test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식�
   await page.getByRole("button", { name: "여행 조건에 반영하기" }).click();
   await expect(page).toHaveURL(/\/planner\?[^#]*region=%EB%82%A8%ED%95%B4/);
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toHaveValue("남해");
+  await expect(waveSelectNative(region)).toHaveValue("남해");
   await expect(page.locator(".simple-results").getByRole("heading", { name: "남해 여행지", exact: true })).toBeVisible();
   const period = () => page.evaluate(() => {
     const values = JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values || {};

@@ -173,14 +173,21 @@ export default function PlannerAssistant(props: Props) {
     const media = window.matchMedia('(max-width: 800px)');
     const present = () => {
       if (!dialog) return;
-      // Reopening the parent must not cover its active settings dialog.
+      // Reopening the parent must not cover its own active settings or portal calendar.
       const settings = dialog.querySelector<HTMLDialogElement>('.naru-guidance-settings[open]');
-      const focused = settings?.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
-      settings?.close();
+      const calendar = Array.from(dialog.querySelectorAll<HTMLButtonElement>('.wave-date-open[aria-controls]'))
+        .map(button => document.getElementById(button.getAttribute('aria-controls')!))
+        .find((node): node is HTMLDialogElement => node instanceof HTMLDialogElement && node.open);
+      const child = settings || calendar;
+      const focused = dialog.contains(document.activeElement) || child?.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
+      const scroll = dialog.scrollTop, childScroll = child?.scrollTop;
+      child?.close();
       if (dialog.open) dialog.close();
       if (media.matches || size === 'large') dialog.showModal(); else dialog.show();
       resizeInput();
-      settings?.showModal(); focused?.focus({ preventScroll: true });
+      child?.showModal(); focused?.focus({ preventScroll: true });
+      dialog.scrollTo({ top: scroll, behavior: 'instant' });
+      if (child && childScroll !== undefined) child.scrollTo({ top: childScroll, behavior: 'instant' });
     };
     present();
     media.addEventListener('change', present);

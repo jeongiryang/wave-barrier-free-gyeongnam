@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { test, expect } from '@playwright/test';
 import { mockPlannerApi } from './fixtures';
 import { prepareStory, storyReady } from './landing-contract';
@@ -7,7 +8,7 @@ test('short search explains the requirement, returns focus, and never queries a 
   const requests: string[] = [];
   page.on('request', request => { if (request.url().includes('/api/location-search')) requests.push(request.url()); });
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   const input = page.getByRole('combobox', { name: '여행지 검색', exact: true });
   await input.fill('창');
   await page.locator('.simple-direct-search-form').getByRole('button', { name: '검색', exact: true }).click();
@@ -51,10 +52,10 @@ test('unavailable panorama photos keep navigation and introduction readable', as
   await page.route('https://tong.visitkorea.or.kr/broken.webp', route => route.abort());
   await page.goto('/');
   await storyReady(page);
-  await expect(page.locator('.landing-opening .award-panorama img')).toHaveCount(0);
-  await expect(page.locator('.landing-opening .award-panorama-credit')).toHaveCount(0);
+  await expect(page.locator('.scenic-background-home .award-panorama img')).toHaveCount(0);
+  await expect(page.locator('.scenic-background-home .award-panorama-credit')).toHaveCount(0);
   await expect(page.locator('.landing-hero-copy h1')).toBeVisible();
-  await expect(page.locator('.landing-actions a')).toBeVisible();
-  await page.locator('.landing-actions a').click();
+  await expect(page.locator('.night-hero-search button[type=submit]')).toBeVisible();
+  await page.locator('.night-hero-search button[type=submit]').click();
   await expect(page).toHaveURL(/\/planner/);
 });

@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { showItineraryMap } from './fixtures';
 import { openSupportMenu } from "./support-menu";
 import { expect, test } from "@playwright/test";
@@ -23,7 +24,7 @@ for (const entry of ["toolbar", "panel"] as const) {
       const preferences = page.locator(".preference-controls:visible");
       await openSupportMenu(page);
       await preferences.getByLabel(previous === "ko" ? "환경설정 열기" : "Open preferences", { exact: true }).click();
-      await preferences.getByLabel(previous === "ko" ? "언어" : "Language", { exact: true }).selectOption(locale);
+      await chooseWaveOption(preferences.getByLabel(previous === "ko" ? "언어" : "Language", { exact: true }), locale);
       await openSupportMenu(page);
       await preferences.getByLabel(locale === "ko" ? "환경설정 열기" : "Open preferences", { exact: true }).click();
       previous = locale;

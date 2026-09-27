@@ -16,7 +16,7 @@ for (const seenBefore of [false, true]) {
     await expect(scene.locator('img, video')).toHaveCount(0);
     await expect(scene.locator('.wave-intro canvas')).toBeVisible();
     await expect(scene.getByRole("button", { name: "건너뛰기" })).toBeFocused();
-    const action = page.locator(".landing-actions a");
+    const action = page.locator(".night-hero-search button[type=submit]");
     const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
     await page.clock.fastForward(INTRO_DURATION_MS - elapsed + 100);
     await expect(scene).toBeHidden();

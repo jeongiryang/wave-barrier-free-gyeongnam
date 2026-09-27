@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -59,7 +60,7 @@ async function openFacilitiesStep(page: Page) {
     Object.defineProperty(window, "kakao", { value: { maps }, writable: true });
   });
   await page.goto("/planner");
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await page.locator(".simple-place-row h3 button").click();
   const dialog = page.getByRole("dialog");

@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
@@ -35,7 +36,7 @@ for (const locale of ["ko", "en"] as const) {
     await page.goto("/");
     await storyReady(page);
     const copy = page.locator(".landing-hero-copy");
-    const planning = page.locator(".landing-actions a[href='/planner']");
+    const planning = page.locator(".night-hero-search button[type=submit]");
     await expect(copy).toHaveCSS("opacity", "1");
     await page.locator(".simple-region-grid").scrollIntoViewIfNeeded();
     // Keep the primary message painted even outside the viewport: returning
@@ -71,7 +72,7 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator(".simple-region-entry .simple-region-link")).toHaveCount(6);
     expect(searches).toHaveLength(0);
     expect((await currentTrip(page)).profiles).toEqual([]);
-    await region.selectOption("창원");
+    await chooseWaveOption(region, "창원");
     await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
     const add = page.getByRole("button", { name: en ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기", exact: true });
     await expect(add).toBeEnabled();
@@ -116,7 +117,7 @@ for (const locale of ["ko", "en"] as const) {
       await page.goto("/planner?travelStart=2026-09-20&travelEnd=2026-09-21");
       await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toBeEnabled();
       await expect(page.locator('.simple-activity-filter [aria-pressed="true"]')).toHaveCount(0);
-      await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+      await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
       await expect(page.locator('.simple-region-entry [aria-pressed="true"]')).toHaveCount(0);
       expect((await currentTrip(page)).profiles).toEqual([]);
       await page.getByRole("button", { name: "경남 전체 둘러보기", exact: false }).click();
@@ -199,7 +200,7 @@ for (const locale of ["ko", "en"] as const) {
     const results = page.locator("#places");
     await expect(results.getByRole("alert")).toBeVisible();
     await expect(results.locator(".simple-place-row")).toHaveCount(0);
-    await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("경남 전체");
+    await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("경남 전체");
     const before = await currentTrip(page);
     expect(before.profiles).toEqual([]);
     expect(before.schedule).toMatchObject({ travelStart: "2026-09-20", travelEnd: "2026-09-21" });
@@ -253,7 +254,7 @@ for (const locale of ["ko", "en"] as const) {
       const picker = page.getByRole("dialog", { name: "필요한 편의", exact: true });
       await picker.getByRole("checkbox", { name: "접근로", exact: true }).check();
       await picker.getByRole("button", { name: /^적용/ }).click();
-      await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+      await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
       const results = page.locator("#places");
       const museumName = en ? "경남도립미술관 add to itinerary" : "경남도립미술관 일정에 담기";
       const lakeName = en ? "용지호수공원 add to itinerary" : "용지호수공원 일정에 담기";

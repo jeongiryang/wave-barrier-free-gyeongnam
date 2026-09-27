@@ -1,3 +1,4 @@
+import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { closeNewTripMenu, newTripAction, startNewTrip } from './planner-header-fixtures';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -69,7 +70,7 @@ async function browse(page: Page) {
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
   await expect(region).toBeEnabled();
-  await region.selectOption("창원");
+  await chooseWaveOption(region, "창원");
   await expect(page.locator(".simple-place-row")).toHaveCount(2);
   await expect(page.getByRole("button", { name: `${museum} 일정에 담기`, exact: true })).toBeEnabled();
 }
@@ -90,7 +91,7 @@ async function timetable(page: Page, end = "2026-10-14") {
   await setup.getByLabel("시작일", { exact: true }).fill("2026-10-14");
   await setup.getByLabel("마지막 날", { exact: true }).fill(end);
   await setup.getByLabel("하루 시작", { exact: true }).fill("09:30");
-  await setup.getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("car");
+  await chooseWaveOption(setup.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
   await setup.getByRole("button", { name: "시간표 만들기", exact: true }).click();
   await expect(page.locator(".simple-timeboard")).toBeVisible();
   await expect.poll(async () => (await current(page)).schedule.travelMode).toBe("car");
@@ -166,7 +167,7 @@ test("첫 날짜 설정 뒤 장소 수정은 적용 전까지 보존되고 취�
   const before = await current(page);
   expect(before.schedule).toMatchObject({ travelStart: "2026-10-14", travelEnd: "2026-10-15", dayStartTime: "09:30", scheduleAssignments: { "1001": "2026-10-14", "1002": "2026-10-15" } });
   let dialog = await editor(page);
-  await dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }).selectOption("180");
+  await chooseWaveOption(dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), "180");
   expect((await current(page)).schedule).toEqual(before.schedule);
   await noOverflow(page, ".simple-dialog");
   await dialog.screenshot({ path: info.outputPath("stop-editor.png") });
@@ -175,7 +176,7 @@ test("첫 날짜 설정 뒤 장소 수정은 적용 전까지 보존되고 취�
   await expect(dialog).not.toBeVisible();
   expect((await current(page)).schedule).toEqual(before.schedule);
   dialog = await editor(page);
-  await dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }).selectOption("180");
+  await chooseWaveOption(dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), "180");
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => (await current(page)).schedule.visitMinutesByPlaceId["1001"]).toBe(180);
   await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머묾");
@@ -189,7 +190,7 @@ test("새 여행은 미정 날짜의 이전 여행을 백업하고 다시 열어
   await browse(page); await add(page, museum); await add(page, lake);
   const before = await current(page);
   await startNewTrip(page);
-  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+  await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   await expect.poll(async () => (await current(page)).ids).toEqual([]);
   const fresh = await current(page), archived = await books(page);
   expect(fresh.identity?.id).not.toBe(before.identity?.id);
@@ -219,7 +220,7 @@ test("저장 버튼 하나로 첫 저장 후 날짜·체류·장소 변경을 �
   const first = (await books(page))[0];
   expect((await current(page)).identity).toMatchObject({ id: first.tripId, binding: { kind: "local", id: first.id } });
   const stop = await editor(page);
-  await stop.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }).selectOption("180");
+  await chooseWaveOption(stop.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), "180");
   await stop.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => (await books(page))[0].visitMinutesByPlaceId["1001"]).toBe(180);
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();
@@ -249,13 +250,13 @@ test("다른 탭에서 새 여행을 열면 기존 편집 초안과 자동 저�
   await expect(page.locator(".simple-save-control [role=status]")).toBeVisible();
   const old = await current(page), archived = await books(page);
   const stop = await editor(page);
-  await stop.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }).selectOption("180");
+  await chooseWaveOption(stop.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), "180");
   const other = await context.newPage();
   await prepare(other, info);
   await other.goto("/planner");
   await newTripAction(other); await closeNewTripMenu(other);
   await startNewTrip(other);
-  await expect(other.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+  await expect(waveSelectNative(other.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   await expect.poll(async () => (await current(other)).ids).toEqual([]);
   const fresh = await current(other);
   expect(fresh.identity?.id).not.toBe(old.identity?.id);
@@ -279,7 +280,7 @@ test("다른 탭에서 새 여행을 열면 기존 편집 초안과 자동 저�
     await dialog.accept();
   });
   await page.getByRole("button", { name: "현재 여행 불러오기", exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue("");
+  await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue("");
   expect(await current(page)).toEqual(fresh);
 });
 
@@ -289,14 +290,14 @@ test("여행 설정 취소·적용·되돌리기가 날짜와 이동을 보존�
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();
   let settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
   await settings.getByLabel("마지막 날", { exact: true }).fill("2026-10-15");
-  await settings.getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("walk");
+  await chooseWaveOption(settings.getByRole("combobox", { name: "이동 수단", exact: true }), "walk");
   expect((await current(page)).schedule).toEqual(before.schedule);
   await settings.getByRole("button", { name: "취소", exact: true }).click();
   expect((await current(page)).schedule).toEqual(before.schedule);
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();
   settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
   await settings.getByLabel("마지막 날", { exact: true }).fill("2026-10-15");
-  await settings.getByRole("combobox", { name: "이동 수단", exact: true }).selectOption("walk");
+  await chooseWaveOption(settings.getByRole("combobox", { name: "이동 수단", exact: true }), "walk");
   await settings.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => (await current(page)).schedule.travelMode).toBe("walk");
   expect((await current(page)).schedule.scheduleAssignments).toEqual(before.schedule.scheduleAssignments);
@@ -366,13 +367,13 @@ test("비교 후보가 한 곳이면 조건을 몰래 바꾸지 않고 검색 �
   });
   await page.goto('/planner');
   const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
-  await region.selectOption('창원');
+  await chooseWaveOption(region, '창원');
   await expect(page.locator('.simple-place-row')).toHaveCount(1);
   await page.getByRole('button', { name: '편의 비교', exact: true }).click();
   await expect(page.getByText('현재 목록에는 비교할 장소가 1곳뿐이에요.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: '검색 조건 확인', exact: true }).click();
   await expect(region).toBeFocused();
-  await expect(region).toHaveValue('창원');
+  await expect(waveSelectNative(region)).toHaveValue('창원');
   await expect(page.locator('.simple-place-row')).toHaveCount(1);
 });
 

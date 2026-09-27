@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, chooseTripConditions, openItinerary } from "./fixtures";
@@ -52,7 +53,7 @@ test("모바일 경남 18개 지역 사진은 44px 조작 영역과 선택 가�
   });
   await page.getByRole("button", { name: `${representativeName} 지역 선택`, exact: true }).click();
   await search;
-  await expect(page.getByRole("combobox", { name: "여행 지역", exact: true })).toHaveValue(representativeName);
+  await expect(waveSelectNative(page.getByRole("combobox", { name: "여행 지역", exact: true }))).toHaveValue(representativeName);
 });
 
 test("모바일 지도 기본·추가 도구는 44px 영역과 빠짐없는 접근 경로를 유지한다", async ({ page }) => {

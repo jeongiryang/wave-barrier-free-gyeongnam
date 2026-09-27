@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -14,7 +15,7 @@ async function openPlanner(page: Page) {
 }
 
 async function collectMuseum(page: Page) {
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
 }
 
@@ -52,7 +53,7 @@ test("편의 선택 전·초안·적용·해제의 문구가 완결되고 자동
   await expect(trigger).toHaveAccessibleName("필요한 편의 · 1개");
   expect(searches).toHaveLength(0);
 
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "여행 지역", exact: true }), "창원");
   await expect(page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true })).toBeEnabled();
   expect(searches).toHaveLength(1);
   expect(searches[0].searchParams.get("facilityKeys")).toBe("route");

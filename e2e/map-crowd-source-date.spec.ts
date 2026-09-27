@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi, openItinerary, plan, showItineraryMap } from './fixtures';
 
@@ -26,7 +27,7 @@ for (const baseYmd of ['20260918', '', '20260230']) test(`지도 혼잡 예측�
     return route.fallback();
   });
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.getByRole('button', { name: '경남도립미술관 일정에 담기', exact: true }).click();
   await openItinerary(page, { start: '2026-09-21', end: '2026-09-21' });
   await showCrowdMap(page);

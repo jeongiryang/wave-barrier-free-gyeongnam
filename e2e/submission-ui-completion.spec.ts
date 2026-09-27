@@ -1,3 +1,4 @@
+import { waveSelectNative } from './wave-select-fixture';
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, mockPublicShellApi, openItinerary, plan } from './fixtures';
@@ -91,7 +92,7 @@ test('공식 탐색 후보 버튼이 이름을 채워 직접 검색을 실행한
   await page.getByRole('combobox', { name: '여행 지역', exact: true }).click();await page.getByRole('option',{name:'창원',exact:true}).click();
   await expect(page.locator('.official-exploration')).toBeVisible();
   await page.getByRole('button', { name: '이 관광지 검색', exact: true }).click();
-  await expect(page.getByRole('combobox', { name: '여행지 검색', exact: true })).toHaveValue('창원 경남도립미술관');
+  await expect(waveSelectNative(page.getByRole('combobox', { name: '여행지 검색', exact: true }))).toHaveValue('창원 경남도립미술관');
   await expect.poll(() => query).toBe('창원 경남도립미술관');
 });
 

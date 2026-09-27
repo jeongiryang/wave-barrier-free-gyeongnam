@@ -1,3 +1,4 @@
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
@@ -36,7 +37,7 @@ test("visiting hours load on request, compare changed times and reuse the same r
   await expect(hours).toContainText("머무는 동안 이용시간이 끝나요.");
   await board.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const stop = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
-  await stop.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true }).selectOption("30");
+  await chooseWaveOption(stop.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true }), "30");
   await stop.getByRole("button", { name: "적용", exact: true }).click();
   await expect(hours).toContainText("시간대 일치");
   await hours.locator("summary").click();
