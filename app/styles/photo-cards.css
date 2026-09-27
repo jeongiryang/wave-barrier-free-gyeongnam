@@ -136,3 +136,23 @@ html:root body .wave-night .simple-place-row>.simple-place-copy{order:3;width:10
 html:root body .wave-night .simple-place-row:not(:has(.simple-place-heading))>.simple-place-copy{padding-top:16px;border-top:1px solid #8bb8ca66}
 html:root body .wave-night .simple-place-row>.place-card-actions{order:4;margin:0;padding:8px 18px 18px;background:#123246}
 html:root body .wave-night .simple-place-row :is(.simple-place-heading,.simple-place-copy)>*{background:none!important;backdrop-filter:none;text-shadow:none}
+
+/* Itinerary cards keep time in the blue rail and all copy below the photograph. */
+html:root body .wave-night .simple-stops>li{min-height:0;padding:0;background:#163a52;text-shadow:none;overflow:hidden}
+html:root body .wave-night .simple-stop{display:grid;grid-template-columns:72px minmax(0,1fr);gap:0;align-items:stretch}
+html:root body .wave-night .simple-stop>time{grid-column:1;grid-row:1;display:flex;align-items:flex-start;justify-content:center;padding:22px 8px;background:#1955a9;color:#fff;font-weight:700;text-shadow:none}
+html:root body .wave-night .simple-stop-card{grid-column:2;min-width:0;background:#0e2639}
+html:root body .wave-night .simple-stop-card>.night-stop-photo{position:relative;inset:auto;z-index:auto;width:100%;height:auto;aspect-ratio:16/7;border-radius:0;opacity:1;border-bottom:1px solid #75a9c466}
+html:root body .wave-night .simple-stop-card>.night-stop-photo img{width:100%;height:100%;object-fit:cover}
+html:root body .wave-night .simple-stop-copy{padding:16px 18px 8px;background:#0e2639}
+html:root body .wave-night .simple-stop-title{display:flex;align-items:center;justify-content:space-between;gap:12px}
+html:root body .wave-night .simple-stop-title h3{margin:0}
+html:root body .wave-night .simple-stop-copy :is(h3,p),html:root body .wave-night .simple-stop-details>p{width:auto;max-width:none;padding:0;background:none!important;backdrop-filter:none;color:#e8f4ff;text-shadow:none}
+html:root body .wave-night .simple-stop-copy>p{margin-top:6px;color:#b9cee0}
+html:root body .wave-night .simple-stop-details{margin:0;padding:0 18px 18px;background:#0e2639;color:#b9cee0}
+html:root body .wave-night .simple-stop-controls{margin-top:10px}
+html:root body .wave-night .simple-edit-stop{flex:0 0 44px}
+html:root body .wave-night .simple-itinerary-heading-actions{display:flex;align-items:center;gap:10px}
+html:root body .wave-night .simple-itinerary-heading-actions>button{min-height:44px;padding:10px 14px;border:1px solid #315c7d;border-radius:8px;background:#0e2639;color:#dff1ff}
+html:root body .wave-night .simple-itinerary-heading-actions>.simple-start-over{padding-inline:18px}
+@media(max-width:600px){html:root body .wave-night .simple-stop{grid-template-columns:58px minmax(0,1fr)}html:root body .wave-night .simple-stop>time{padding-inline:5px;font-size:13px}html:root body .wave-night .simple-stop-card>.night-stop-photo{aspect-ratio:4/3}html:root body .wave-night .simple-itinerary-heading{align-items:flex-start;flex-direction:column}html:root body .wave-night .simple-itinerary-heading-actions{width:100%;flex-wrap:wrap}}
