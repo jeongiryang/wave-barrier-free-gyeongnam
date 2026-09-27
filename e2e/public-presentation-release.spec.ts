@@ -51,7 +51,7 @@ for (const restored of [false, true]) for (const path of ["/", "/planner", "/com
     await expect(textSize.getByRole('radio')).toHaveCount(3);
     await expect(textSize.getByRole('radio', { name: '기본 16px', exact: true })).toBeChecked();
     await expect(preferences.getByRole('button', { name: /^색 구분 보조/ })).toBeVisible();
-    await expect(preferences).toContainText('기기 설정과 관계없이 애니메이션을 재생합니다.');
+    await expect(preferences).toContainText('읽기 편한 화면으로 조정합니다.');
     expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
     await preferences.locator(".preference-panel").screenshot({ path: testInfo.outputPath("public-preferences.png") });
     await page.keyboard.press("Escape");

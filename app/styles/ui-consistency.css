@@ -262,10 +262,13 @@ html:root body .wave-night .travel-book-empty>a{display:inline-flex;align-items:
 @media(max-width:600px){html:root body .wave-night .community-detail .detail-actions{flex-direction:row;flex-wrap:wrap;align-items:center}html:root body .wave-night .comments-heading{grid-template-columns:1fr;gap:4px}html:root body .wave-night .comment-form>div{align-items:flex-start}html:root body .wave-night .comment-form>div>span{align-self:flex-end;flex-wrap:wrap}html:root body .wave-night .comment-form button{width:auto}}
 html:root[data-color-assist=on] body .status-shape{display:inline-block}
 @media(max-width:600px){html:root body .planner-simple .naru-discovery{left:8px;right:auto;flex-direction:row-reverse}}
-@media(prefers-reduced-motion:reduce){html:root,html:root body *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){html:root,html:root body *{scroll-behavior:auto!important}html:root body :is(.simple-region,.simple-region *,.community-list .community-skeleton-card,.naru-welcome-bubble){animation:none!important;transition:none!important}}
 
 html:root body .wave-night .map-unavailable{background:#163b59}
 
 html:root body .wave-night .route-mode-sections button{grid-template-columns:auto minmax(72px,1fr) minmax(0,auto)}
 html:root body .scenic-page .night-festival-preview-cards>a>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 html:root body .scenic-page .simple-region-link>div>span{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+
+html:root body .wave-night :is(.night-region-shortcuts button[aria-pressed=true],.region-picker-list button[aria-pressed=true] span){color:#fff;opacity:1}
+@media(min-width:901px){html:root body .wave-night .route-map-shell.drawer-open .map-controls-layout{right:396px}}

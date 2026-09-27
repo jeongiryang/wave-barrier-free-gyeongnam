@@ -23,11 +23,13 @@ async function setupPlanner(page: Page) {
 test('the equipment rental list opens from the help request "기기가 고장 났어요" situation, with no server calls', async ({ page }) => {
   await setupPlanner(page);
   await openNaruTool(page, '이동 구간 확인');
-  await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
+
   // Route checks start after a 650ms debounce, beyond networkidle's 500ms window.
   // Wait for the itinerary's completed state before auditing this local-only tool.
   await expect(page.locator('.coverage-notice')).toContainText('조회가 끝났습니다.');
   await expect(page.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
+  await openNaruTool(page, '여행 당일 안내');
+  await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
   await page.waitForLoadState('networkidle');
   const apiCallUrls: string[] = [];
   await page.route('**/api/**', route => { apiCallUrls.push(route.request().url()); return route.fulfill({ status: 503, json: { error: 'must not be called' } }); });
@@ -69,11 +71,13 @@ test('the departure readiness "보조기기" item has no automatic dialing and n
 test('help request offline flow keeps working after the equipment situation is added', async ({ page }) => {
   await setupPlanner(page);
   await openNaruTool(page, '이동 구간 확인');
-  await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
+
   // Route checks start after a 650ms debounce, beyond networkidle's 500ms window.
   // Wait for the itinerary's completed state before auditing this local-only tool.
   await expect(page.locator('.coverage-notice')).toContainText('조회가 끝났습니다.');
   await expect(page.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
+  await openNaruTool(page, '여행 당일 안내');
+  await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
   await page.waitForLoadState('networkidle');
   const apiCallUrls: string[] = [];
   await page.route('**/api/**', route => { apiCallUrls.push(route.request().url()); return route.fulfill({ status: 503, json: { error: 'must not be called' } }); });

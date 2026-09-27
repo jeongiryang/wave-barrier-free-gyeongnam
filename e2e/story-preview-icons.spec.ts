@@ -69,7 +69,7 @@ test('festival icon sort still opens below and keeps selected option',async({pag
  await expect(menu).toHaveCount(0);await expect(sort).toBeFocused();
  const filters=page.getByRole('button',{name:'축제 검색 조건',exact:true});
  if(await filters.isVisible() && await filters.getAttribute('aria-expanded')==='false') await filters.click();
- await expect(page.getByRole('button',{name:'축제 검색하기',exact:true})).toHaveAttribute('data-icon-action','');
+ await expect(page.getByRole('searchbox',{name:'행사명 검색',exact:true})).toBeVisible();
 });
 
 test('all regions share the illustrated map and scroll does not change selection',async({page})=>{
