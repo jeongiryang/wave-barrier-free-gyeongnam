@@ -68,9 +68,14 @@ test("pace preview, apply and undo preserve itinerary; sensory reports and passp
   await page
     .getByRole("button", { name: "감각지도·지금 현장", exact: true })
     .click();
-  await expect(page.getByText("소리: 미확인", { exact: true })).toHaveCount(2);
-  await page.getByRole("button", { name: "쉬는 곳", exact: true }).click();
-  await expect(page.getByText("쉬는 곳: 미확인", { exact: true })).toHaveCount(
+  await expect(page.getByText("휠체어 이동: 미확인", { exact: true })).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "소리", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "혼잡", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "쉬는 곳", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "빛", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "화장실", exact: true }).click();
+  await expect(page.locator(".restroom-location-pin")).toHaveCount(2);
+  await expect(page.getByText("화장실: 미확인", { exact: true })).toHaveCount(
     2,
   );
   for (const theme of ["dark", "light"]) {

@@ -58,6 +58,13 @@ test("observations reject stale/future/empty and remove arbitrary data", () => {
     { placeId: "1001", observedAt: now, readings: { noise: "quiet" } },
   );
 });
+test("restroom observations are accepted as a first-class map layer", () => {
+  assert.equal(experience.SENSORY_FIELDS.restroom.label, "화장실");
+  assert.deepEqual(
+    experience.observationInput({ placeId: "1001", observedAt: now, readings: { restroom: "accessible" } }, now),
+    { placeId: "1001", observedAt: now, readings: { restroom: "accessible" } },
+  );
+});
 test("absence, expired and conflicting field reports never become a safe/quiet score", () => {
   const r = (noise, age) => ({
     placeId: "1001",
