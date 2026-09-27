@@ -125,3 +125,79 @@ html:root body .wave-night .festival-icon-action::after{top:auto;bottom:calc(100
 html:root body .wave-night .festival-actions button:first-child{display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
 
 .wave-action-toast:popover-open{position:fixed;inset:auto 16px max(28px,env(safe-area-inset-bottom)) 16px;margin-inline:auto;width:fit-content;max-width:min(440px,calc(100% - 32px));padding:14px 22px;border:1px solid #6bcfe08c;border-radius:16px;background:#123650ed;color:#dff7ff;box-shadow:0 6px 28px #001a3960;font-size:16px;font-weight:600;line-height:1.5;text-align:center;pointer-events:none}
+
+
+/* Community cards: keep the photo readable at rest, then reveal detail on hover/focus. */
+@media (hover:hover) and (pointer:fine){
+  html:root body .wave-night .community-list[data-layout=cards] article{
+    position:relative;
+    isolation:isolate;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] article::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    border-radius:inherit;
+    background:linear-gradient(180deg,rgba(3,17,31,.02) 35%,rgba(3,17,31,.2) 58%,rgba(3,17,31,.78) 100%);
+    transition:background .24s ease;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] .community-story-cover :is(.smart-spot-image,img){
+    transition:filter .24s ease,transform .3s ease;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] .community-card-copy>p,
+  html:root body .wave-night .community-list[data-layout=cards] .community-report-tag{
+    max-height:0;
+    margin-top:0;
+    overflow:hidden;
+    opacity:0;
+    transform:translateY(8px);
+    transition:max-height .24s ease,margin .24s ease,opacity .18s ease,transform .24s ease;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] .community-card-footer{
+    max-height:0;
+    padding-bottom:0;
+    overflow:hidden;
+    visibility:hidden;
+    opacity:0;
+    transform:translateY(8px);
+    transition:max-height .24s ease,padding .24s ease,opacity .18s ease,transform .24s ease,visibility 0s linear .24s;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within)::after{
+    background:linear-gradient(180deg,rgba(3,17,31,.34),rgba(3,17,31,.52) 46%,rgba(3,17,31,.82));
+  }
+  html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-story-cover :is(.smart-spot-image,img){
+    filter:blur(6px) brightness(.76);
+    transform:scale(1.04);
+  }
+  html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-card-copy>p{
+    max-height:6.2em;
+    margin-top:10px;
+    opacity:1;
+    transform:none;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-report-tag{
+    max-height:4em;
+    margin-top:7px;
+    opacity:1;
+    transform:none;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-card-footer{
+    max-height:64px;
+    padding-bottom:16px;
+    visibility:visible;
+    opacity:1;
+    transform:none;
+    transition-delay:0s;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  html:root body .wave-night .community-list[data-layout=cards] article::after,
+  html:root body .wave-night .community-list[data-layout=cards] .community-story-cover :is(.smart-spot-image,img),
+  html:root body .wave-night .community-list[data-layout=cards] .community-card-copy>p,
+  html:root body .wave-night .community-list[data-layout=cards] .community-report-tag,
+  html:root body .wave-night .community-list[data-layout=cards] .community-card-footer{
+    transition:none;
+  }
+}
