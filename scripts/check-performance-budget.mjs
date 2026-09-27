@@ -34,7 +34,10 @@ const BUDGET = {
   // split-card and superseded Naru rules first. Full-site local glass/readability
   // follow-up measures 104.75 KiB (prior 104 KiB cap exceeded by 0.75 KiB).
   // Explicit 3 KiB scope allowance; every JavaScript budget is unchanged.
-  cssGzipKiB: 105,
+  // 2026-09-28: Owner-approved #728/#730/#732/#734/#736 card and three-column
+  // layouts measure 106.97 KiB. Preserve their original design with a narrow
+  // scope allowance; JavaScript budgets and accessibility checks stay intact.
+  cssGzipKiB: 108,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,

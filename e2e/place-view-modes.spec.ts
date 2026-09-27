@@ -32,9 +32,12 @@ test('place view preserves selection, survives reload and remains readable', asy
       const photo = node.querySelector('.simple-place-photo')!.getBoundingClientRect();
       const copy = node.querySelector('.simple-place-copy')!.getBoundingClientRect();
       const add = node.querySelector('.simple-place-add')!.getBoundingClientRect();
-      return { contained: copy.top >= photo.top && copy.bottom <= photo.bottom && copy.width > 0 && node.querySelector('.simple-place-copy')!.scrollWidth <= node.querySelector('.simple-place-copy')!.clientWidth + 1 && copy.left >= photo.left && copy.right <= photo.right, touch: add.height >= 44, overflow: node.scrollWidth > node.clientWidth + 1 };
+      const heading = node.querySelector('.simple-place-heading')!.getBoundingClientRect();
+      const card = node.getBoundingClientRect();
+      // #734 deliberately supersedes #728's split photograph/copy layout.
+      return { fullPhoto: Math.abs(photo.top - card.top) <= 2 && Math.abs(photo.bottom - card.bottom) <= 2 && heading.top >= photo.top - 1 && copy.bottom <= photo.bottom && copy.width > 0 && node.querySelector('.simple-place-copy')!.scrollWidth <= node.querySelector('.simple-place-copy')!.clientWidth + 1, touch: add.height >= 44, overflow: node.scrollWidth > node.clientWidth + 1 };
     }));
-    expect(boxes.every(box => box.contained && box.touch && !box.overflow)).toBe(true);
+    expect(boxes.every(box => box.fullPhoto && box.touch && !box.overflow)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.locator('.simple-results').screenshot({ path: info.outputPath(`grid-${width}.png`) });
   }
@@ -75,7 +78,11 @@ test('grid also covers direct search when preference writes are blocked', async 
   const card = page.locator('#direct-place-results .simple-place-row');
   await expect(card).toHaveCount(1);
   await expect(card).toContainText('편의·접근성');
-  expect(await card.evaluate(node => node.querySelector('.simple-place-copy')!.getBoundingClientRect().bottom <= node.querySelector('.simple-place-photo')!.getBoundingClientRect().bottom)).toBe(true);
+  expect(await card.evaluate(node => {
+    const copy = node.querySelector('.simple-place-copy')!.getBoundingClientRect();
+    const photo = node.querySelector('.simple-place-photo')!.getBoundingClientRect();
+    return copy.top >= photo.top && copy.bottom <= photo.bottom && copy.width > 0;
+  })).toBe(true);
   await views.getByRole('button', { name: '목록형' }).click();
   await expect(views.getByRole('button', { name: '목록형' })).toHaveAttribute('aria-pressed', 'true');
   await expect(card).toContainText('테스트 카페');

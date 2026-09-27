@@ -128,6 +128,7 @@ async function openSource(page: Page, state: State) {
   await expect.poll(async () => (await stored(page)).identity?.binding).toEqual({ kind: "account", id: sourceId, revision: 4, role: state.trips.get(sourceId)!.role, userId });
 }
 async function editVisit(page: Page, minutes = "180") {
+  if (await page.locator('.simple-focus-stop').isVisible()) await page.locator('#itinerary-stop-1001 .simple-stop-title h3 button').click();
   await page.getByRole("button", { name: `${museum} 일정 수정`, exact: true }).click();
   const dialog = page.getByRole("dialog", { name: `${museum} 수정`, exact: true });
   await chooseWaveOption(dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), minutes);

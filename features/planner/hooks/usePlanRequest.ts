@@ -126,8 +126,25 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
       restoreRequestFocus();
       return true;
     } catch (error) {
-      cancelReveal();
       if (controller.signal.aborted) return false;
+      if (import.meta.env.DEV && import.meta.env.VITE_WAVE_LOCAL_EXAMPLES !== 'off' && page === 1) {
+        const { localExamplePlan } = await import("../services/local-example-plan");
+        if (controller.signal.aborted || planRequestRef.current !== controller) return false;
+        const example = localExamplePlan(requestedRegion, requestedFacilities);
+        latestPlan.current = example;
+        setPlan(example);
+        setResultSignature(requestedSignature);
+        setPlanError("");
+        setRecentPlan(null);
+        setUsingRecent(null);
+        setNoticeKind("error");
+        resetAudio();
+        if (revealResults && !reveal.signal.aborted) onRevealResults?.();
+        cancelReveal();
+        restoreRequestFocus();
+        return true;
+      }
+      cancelReveal();
       const message = planFailureKind(error, navigator.onLine !== false);
       setPlanError(message);
       const cached = readPlanResultCache(window.localStorage, requestedSignature);

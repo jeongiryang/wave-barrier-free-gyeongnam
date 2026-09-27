@@ -15,7 +15,7 @@ function fixture() {
   };
   const window = { addEventListener() {}, clearTimeout() {}, setTimeout() { return 1; }, scrollTo() {}, scrollY: 0, scrollX: 0 };
   const mod = { exports: {} };
-  const code = ts.transpileModule(readFileSync(new URL("../features/planner/hooks/usePlanRequest.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const code = ts.transpileModule(readFileSync(new URL("../features/planner/hooks/usePlanRequest.ts", import.meta.url), "utf8").replaceAll("import.meta.env", "({ DEV: false })"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   new Function("module", "exports", "require", "window", "navigator", code)(mod, mod.exports, name => {
     if (name === "react") return hooks;
     if (name.endsWith("request-budget.js")) return { CLIENT_BUDGET_MS: { plan: 1000 } };

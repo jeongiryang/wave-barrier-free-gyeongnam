@@ -32,6 +32,7 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
   const providerFailures = [...new Map((plan?.statuses || []).filter(status => ['tour', 'barrierfree'].includes(status.id))
     .flatMap(status => [...(status.failure ? [status.failure] : []), ...(status.failures || [])]).map(failure => [failure.kind, failure])).values()];
   const incomplete = plan?.statuses.some(status => ["tour", "barrierfree"].includes(status.id) && (status.state === "error" || status.partial));
+  const localExample = plan?.statuses.some(status => status.id === "local-example");
   const needsHelp = Boolean(plan && resultCurrent && !loading && !planError && !incomplete && activePlaces.length < 3
     && (exploration.length > 0 || (control.themes.length > 0 && control.themes.length < 4)));
   async function applySuggestions() {
@@ -43,6 +44,7 @@ export default function RecommendationCarousel({ region, activePlaces, planContr
   }
   return <section className="simple-results" aria-label={say("여행지 검색 결과", "Place search results")} aria-busy={loading}>
     <div className="simple-results-heading"><h2>{region} {say("여행지", "places")}</h2></div>
+    {localExample && <div className="simple-result-notice local-example-notice" role="status"><p>API에 연결하지 못해 로컬 예시 데이터 2곳을 표시합니다.</p><small>화면 확인 전용이며 실제 장소·주소·시설 정보가 아닙니다.</small></div>}
     {planError ? <div className="simple-result-notice" role="alert"><p>{planFailureHeadings[planError][en ? 1 : 0]}</p><div><button type="button" disabled={loading} onClick={() => void onGenerate(false)}>{say("같은 조건으로 다시 시도", "Retry with these preferences")}</button>{control.recentPlan && <button type="button" onClick={control.useRecentPlan}>{say('최근 확인 결과 보기', 'View last checked results')}</button>}</div>{control.recentPlan && <small>{say(`${new Date(control.recentPlan.checkedAt).toLocaleString('ko-KR')}에 확인한 ${control.recentPlan.source} 결과입니다. 현재 결과가 아닙니다.`, `Checked ${new Date(control.recentPlan.checkedAt).toLocaleString('en')} from ${control.recentPlan.source}. This is not live data.`)}</small>}</div>
       : incomplete && <div className="simple-result-notice" role="status"><p>{providerFailures.length ? providerFailures.map(failure => providerFailureMessage(failure, en)).join(" ") : say("일부 장소 정보를 불러오지 못했어요.", "Some place information could not be loaded.")}</p><button type="button" disabled={loading} onClick={() => void onGenerate(false)}>{say("다시 시도", "Retry")}</button></div>}
     {(planError || incomplete) && <p className="simple-recovery-links">조건은 그대로 유지됩니다. <a href="/travel-book">저장한 여행 보기</a> · <a href="/guide#planner-guide">검색 도움말</a></p>}
