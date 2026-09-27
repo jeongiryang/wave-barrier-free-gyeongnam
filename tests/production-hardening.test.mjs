@@ -64,7 +64,9 @@ test("the arrival intro is dismissible, accessible and isolated from global land
   assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
   assert.match(intro, /document\.documentElement\.dataset\.introSeen = "1"/);
   assert.match(intro, /media\.matches/);
-  assert.match(intro, /!replay && \(seen \|\| interacting \|\| window\.location\.hash \|\| \(!booting && window\.scrollY > 24\)/);
+  // Keep the approved automatic first-visit playback. Focus return and SSR
+  // selection preservation are exercised by landing-initial-paint.spec.ts.
+  assert.match(intro, /!replay && \(seen \|\| window\.location\.hash \|\| \(!booting && window\.scrollY > 24\)/);
   assert.match(intro, /media\.addEventListener\("change", reduce\)/);
   assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);

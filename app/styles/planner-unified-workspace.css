@@ -38,7 +38,7 @@
 .route-mode-sections button.active { color: #fff; border-color: #062736; background: #062736; box-shadow: 0 10px 24px rgb(6 39 54 / 16%); }
 .route-mode-sections button > span { color: #78939e; font-size: .58rem; font-weight: 900; }
 .route-mode-sections button.active > span { color: #8fc5d4; }
-.route-mode-sections button div { min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.route-mode-sections button div { min-width: 0; display: grid; gap: 2px; }
 .route-mode-sections b { font-size: .83rem; }
 .route-mode-sections small { color: #708995; font-size: .62rem; }
 .route-mode-sections button.active small { color: #a9cbd6; }

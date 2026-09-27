@@ -6,6 +6,11 @@ import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 
 async function prepare(page: Page, en: boolean, theme: string, configure?: () => Promise<void>) {
   await page.setViewportSize({ width: test.info().project.name === "mobile-chromium" ? 390 : 1366, height: 844 });
+  await page.route("**/*", route => {
+    const url = new URL(route.request().url());
+    return url.origin === new URL(test.info().project.use.baseURL!).origin && !url.pathname.startsWith("/api/")
+      ? route.fallback() : route.abort();
+  });
   await mockPlannerApi(page);
   await mockPublicShellApi(page);
   await configure?.();
@@ -21,6 +26,29 @@ async function prepare(page: Page, en: boolean, theme: string, configure?: () =>
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
 }
 
+test("a fast decoded photo stays visible after its initialization frame", async ({ page }) => {
+  const queries: string[] = [];
+  await prepare(page, false, "light", async () => {
+    await page.route("https://wave.test/museum.svg", route => route.fulfill({
+      contentType: "image/svg+xml",
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><path fill="#325d73" d="M0 0h800v600H0z"/></svg>',
+    }));
+    await page.route("**/api/wave?*", route => {
+      const url = new URL(route.request().url());
+      if (url.searchParams.get("action") === "spot-photo" && url.searchParams.get("contentId") === "1001") queries.push("1001");
+      return route.fallback();
+    });
+  });
+  const photo = page.locator(".simple-place-row .simple-place-photo").first();
+  await photo.scrollIntoViewIfNeeded();
+  await expect.poll(() => photo.locator("img").evaluate(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0)).toBe(true);
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(photo.locator(".smart-image-skeleton")).toHaveCount(0);
+  await expect(photo.locator(".smart-spot-image")).not.toHaveClass(/\b(?:loading|failed)\b/);
+  await expect(photo.locator("img")).toBeVisible();
+  expect(queries).toEqual([]);
+});
+
 for (const en of [false, true]) for (const theme of ["light", "dark"]) {
   test(`photo and body region label stay legible with a white photo ${en ? "English" : "Korean"} ${theme}`, async ({ page }) => {
     await prepare(page, en, theme, async () => {
@@ -32,6 +60,10 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await photo.scrollIntoViewIfNeeded();
     await expect(image).toBeVisible();
     await expect.poll(() => image.evaluate(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0)).toBe(true);
+    // Decoding alone is insufficient: a stale loading layer can hide the photo
+    // and make a contrast check accidentally measure the skeleton background.
+    await expect(photo.locator(".smart-image-skeleton")).toHaveCount(0);
+    await expect(photo.locator(".smart-spot-image")).not.toHaveClass(/\b(?:loading|failed)\b/);
     const region = page.locator(".simple-place-row .simple-place-city").first();
     await expect(region).toHaveText("창원");
     await expect(region).toHaveAttribute("lang", "ko");
@@ -77,6 +109,8 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     const fallback = card.locator(".smart-image-fallback");
     await expect(fallback.locator("small")).toHaveText(en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요");
     await expect(fallback.locator("small")).toHaveAttribute("lang", en ? "en" : "ko");
+    await expect(card.locator(".smart-image-skeleton")).toHaveCount(0);
+    await expect(card.locator(".smart-spot-image")).not.toHaveClass(/\bloading\b/);
     // The status no longer duplicates the place metadata; the card keeps its
     // original-language name and region alongside the localized photo status.
     await expect(card.locator('h3')).toHaveText('경남도립미술관');

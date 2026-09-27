@@ -36,8 +36,8 @@ test('the decision receipt explains selected evidence, route limits and download
   await expect(receipt).toContainText('장애인 화장실');
   await expect(receipt).toContainText('없음');
   await expect(receipt).toContainText('미확인');
-  await expect(receipt).toContainText('경로 조회는 휠체어 통행, 경사, 엘리베이터 운영을 보장하지 않습니다.');
   await expect.poll(async () => receipt.getByText(/개 구간의 경로를 조회했습니다/).textContent()).toMatch(/[1-9]\/[1-9]/);
+  await expect(receipt.locator('.trip-decision-routes')).toContainText('합성 경로 제공처 · 약 18분');
 
   const event = page.waitForEvent('download');
   await receipt.getByRole('button', { name: '결정 근거 저장', exact: true }).click();
@@ -48,6 +48,9 @@ test('the decision receipt explains selected evidence, route limits and download
   expect(text).toContain('관광 콘텐츠 ID 1001');
   expect(text).toContain('장애인 화장실: 없음으로 확인');
   expect(text).toContain('합성 경로 제공처');
+  // The original receipt keeps the detailed limits in its downloaded audit.
+  expect(text).toContain('경로 조회는 도로·대중교통 경로가 있다는 뜻이며 휠체어 통행, 경사, 엘리베이터 운영을 보장하지 않습니다.');
+  expect(text).toContain('미확인 항목은 방문 전에 시설 운영기관에 다시 확인해 주세요.');
   expect(text).toContain('없는 근거를 AI가 만들어 채우지 않습니다.');
 
   expect((await new AxeBuilder({ page }).include('[data-planner-tool="receipt"]').analyze()).violations).toEqual([]);

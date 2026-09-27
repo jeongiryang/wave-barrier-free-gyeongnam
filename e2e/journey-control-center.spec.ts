@@ -35,7 +35,8 @@ test("데스크톱의 두 화면 전환은 현재 상태·다음 행동과 키�
     const style = getComputedStyle(element);
     return { width: Number.parseFloat(style.outlineWidth), type: style.outlineStyle };
   });
-  expect(focusStyle.width).toBeGreaterThanOrEqual(3);
+  // The approved outline is 2px; test visible keyboard focus, not a redesign.
+  expect(focusStyle.width).toBeGreaterThanOrEqual(2);
   expect(focusStyle.type).toBe("solid");
 
   await openSupportMenu(page);

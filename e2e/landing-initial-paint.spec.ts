@@ -1,6 +1,7 @@
 import { waveSelectNative } from './wave-select-fixture';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { prepareLandingMedia } from './landing-contract';
+import { arrivalPlaybackReady, pauseCurrentClock, prepareLandingMedia } from './landing-contract';
+import { INTRO_DURATION_MS } from '../features/landing/intro/wave-timing';
 
 const hydrated = () => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT);
 
@@ -35,9 +36,10 @@ async function tabTo(page: Page, target: Locator) {
   await expect(target).toBeFocused();
 }
 
-for (const width of [390, 960, 1440]) test(`${width}px first paint exposes the real landing and preserves focus through delayed hydration`, async ({ page }, info) => {
+for (const width of [390, 960, 1440]) test(`${width}px first paint remains usable and the original intro returns keyboard focus after hydration`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 844 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
+  if (width === 1440) await page.clock.install();
   const held = await holdStartup(page);
   try {
     await expectReadableLanding(page);
@@ -50,11 +52,24 @@ for (const width of [390, 960, 1440]) test(`${width}px first paint exposes the r
     expect(painted.height).toBeGreaterThanOrEqual(44);
     expect(painted.uncovered).toBe(true);
     await page.screenshot({ path: info.outputPath(`before-hydration-${width}.png`) });
-    // Startup must not replace a real control or steal the user's focus.
+    // Preserve the approved automatic intro, then resume the real SSR control.
     held.releaseApp();
     await page.waitForFunction(hydrated);
+    const scene = page.locator('.arrival-scene');
+    await expect(scene).toBeVisible();
+    const skip = scene.getByRole('button', { name: '건너뛰기', exact: true });
+    await expect(skip).toBeFocused();
+    if (width === 1440) {
+      await pauseCurrentClock(page);
+      await arrivalPlaybackReady(page);
+      const elapsed = Number(await scene.locator('.wave-intro').getAttribute('data-time-ms'));
+      await page.clock.fastForward(INTRO_DURATION_MS - elapsed + 100);
+    } else if (width === 960) await skip.press('Enter');
+    else await page.keyboard.press('Escape');
+    await expect(scene).toBeHidden();
     await expectReadableLanding(page);
     await expect(planning).toBeFocused();
+    expect(await page.evaluate(() => sessionStorage.getItem('wave-arrival-session-v1'))).toBe('done');
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   } finally { held.releaseApp(); }
 });
@@ -129,7 +144,7 @@ test('failed application and photo loading leave the first planning action usabl
   await expect(page).toHaveURL(url => url.pathname === '/planner');
 });
 
-test('a selected region and its keyboard focus survive native-to-custom hydration', async ({ page }) => {
+test('a selected region survives native-to-custom hydration and regains focus after the original intro', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const held = await holdStartup(page);
   try {
@@ -142,6 +157,11 @@ test('a selected region and its keyboard focus survive native-to-custom hydratio
     await expect(region).toBeFocused();
     held.releaseApp();
     await page.waitForFunction(hydrated);
+    const scene = page.locator('.arrival-scene');
+    await expect(scene).toBeVisible();
+    await expect(scene.getByRole('button', { name: '건너뛰기', exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(scene).toBeHidden();
     await expect(region).toHaveJSProperty('tagName', 'BUTTON');
     await expect(region).toBeFocused();
     await expect(region).toHaveText('거제');
