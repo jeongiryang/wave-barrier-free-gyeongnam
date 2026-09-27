@@ -29,13 +29,15 @@ export default function SmartSpotImage({
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const fallbackLanguage = en ? "en" : "ko";
-  const photo = useOfficialSpotImage({ src, title, region, tag, contentId });
-  return <div className={`smart-spot-image${className ? ` ${className}` : ""}${photo.loading ? " loading" : ""}${photo.failed ? " failed" : ""}`}>
+  const demoImage = import.meta.env.DEV && src?.startsWith("/media/demo/") ? src : "";
+  const photo = useOfficialSpotImage({ src: demoImage ? undefined : src, title, region, tag, contentId });
+  const displayedImage = demoImage || photo.image;
+  return <div className={`smart-spot-image${className ? ` ${className}` : ""}${!demoImage && photo.loading ? " loading" : ""}${!demoImage && photo.failed ? " failed" : ""}`}>
     {/* 공식 관광사진 외부 URL은 HTTPS만 허용하며 정규화는 tourism domain에서 수행한다. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    {photo.image && <img src={photo.image} alt={en ? title : `${title} 관광사진`} lang={languageOf(title, fallbackLanguage)} width="800" height="600" loading="lazy" decoding="async" onLoad={() => { photo.onLoad(); rememberPhotoCredits([{ title, image: photo.image, location: region, source: '한국관광공사 관광정보' }]); }} onError={photo.onError} />}
-    {photo.loading && <span className="smart-image-skeleton" role="status" lang={fallbackLanguage} aria-label={en ? "Loading official photo" : `${title} 관광사진 불러오는 중`} />}
-    {photo.failed && <span className={`smart-image-fallback${compact ? ' smart-image-fallback-compact' : ''}`} role="status"><NightIcon name="photo-off" size={26}/><small lang={fallbackLanguage}>{en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small></span>}
+    {displayedImage && <img src={displayedImage} alt={demoImage ? `${title} 화면 확인용 예시 이미지` : en ? title : `${title} 관광사진`} lang={languageOf(title, fallbackLanguage)} width="800" height="600" loading="lazy" decoding="async" onLoad={() => { if (!demoImage) { photo.onLoad(); rememberPhotoCredits([{ title, image: photo.image, location: region, source: '한국관광공사 관광정보' }]); } }} onError={demoImage ? undefined : photo.onError} />}
+    {!demoImage && photo.loading && <span className="smart-image-skeleton" role="status" lang={fallbackLanguage} aria-label={en ? "Loading official photo" : `${title} 관광사진 불러오는 중`} />}
+    {!demoImage && photo.failed && <span className={`smart-image-fallback${compact ? ' smart-image-fallback-compact' : ''}`} role="status"><NightIcon name="photo-off" size={26}/><small lang={fallbackLanguage}>{en ? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"}</small></span>}
     {showMeta && <><em lang={languageOf(tag, fallbackLanguage)}>{tag}</em><strong>{String(rank).padStart(2, "0")}</strong></>}
     {children}
   </div>;
