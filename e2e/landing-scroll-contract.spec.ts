@@ -26,7 +26,7 @@ test("navigation scrolls in document flow and remains available on keyboard focu
   await expect(nav).toBeInViewport();
   await expect(nav.getByRole("navigation").getByRole("link")).toHaveText(page.viewportSize()!.width <= 600 ? ["여행 설계", "축제", "커뮤니티"] : ["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
   await expectUsableTarget(home);
-  if (page.viewportSize()!.width <= 600) { await openSupportMenu(page); await expectUsableTarget(nav.locator(".mobile-menu-link[href='/travel-book']")); }
+  if (page.viewportSize()!.width <= 600) { await openSupportMenu(page); await expectUsableTarget(nav.locator(".support-shortcuts a[href='/travel-book']")); }
   else await expectUsableTarget(nav.locator(".wave-my-trips"));
 });
 

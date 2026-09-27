@@ -56,14 +56,14 @@ test("one-place comparison keeps dates/order, supports cancel and undo, and resp
   await page.getByRole("button", { name: "방금 교체 되돌리기", exact: true }).click();
   await expect(board.locator(".simple-stop-copy h3 > button")).toHaveText(["경남도립미술관", "용지호수공원"]);
   expect(await tripSnapshot(page)).toEqual(before);
-  await expect(board).toContainText("180분 머묾"); await expect(board).toContainText("방문 뒤 15분 휴식");
+  await expect(board).toContainText("180분 머물러요"); await expect(board).toContainText("방문 뒤 15분 휴식");
   dialog = await open(page); await dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true }).click(); await dialog.getByRole("button", { name: "선택한 장소로 교체", exact: true }).click();
   await board.getByLabel("시민문화쉼터 일정 수정", { exact: true }).click(); const editor=page.getByRole('dialog',{name:'시민문화쉼터 수정',exact:true});await chooseWaveOption(editor.getByRole('combobox', { name: "시민문화쉼터 머무는 시간", ...{ exact: true } }), "30"); await editor.getByRole('button',{name:'적용',exact:true}).click();
   const edited=await tripSnapshot(page);
   await page.getByRole("button", { name: "방금 교체 되돌리기", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "새 선택을 보존하기 위해" })).toBeVisible();
   expect(await tripSnapshot(page)).toEqual(edited);
-  await page.reload(); await openItinerary(page);await timetable(page);await expect(board.locator(".simple-stop-copy h3 > button")).toHaveText(["시민문화쉼터", "용지호수공원"]); await expect(board).toContainText("30분 머묾");
+  await page.reload(); await openItinerary(page);await timetable(page);await expect(board.locator(".simple-stop-copy h3 > button")).toHaveText(["시민문화쉼터", "용지호수공원"]); await expect(board).toContainText("30분 머물러요");
 });
 
 test("indoor evidence is checked explicitly and nearby discovery retains facility and activity choices", async ({ page }) => {

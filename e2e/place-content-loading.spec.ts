@@ -19,7 +19,7 @@ for (const failed of [false, true]) test(`place details load on opening; ${faile
   const dialog = page.getByRole("dialog", { name: "경남도립미술관", exact: true });
   await expect(dialog.getByRole("heading")).toBeFocused();
   if (failed) await expect(dialog.getByRole("alert")).toContainText("상세 화면을 불러오지 못했어요");
-  else await expect(dialog.getByText(/공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다/)).toBeVisible();
+  else await expect(dialog.getByRole("link", { name: "정보 이용 안내 (새 창)", exact: true })).toBeVisible();
   expect(contentRequests).toBe(1);
   await expect(dialog.getByRole("button", { name: "일정에 추가", exact: true })).toBeEnabled();
   expect((await new AxeBuilder({ page }).include(".native-place-dialog").analyze()).violations).toEqual([]);

@@ -133,7 +133,7 @@ async function editVisit(page: Page, minutes = "180") {
   const dialog = page.getByRole("dialog", { name: `${museum} 수정`, exact: true });
   await chooseWaveOption(dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), minutes);
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
-  await expect(page.locator("#itinerary-stop-1001")).toContainText(`${minutes}분 머묾`);
+  await expect(page.locator("#itinerary-stop-1001")).toContainText(`${minutes}분 머물러요`);
   await expect.poll(async () => (await stored(page)).schedule.visitMinutesByPlaceId["1001"]).toBe(Number(minutes));
 }
 async function reviewPausedSave(page: Page) {
@@ -202,7 +202,7 @@ test("계정 원본을 열면 ID·revision·순서를 유지하고 빈 날짜 �
   expect(state.writes[1]).toMatchObject({ path: `/api/account/travel/${sourceId}`, body: { revision: 5, payload: { visitMinutesByPlaceId: { "1001": 120 } } } });
   await expect(page.getByRole('dialog', { name: '저장·공유 전 일정 확인', exact: true })).toHaveCount(0);
   await page.reload();
-  await expect(page.locator("#itinerary-stop-1001")).toContainText("120분 머묾");
+  await expect(page.locator("#itinerary-stop-1001")).toContainText("120분 머물러요");
   expect((await stored(page)).identity).toMatchObject({ id: sourceId, binding: { id: sourceId, revision: 6 } });
   expect(state.writes).toHaveLength(2);
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
@@ -234,7 +234,7 @@ test("동행자 일정의 수정은 원본을 자동 갱신하지 않고 명시�
   expect((await stored(page)).identity?.id).toBe(sourceId);
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await page.getByRole("button", { name: "여행 설계에서 열기", exact: true }).click();
-  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머묾");
+  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머물러요");
   expect((await stored(page)).identity).toMatchObject({ id: request.body.id, binding: { id: request.body.id, revision: 1, role: "owner" } });
 });
 

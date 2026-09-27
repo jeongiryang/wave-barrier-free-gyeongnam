@@ -38,7 +38,7 @@ test("320px 공개 화면의 네 메뉴와 내 여행은 키보드로 접근할 
   }
   await expect(header.getByRole("link", { name: "WAVE 홈", exact: true })).toHaveAttribute("href", "#top");
   await openSupportMenu(page);
-  const archive = header.locator(".mobile-menu-link[href='/travel-book']");
+  const archive = header.locator(".support-shortcuts a[href='/travel-book']");
   await expect(archive).toBeVisible(); await archive.focus(); await expect(archive).toBeFocused();
   const archiveBox = (await archive.boundingBox())!; expect(archiveBox.width).toBeGreaterThanOrEqual(44); expect(archiveBox.height).toBeGreaterThanOrEqual(44);
   await header.getByRole("button", { name: "WAVE 이용 안내 메뉴", exact: true }).click();

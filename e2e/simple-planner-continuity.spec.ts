@@ -179,7 +179,7 @@ test("첫 날짜 설정 뒤 장소 수정은 적용 전까지 보존되고 취�
   await chooseWaveOption(dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), "180");
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => (await current(page)).schedule.visitMinutesByPlaceId["1001"]).toBe(180);
-  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머묾");
+  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머물러요");
   await page.locator(".simple-command-receipt").getByRole("button", { name: "되돌리기", exact: true }).click();
   await expect.poll(async () => (await current(page)).schedule).toEqual(before.schedule);
   expect((await current(page)).ids).toEqual(before.ids);
@@ -239,7 +239,7 @@ test("저장 버튼 하나로 첫 저장 후 날짜·체류·장소 변경을 �
   expect(await books(page)).toHaveLength(1);
   expect((await books(page))[0]).toMatchObject({ id: first.id, tripId: first.tripId, travelStart: "2026-10-14", travelEnd: "2026-10-15", travelMode: "car" });
   await page.reload();
-  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머묾");
+  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머물러요");
   expect((await current(page)).identity).toMatchObject({ id: first.tripId, binding: { kind: "local", id: first.id } });
   expect(await books(page)).toHaveLength(1);
 });

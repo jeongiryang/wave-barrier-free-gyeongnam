@@ -71,7 +71,7 @@ for (const locale of ["ko", "en"] as const) {
     for (const selector of [".wave-wordmark", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
       await expectUsableTarget(page.locator(selector));
     }
-    await openSupportMenu(page); await expectUsableTarget(page.locator(".wave-support-menu .mobile-menu-link[href='/travel-book']"));
+    await openSupportMenu(page); await expectUsableTarget(page.locator(".wave-support-menu .support-shortcuts a[href='/travel-book']"));
     await expectNoOverflow(page);
     await page.keyboard.press('Escape'); await region.focus(); await region.press('ArrowDown');
     await page.keyboard.press('Home'); await page.keyboard.press('Enter');

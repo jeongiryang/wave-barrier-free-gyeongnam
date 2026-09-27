@@ -106,13 +106,10 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     const close = dialog.getByRole("button", { name: "닫기", exact: true });
     const firstControl = dialog.locator('button:visible:not([disabled]), a:visible[href], input:visible:not([disabled]), select:visible, textarea:visible, summary:visible, [tabindex="0"]:visible').first();
     await firstControl.focus(); await page.keyboard.press("Shift+Tab");
-    // Chromium may include the scrollable, nonmodal dialog itself in the tab
-    // sequence before its first control. It must still let the next reverse
-    // Tab leave; a modal must continue to contain keyboard focus.
-    if (!mobileLayout && await dialog.evaluate(element => document.activeElement === element)) await page.keyboard.press("Shift+Tab");
-    expect(await dialog.evaluate(element => ({ contained: element.contains(document.activeElement), active: document.activeElement?.outerHTML.slice(0, 300) })) ).toMatchObject({ contained: mobileLayout });
-    await expect(page.locator(":modal")).toHaveCount(mobileLayout ? 1 : 0);
-    await expect(dialog.getByText(/공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다/)).toBeVisible();
+    // The approved centered detail is modal on desktop and mobile.
+    expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+    await expect(page.locator(":modal")).toHaveCount(1);
+    await expect(dialog.getByRole("link", { name: "정보 이용 안내 (새 창)", exact: true })).toBeVisible();
     await close.focus(); await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0); await expect(detailButton).toBeFocused();
 

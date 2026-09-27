@@ -55,7 +55,7 @@ test("compact headers keep every navigation link and recover keyboard focus", as
     const menu=page.locator(".wave-header");
     await expect(menu.getByRole("navigation").getByRole("link")).toHaveText(["여행 설계", "축제", "커뮤니티"]);
     for(const href of ["/","/planner","/festivals","/community"]) { const link=href === "/" ? menu.getByRole("link", { name: "WAVE 홈", exact: true }) : menu.getByRole("navigation").locator(`a[href='${href}']`); await expect(link).toBeVisible(); await link.focus(); await expect(link).toBeFocused(); }
-    await openSupportMenu(page); const archive = menu.locator(".mobile-menu-link[href='/travel-book']"); await expect(archive).toBeVisible(); await archive.focus(); await expect(archive).toBeFocused();
+    await openSupportMenu(page); const archive = menu.locator(".support-shortcuts a[href='/travel-book']"); await expect(archive).toBeVisible(); await archive.focus(); await expect(archive).toBeFocused();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   }
 });
