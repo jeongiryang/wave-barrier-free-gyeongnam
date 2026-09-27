@@ -28,10 +28,10 @@ test('the decision receipt explains selected evidence, route limits and download
   for (const name of ['경남도립미술관', '용지호수공원']) await page.getByRole('button', { name: `${name} 일정에 담기`, exact: true }).click();
   await openItinerary(page, { start: '2026-09-20' });
 
-  await openNaruTool(page, '이동 구간 확인');
+  await openNaruTool(page, '일정 선정 근거');
   const receipt = page.locator('[data-planner-tool="receipt"]');
   await expect(receipt.getByText('선택한 편의 확인', { exact: true })).toBeVisible();
-  await receipt.locator(':scope > summary').click();
+  if (await receipt.getAttribute('open') === null) await receipt.locator(':scope > summary').click();
   await expect(receipt).toContainText('관광 콘텐츠 ID 1001');
   await expect(receipt).toContainText('장애인 화장실');
   await expect(receipt).toContainText('없음');

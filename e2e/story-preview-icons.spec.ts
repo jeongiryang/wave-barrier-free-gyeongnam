@@ -26,9 +26,9 @@ for (const width of [390,960,1440]) test(`story controls and common icons ${widt
  await page.screenshot({path:testInfo.outputPath(`story-${width}.png`)});
  const example=page.locator('.simple-naru-example');
  await example.getByRole('button',{name:'예시 일정에 적용',exact:true}).click();
- await expect(example.locator('.example-duration strong')).toHaveText('90분');
+ await expect(example.locator('.example-duration strong:not(.example-proposed)')).toHaveText('90분');
  await example.getByRole('button',{name:'되돌리기',exact:true}).click();
- await expect(example.locator('.example-duration strong')).toHaveText('60분');
+ await expect(example.locator('.example-duration strong:not(.example-proposed)')).toHaveText('60분');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.goto('/planner');
  const gallery=page.locator('.simple-region-discovery');

@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { expect, test } from "@playwright/test";
 import * as copy from "../features/routing/map-status-copy";
+import NightIcon from "../components/NightIcon";
 
 // Render the real status component with controlled provider messages that no public
 // endpoint currently emits. Only preferences are injected; browser DOM resolves lang.
@@ -18,6 +19,7 @@ for (const en of [false, true]) test(`map status language is explicit for origin
   new Function("require", "exports", "module", code)((id: string) => {
     if (id.endsWith("/SitePreferences")) return { useSitePreferences: () => ({ locale: en ? "en" : "ko" }) };
     if (id === "../map-status-copy") return copy;
+    if (id.endsWith("/NightIcon")) return { default: NightIcon };
     if (id === "react" || id === "react/jsx-runtime") return require(id);
     throw new Error(`Unexpected component import: ${id}`);
   }, componentModule.exports, componentModule);

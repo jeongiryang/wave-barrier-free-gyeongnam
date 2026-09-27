@@ -29,7 +29,7 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   await expect(tools).toHaveCount(0);
   await expect(summary).toBeHidden();
   expect(requests).toHaveLength(0);
-  await openNaruTool(page, "이동 구간 확인");
+  await openNaruTool(page, "일정 선정 근거");
   await expect(summary).toHaveAccessibleName("정보 연결 상태");
   await expect(summary).toBeVisible();
   // Opening the tools drawer still must not download its optional diagnostics.

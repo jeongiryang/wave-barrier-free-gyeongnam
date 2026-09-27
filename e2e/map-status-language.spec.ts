@@ -23,7 +23,7 @@ for (const theme of ["light", "dark"]) {
     await expect(page.getByRole("complementary", { name: "Crowd forecast", exact: true })).toHaveAttribute("lang", "en");
     await expect(page.locator(".map-crowd-legend").getByText("경남도립미술관", { exact: true })).toHaveAttribute("lang", "ko");
     await expect(page.locator("#route-map-name")).toHaveAttribute("lang", "en");
-    await expect(page.locator(".map-crowd-legend em")).toHaveText("24.0%");
+    await expect(page.locator(".map-crowd-evidence > span:first-child")).toContainText("24.0%");
     const departure = commands.getByRole("button", { name: "⇄ Route points", exact: true });
     await departure.focus(); await page.keyboard.press("Enter");
     const panel = page.getByRole("region", { name: "Departure and destination settings", exact: true });

@@ -69,6 +69,7 @@ for (const [mapX, mapY] of [["0", "0"], ["139.7", "35.6"], ["NaN", "35.2"], ["12
     const recovery = page.getByRole("button", { name: en ? "Recheck place locations" : "장소 위치 다시 확인", exact: true });
     await expect(recovery).toBeVisible();
     await expect(recovery).toHaveAttribute("aria-disabled", "false");
+    await openNaruTool(page, "이동 구간 확인");
     await expect(page.locator(".itinerary-route-coverage")).toContainText(en ? "Coordinates unavailable" : "좌표 미확인");
     const check = page.getByRole("button", { name: en ? "Check all journeys" : "모든 구간 조회하기", exact: true });
     await check.click();

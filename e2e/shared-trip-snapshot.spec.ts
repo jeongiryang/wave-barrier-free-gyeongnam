@@ -1,3 +1,4 @@
+import { focusItineraryStop } from './fixtures';
 import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import AxeBuilder from "@axe-core/playwright";
@@ -54,7 +55,7 @@ async function startTime(page: Page, value: string) {
   await settings.getByRole("button", { name: "적용", exact: true }).click();
 }
 async function visitDate(page: Page, name: string, value: string) {
-  await page.getByRole("button", { name: `${name} 일정 수정`, exact: true }).click();
+  await focusItineraryStop(page, name); await page.getByRole("button", { name: `${name} 일정 수정`, exact: true }).click();
   const editor = page.getByRole("dialog", { name: `${name} 수정`, exact: true });
   const date = editor.getByRole("combobox", { name: "방문 날짜", exact: true });
   if (await waveSelectNative(date).inputValue() === value) { await editor.getByRole("button", { name: "취소", exact: true }).click(); return; }
@@ -86,7 +87,7 @@ test("editing a shared itinerary updates the same live link with current dates, 
   await page.getByRole("group", { name: "일정 날짜", exact: true }).getByRole("button", { name: /^2일차/ }).click();
   await visitDate(page, "경남도립미술관", "2026-10-08");
   await page.getByRole("group", { name: "일정 날짜", exact: true }).getByRole("button", { name: /^1일차/ }).click();
-  await page.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true }).click();
+  await focusItineraryStop(page, "경남도립미술관"); await page.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true }).click();
   await page.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동", exact: true }).click();
   await expect.poll(() => app.posts.at(-1)?.body.selections.selectedPlaceIds).toEqual(["1002", "1001"]);
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();

@@ -216,7 +216,7 @@ test('늦은 운영정보 응답은 이후의 더 짧은 휴식으로 재계산�
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
 });
 
-test('해설 대본 요청은 자동 재생 없이 본문 여행 설계로 이어진다', async ({ page }) => {
+test('해설 대본 요청은 자동 재생 없이 나루의 장소 도구로 이어진다', async ({ page }) => {
   const app = await setup(page, { seeded: true }), before = await snapshot(page);
   expect(app.audioRequests).toEqual([]);
   await send(app.chat, '두 번째 장소의 해설 대본을 보여줘');
@@ -226,8 +226,8 @@ test('해설 대본 요청은 자동 재생 없이 본문 여행 설계로 이�
   expect(app.audioRequests).toEqual([]);
   expect(await page.evaluate(() => (window as unknown as { personaMediaPlayCount: number }).personaMediaPlayCount)).toBe(0);
   await card.getByRole('button', { name: '여행 설계에서 자세히 보기', exact: true }).click();
-  await expect(app.chat).toBeHidden();
-  await expect(page.locator('#places')).toBeFocused();
+  await expect(app.chat).toBeVisible();
+  await expect(app.chat.getByLabel('장소 선택', { exact: true })).toHaveValue('1002');
   expect(await snapshot(page)).toEqual(before);
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
 });

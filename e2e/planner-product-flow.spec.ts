@@ -73,7 +73,7 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     const screenshotPath = testInfo.outputPath("planner-" + width + "px.png");
     await page.screenshot({ path: screenshotPath });
     await testInfo.attach("planner-" + width + "px", { path: screenshotPath, contentType: "image/png" });
-    await itinerary.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
+    await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
     await page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
     await expect(page.locator("#itinerary-stop-1001")).toHaveCount(0);
     await expect(page.locator("#conditions")).toBeVisible();

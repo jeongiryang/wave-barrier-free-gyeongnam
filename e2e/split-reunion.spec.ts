@@ -10,7 +10,7 @@ async function setup(page:Page){
  await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'Unconfigured synthetic API'}}));
  await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true,savedPlaces:alternativePlan.places});await page.emulateMedia({reducedMotion:'reduce'});await page.route('**/api/wave?action=plan*',route=>route.fulfill({json:alternativePlan}));
  await page.addInitScript(()=>{if(localStorage.getItem('wave-trip-order-v1'))return;localStorage.setItem('wave-trip-order-v1',JSON.stringify({mode:'manual',ids:['1001','1002','1003']}));localStorage.setItem('wave-trip-schedule-v1',JSON.stringify({travelStart:'2026-10-08',travelEnd:'2026-10-09',dayStartTime:'10:00',scheduleAssignments:{1001:'2026-10-08',1002:'2026-10-08',1003:'2026-10-08'},visitMinutesByPlaceId:{1001:15,1002:30,1003:15},breakMinutesByPlaceId:{1002:15}}));});
- await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원','시민문화쉼터'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();await openItinerary(page);await openNaruTool(page, '이동 구간 확인');await page.getByRole('button',{name:'동행과 합류 계획',exact:true}).click();
+ await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원','시민문화쉼터'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();await openItinerary(page);await openNaruTool(page, '동행·합류');
 }
 const panel=(page:Page)=>page.getByRole('region',{name:'동행과 합류 계획',exact:true});
 test('split/reunion saves an optional A/B plan, keeps original trip and exports explicit offline lines',async({page},info)=>{

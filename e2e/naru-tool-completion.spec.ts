@@ -33,15 +33,15 @@ async function setup(page: Page, beforeNavigate?: () => Promise<void>) {
   await naruDialog(page).getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill(draft);
   return unexpected;
 }
-async function choose(page: Page, label: string) {
+async function choose(page: Page, label: string, inline = false) {
   const chat = naruDialog(page);
   await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
   await chat.locator('.naru-tool-catalog .naru-tools').getByRole('button', { name: label, exact: true }).click();
-  await expect(chat).toBeHidden();
+  if (inline) await expect(chat).toBeVisible(); else await expect(chat).toBeHidden();
 }
 async function back(page: Page) {
-  await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   const chat = naruDialog(page);
+  if (!await chat.isVisible()) await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   await chat.getByRole('tab', { name: '대화', exact: true }).click();
   await expect(chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true })).toHaveValue(draft);
 }
@@ -126,16 +126,13 @@ for (const tool of ['주차·입구 미리보기', '방문 전 문의', '해설 
   await setup(page);
   await page.route('**/api/wave?action=place-audio*', route => route.fulfill({ json: { stories: [{ playTime: '', id: 'qa-story', audioTitle: '미술관 검증 해설', script: '합성 원문: 미술관의 전시를 차분히 살펴보세요.', audioUrl: 'https://wave.test/tool-guide.mp3', title: '미술관' }], checkedAt: '2026-09-27T00:00:00Z' } }));
   const before = await schedule(page);
-  await choose(page, tool); await expect(page.locator('#places')).toBeFocused();
-  await page.locator('.simple-place-row h3 button').first().click();
-  const detail = page.locator('dialog.place-modal'); await expect(detail).toBeVisible();
+  await choose(page, tool, true);
+  const detail = naruDialog(page);
+  await expect(detail.getByLabel('장소 선택', { exact: true })).toHaveValue('1001');
   if (tool === '해설 대본') {
-    await detail.locator('.place-audio-guide > summary').click();
-    await detail.getByRole('button', { name: '대본 읽기', exact: true }).click();
     await expect(detail.getByRole('region', { name: '미술관 검증 해설 전체 대본', exact: true })).toHaveText('합성 원문: 미술관의 전시를 차분히 살펴보세요.');
     expect(await page.evaluate(() => (window as Window & { naruToolAudioPlays?: number }).naruToolAudioPlays)).toBe(0);
   } else {
-    await detail.locator('summary').filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
     if (tool === '주차·입구 미리보기') {
       await detail.getByRole('button', { name: '2. 입구', exact: true }).click();
       await detail.getByRole('checkbox', { name: '입구 자료를 살펴봤어요', exact: true }).check();
@@ -143,7 +140,6 @@ for (const tool of ['주차·입구 미리보기', '방문 전 문의', '해설 
       await expect(detail.locator('.place-arrival-preview')).toContainText('이 장소의 입구 상세 정보는 아직 확인하지 못했어요.');
       await expect(detail.locator('.place-arrival-preview')).toContainText('직접 읽은 기록이며 시설 이용 가능을 확인한 표시는 아닙니다.');
     } else {
-      await detail.getByRole('button', { name: '3. 시설', exact: true }).click();
       await detail.getByRole('button', { name: '문의 카드 만들기', exact: true }).first().click();
       const inquiry = page.locator('dialog.inquiry-dialog');
       await inquiry.getByLabel('추가로 전하고 싶은 말', { exact: true }).fill('방문 전에 출입구 문폭을 확인하고 싶어요.');
@@ -151,7 +147,6 @@ for (const tool of ['주차·입구 미리보기', '방문 전 문의', '해설 
       await inquiry.getByRole('button', { name: '문의 카드 닫기', exact: true }).click();
     }
   }
-  await detail.getByRole('button', { name: '닫기', exact: true }).click();
   await back(page); expect(await schedule(page)).toEqual(before);
 });
 

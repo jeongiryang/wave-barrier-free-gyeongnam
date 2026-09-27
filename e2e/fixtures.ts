@@ -119,13 +119,19 @@ export async function chooseTripConditions(page: Page) {
 }
 
 /** Enter the schedule through the same explicit date/transport step as a visitor. */
+export async function focusItineraryStop(page: Page, name: string) {
+  if (await page.locator('.simple-focus-stop').isVisible()) await page.locator('.simple-stops').getByRole('button', { name, exact: true }).click();
+}
+
 export async function openItinerary(page: Page, dates?: { start: string; end?: string }) {
   await page.locator(".wave-header .wave-my-trips").click();
   const setup = page.locator('.simple-initial-setup');
+  await expect(setup.or(page.locator('#itinerary'))).toBeVisible();
   if (await setup.isVisible()) {
-    if (dates) {
-      await setup.getByLabel('시작일', { exact: true }).fill(dates.start);
-      await setup.getByLabel('마지막 날', { exact: true }).fill(dates.end || dates.start);
+    const start = setup.getByLabel('시작일', { exact: true });
+    if (dates || !await start.inputValue()) {
+      await start.fill(dates?.start || '2026-10-08');
+      await setup.getByLabel('마지막 날', { exact: true }).fill(dates?.end || dates?.start || '2026-10-08');
     }
     await setup.getByRole('button', { name: '시간표 만들기', exact: true }).click();
   }

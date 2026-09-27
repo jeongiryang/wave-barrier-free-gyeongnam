@@ -134,7 +134,11 @@ test('960px dates and place detail use the available width; desktop layout remai
   await page.goto('/planner?region=창원');
   await page.getByRole('button', { name: '경남도립미술관 상세 보기', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: /경남도립미술관/ });
-  await expect(dialog).toBeVisible(); expect((await dialog.boundingBox())!.width).toBeGreaterThanOrEqual(930);
+  await expect(dialog).toBeVisible();
+  const bounds = (await dialog.boundingBox())!;
+  expect(bounds.width).toBeGreaterThanOrEqual(720);
+  expect(bounds.width).toBeLessThanOrEqual(928);
+  expect(Math.abs(bounds.x + bounds.width / 2 - 480)).toBeLessThanOrEqual(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.keyboard.press('Escape');
   for (const width of [1440, 2560, 3840]) {

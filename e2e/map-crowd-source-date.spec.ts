@@ -46,6 +46,8 @@ for (const baseYmd of ['20260918', '', '20260230']) test(`지도 혼잡 예측�
   for (const width of info.project.name.startsWith('mobile') ? [390, 320] : [1440, 960, 390, 320, 1440]) {
     await page.setViewportSize({ width, height: 960 });
     await showCrowdMap(page);
+    const disclosure = legend.locator('.map-crowd-details');
+    if (await disclosure.getAttribute('open') === null) await disclosure.locator('summary').click();
     await expect(legend.locator('.map-crowd-evidence')).toBeVisible();
     expect(await legend.locator('.map-crowd-evidence').evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

@@ -73,8 +73,8 @@ for (const update of ["evidence", "route", "crowd"] as const) for (const complet
       expect(calls.route.map(url => Object.fromEntries(url.searchParams))).toEqual(Array(2).fill({ mode: "transit", startLat: "35.2422", startLng: "128.6982", endLat: "35.238", endLng: "128.691" }));
       expect(calls.evidence[0].searchParams.get("ids")).toBe("1001");
       expect(calls.crowd[0].searchParams.get("title")).toBe(plan.places[0].name);
-      if (update !== "route") await expect.poll(async () => (await renderSnapshot(page)).line?.style).toBe("solid");
-      if (update !== "crowd") await expect(page.locator(".map-crowd-legend em")).toHaveText("24.0%");
+      if (update !== "route") await expect.poll(async () => (await renderSnapshot(page)).line?.style).toBe("shortdash");
+      if (update !== "crowd") await expect(page.locator(".map-crowd-evidence > span:first-child")).toContainText("24.0%");
       const food = panel.getByRole("button", { name: "음식점", exact: true });
       await expect(food).toBeEnabled();
       await food.focus(); await page.keyboard.press("Enter");
@@ -100,10 +100,10 @@ for (const update of ["evidence", "route", "crowd"] as const) for (const complet
         expect((await renderSnapshot(page)).markerImage).toContain(updatedPlace.image);
         await expect(page.locator(".simple-stops > li")).toContainText(updatedPlace.name);
       } else if (update === "route") {
-        await expect.poll(async () => (await renderSnapshot(page)).line).toEqual({ style: "solid", path: geometry });
+        await expect.poll(async () => (await renderSnapshot(page)).line).toEqual({ style: "shortdash", path: geometry });
         await expect(page.locator(".map-legend")).toContainText("정류장 연결 개요 · 실제 도로선 아님");
       } else {
-        await expect(page.locator(".map-crowd-legend em")).toHaveText("88.1%");
+        await expect(page.locator(".map-crowd-evidence > span:first-child")).toContainText("88.1%");
         await expect.poll(async () => (await renderSnapshot(page)).circle).toEqual({ radius: 2400, color: "#d93d55" });
       }
       await finishLayout(page);

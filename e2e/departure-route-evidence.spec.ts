@@ -1,3 +1,4 @@
+import { focusItineraryStop } from './fixtures';
 import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { closeNaruTool } from './naru-tool-fixtures';
 import { openDeparture, departureItem, routeTools } from './departure-fixtures';
@@ -46,7 +47,7 @@ for (const en of [false, true]) for (const color of ["light", "dark"]) test(`${e
   await page.route('**/api/route?*', async route => { await dateGate; return route.fallback(); });
   await closeNaruTool(page);
   const stop = page.locator('.simple-stops > li').filter({ hasText: '용지호수공원' });
-  await stop.getByRole('button', { name: '용지호수공원 일정 수정', exact: true }).click();
+  await focusItineraryStop(page, '용지호수공원'); await page.getByRole('button', { name: '용지호수공원 일정 수정', exact: true }).click();
   const editor = page.getByRole('dialog', { name: '용지호수공원 수정', exact: true });
   await chooseWaveOption(editor.getByRole('combobox', { name: '방문 날짜', exact: true }), '2026-10-09');
   await editor.getByRole('button', { name: '적용', exact: true }).click();

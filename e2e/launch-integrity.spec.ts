@@ -1,3 +1,4 @@
+import { focusItineraryStop } from './fixtures';
 import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
 import { arrivalPlaybackReady } from "./landing-contract";
 import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
@@ -40,7 +41,7 @@ async function timeboard(page: Page) {
 }
 async function changeVisitDay(page: Page, name: string, day: string) {
   await timeboard(page);
-  await page.getByRole("button", { name: `${name} 일정 수정`, exact: true }).click();
+  await focusItineraryStop(page, name); await page.getByRole("button", { name: `${name} 일정 수정`, exact: true }).click();
   const dialog = page.getByRole("dialog", { name: `${name} 수정`, exact: true });
   await chooseWaveOption(dialog.getByRole("combobox", { name: "방문 날짜", exact: true }), day);
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
@@ -362,6 +363,7 @@ test("every ordered leg needs current route evidence while departure access stay
   await add(page, "경남도립미술관").click();
   await add(page, "용지호수공원").click();
   await openItinerary(page);
+  await focusItineraryStop(page, "경남도립미술관");
   const move = page.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true });
   if (await move.isEnabled()) await move.click();
   const coverage = await routeTools(page);
