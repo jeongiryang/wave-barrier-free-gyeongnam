@@ -48,11 +48,15 @@ test("landing: first arrival is readable, dismissible and remembers completion",
   await expectNoSeriousA11yIssues(page);
 });
 
-test("landing: reduced motion exposes the real planning action immediately without dismissal", async ({ page }) => {
+test("landing: reduced motion shows a dismissible intro and preserves the real planning action", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await prepareLandingMedia(page);
   await page.goto("/"); await storyReady(page);
-  await expect(page.locator(".arrival-scene")).toBeHidden();
+  const scene = page.locator(".arrival-scene");
+  await expect(scene).toBeVisible();
+  await expect(scene.getByRole("button", { name: "건너뛰기", exact: true })).toBeFocused();
+  await scene.getByRole("button", { name: "건너뛰기", exact: true }).press("Enter");
+  await expect(scene).toBeHidden();
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
   const planning = page.locator(".night-hero-search button[type=submit]");
   await expectUsableTarget(planning);
@@ -194,6 +198,9 @@ test("planner announces a delayed request and replaces its skeleton with officia
 });
 
 test("community remains readable without login and protects writing", async ({ page }) => {
+  // Check settled text contrast, not an intermediate frame of Naru's 400ms
+  // welcome fade. This journey covers reading and authentication, not motion.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.route("**/api/auth/get-session", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: "null" }));
   await page.route("**/api/community/posts**", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");

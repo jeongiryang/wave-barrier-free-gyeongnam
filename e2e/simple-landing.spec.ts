@@ -85,6 +85,8 @@ for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the 
   // Keyboard events sent to the streamed HTML before React loads are not replayed.
   // Wait for the real interactive page, as the animated-arrival cases do above.
   await page.waitForFunction(() => Boolean((window as Window & { __VINEXT_HYDRATED_AT?: number }).__VINEXT_HYDRATED_AT));
+  await expect(page.locator('.arrival-scene')).toBeVisible();
+  await page.locator('.arrival-scene').getByRole('button', { name: '건너뛰기', exact: true }).press('Enter');
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const hero = page.locator(".landing-hero-split"), copy = hero.locator(".landing-hero-copy"), scenery = page.locator('.scenic-background-home'), photograph = scenery.locator('.award-panorama');

@@ -23,7 +23,6 @@ export default function LandingIntro() {
     const reveal = () => window.dispatchEvent(new Event("wave-arrival-ready"));
     const node = dialog.current;
     if (!node) { reveal(); return; }
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     let playing = false;
     let previousOverflow = "";
     let returnFocus: HTMLElement | null = null;
@@ -51,7 +50,9 @@ export default function LandingIntro() {
       let seen = document.documentElement.dataset.introSeen === "1";
       try { seen ||= sessionStorage.getItem("wave-arrival-session-v1") === "done"; } catch { /* Do not block entry. */ }
       const booting = document.documentElement.hasAttribute("data-intro-pending");
-      if (media.matches || document.documentElement.dataset.motion === "calm" || (!replay && (seen || window.location.hash || (!booting && window.scrollY > 24)))) { reveal(); return; }
+      // Motion preferences are handled by the renderer; they must not hide the
+      // introduction or prevent an explicit replay on a visitor's device.
+      if (!replay && (seen || window.location.hash || (!booting && window.scrollY > 24))) { reveal(); return; }
       playing = true; ready.current = false;
       setLeaving(false);
       setGeneration(value=>value+1); setActive(true);
@@ -67,11 +68,9 @@ export default function LandingIntro() {
       watchdog = setTimeout(()=>{ if (!ready.current) finish(); }, 8000);
     };
     const replay = () => start(true);
-    const reduce = () => { if (media.matches) finish(); };
     start();
     window.addEventListener("wave-replay-intro", replay);
-    media.addEventListener("change", reduce);
-    return () => { finish(); clearTimeout(watchdog); window.removeEventListener("wave-replay-intro", replay); media.removeEventListener("change", reduce); };
+    return () => { finish(); clearTimeout(watchdog); window.removeEventListener("wave-replay-intro", replay); };
   }, []);
   return <dialog ref={dialog} className={`${styles.scene} arrival-scene`} data-leaving={leaving} aria-label="WAVE 시작 이야기" onCancel={event=>{event.preventDefault(); finishRef.current();}} onKeyDown={event=>{
     if(event.key!=='Tab') return;

@@ -6,6 +6,7 @@ for (const width of [390, 960, 1440]) for (const route of ['/', '/planner', '/co
   test(`continuous scenery ${route} at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await mockPlannerApi(page);
+    if (route === '/') await page.addInitScript(() => sessionStorage.setItem('wave-arrival-session-v1', 'done'));
     await page.goto(route);
     const main = page.locator('main.scenic-page');
     await expect(main).toBeVisible();

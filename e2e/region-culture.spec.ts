@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { prepareLandingMedia, storyReady } from "./landing-contract";
+import { prepareStory, storyReady } from "./landing-contract";
 import { regionShowcaseAlbums } from '../features/landing/region-showcase-photos';
 
 test.beforeEach(async ({ page }) => {
-  await prepareLandingMedia(page);
+  await prepareStory(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await storyReady(page);
