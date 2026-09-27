@@ -17,10 +17,8 @@ import AccessibleDateInput from '../../../components/AccessibleDateInput';
 const KEY = "wave-travel-passport-v1";
 export default function TravelPassport({
   places,
-  region,
 }: {
   places: Place[];
-  region: string;
 }) {
   const [entries, setEntries] = useState<PassportEntry[]>([]),
     [ready, setReady] = useState(false),
@@ -188,7 +186,7 @@ export default function TravelPassport({
   }
   return (
     <section className={styles.card}>
-      <h3>{region} 여행여권</h3>
+      <h3>경남 여행여권</h3>
       <p>
         내 속도로 만난 경남을 기록하세요. 방문·축제 참여·음성이나 글로 만난
         경험을 각각 남깁니다. 기록은 이 기기에만 저장되며 실제 방문 인증과

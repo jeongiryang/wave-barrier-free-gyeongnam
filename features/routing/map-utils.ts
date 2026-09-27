@@ -85,7 +85,7 @@ export function mapFitPadding(canvas: HTMLElement): [number, number, number, num
     const centerX = rect.left + rect.width / 2;
     side = Math.max(side, rect.width / 2);
     // The crowd photo/rank can overflow the fixed-size SDK marker element.
-    for (const child of marker.querySelectorAll<HTMLElement>(".photo-pin, .photo-pin b")) {
+    for (const child of marker.querySelectorAll<HTMLElement>(".photo-pin, .photo-pin b, .map-place-name")) {
       const part = child.getBoundingClientRect();
       minY = Math.min(minY, part.top); maxY = Math.max(maxY, part.bottom);
       side = Math.max(side, centerX - part.left, part.right - centerX);

@@ -21,19 +21,21 @@ export function useHeaderPopover(panel: RefObject<HTMLDivElement | null>, trigge
       const anchor = trigger.current?.getBoundingClientRect();
       if (!anchor) return;
       const top = anchor.bottom + 10;
-      const width = Math.min(352, window.innerWidth - 24);
+      const width = Math.min(node.getBoundingClientRect().width || 352, window.innerWidth - 24);
       node.style.setProperty('--dropdown-top', `${top}px`);
       node.style.setProperty('--dropdown-left', `${Math.max(12, Math.min(anchor.right - width, window.innerWidth - width - 12))}px`);
       const viewportBottom = window.visualViewport ? window.visualViewport.offsetTop + window.visualViewport.height : window.innerHeight;
       node.style.setProperty('--dropdown-height', `${Math.max(0, viewportBottom - top - 16)}px`);
     };
-    position();
     node.showPopover();
+    position();
+    const resize = new ResizeObserver(position);
+    resize.observe(node);
     const toggled = () => { if (!node.matches(':popover-open')) closeRef.current(); };
     node.addEventListener('toggle', toggled);
     window.addEventListener('resize', position);
     window.addEventListener('scroll', position, true);
     window.visualViewport?.addEventListener('resize', position);
-    return () => { node.removeEventListener('toggle', toggled); window.removeEventListener('resize', position); window.removeEventListener('scroll', position, true); window.visualViewport?.removeEventListener('resize', position); if (node.matches(':popover-open')) node.hidePopover(); if (owner) owner.style.setProperty('padding-bottom', originalPadding); };
+    return () => { resize.disconnect(); node.removeEventListener('toggle', toggled); window.removeEventListener('resize', position); window.removeEventListener('scroll', position, true); window.visualViewport?.removeEventListener('resize', position); if (node.matches(':popover-open')) node.hidePopover(); if (owner) owner.style.setProperty('padding-bottom', originalPadding); };
   }, [open, panel, trigger]);
 }

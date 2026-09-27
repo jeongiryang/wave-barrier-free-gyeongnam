@@ -257,7 +257,9 @@ export default function SensoryMap({
         </p>
       )}
       <p>
-        {checkedAt
+        {error
+          ? "새로 확인을 눌러 다시 시도할 수 있어요."
+          : checkedAt
           ? `${new Date(checkedAt).toLocaleTimeString("ko-KR")} 조회 · 열린 화면에서 30초마다 갱신`
           : "현장 정보를 확인하고 있어요."}
       </p>

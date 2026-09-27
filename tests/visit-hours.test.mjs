@@ -33,6 +33,17 @@ test("all-day operation still requires closing-day evidence", () => {
     assert.equal(assessVisitHours({ ...info, hours, restDays: "" }, friday).state, "unknown");
   }
 });
+
+test('공식 휴무 목록의 정기 휴무는 인식하되 추가 휴무와 예외는 추측하지 않는다', () => {
+  const monday = { day: '2026-09-28', startsAt: 670, endsAt: 800 };
+  for (const restDays of ['매주 월요일 / 법정공휴일 / 설·추석 연휴', '매주 월요일 / 공휴일 다음날 / 1월 1일 / 설·추석 연휴']) {
+    assert.equal(assessVisitHours({ ...info, restDays }, monday).reason, 'closed-day');
+    assert.equal(assessVisitHours({ ...info, restDays }, friday).reason, 'confirm-holiday');
+  }
+  for (const restDays of ['월요일 / 공휴일이면 다음날', '매주 월요일 / 단 공휴일 정상 운영', '매주 월요일(공휴일 제외) / 명절', '첫째·셋째 월요일 / 공휴일']) {
+    assert.equal(assessVisitHours({ ...info, restDays }, monday).reason, 'confirm-holiday');
+  }
+});
 test("invalid dates, unavailable records and visits crossing midnight cannot pass", () => {
   for (const day of ["", "2026-02-30", "not-a-date"]) assert.equal(assessVisitHours(info, { ...friday, day }).state, "unknown");
   for (const visit of [{ ...friday, startsAt: -1 }, { ...friday, endsAt: 1441 }, { ...friday, endsAt: 600 }, { ...friday, startsAt: "600" }]) assert.equal(assessVisitHours(info, visit).state, "unknown");

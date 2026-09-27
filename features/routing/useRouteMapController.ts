@@ -15,7 +15,7 @@ import { useNearbyPlaces } from "./useNearbyPlaces";
 import { useFacilityLayers } from "./useFacilityLayers";
 import { useRoadviewController } from "./useRoadviewController";
 
-export function useRouteMapController({ origin, places, route, crowd, crowdPlaceId, focusedPlaceId, onPlaceFocus, onOriginChange, onDestinationChange, onSavePlaces }: RouteMapProps) {
+export function useRouteMapController({ origin, places, route, itineraryRoutes, crowd, crowdPlaceId, focusedPlaceId, onPlaceFocus, onOriginChange, onDestinationChange, onSavePlaces }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const kakaoMapRef = useRef<KakaoMap | null>(null);
@@ -208,6 +208,7 @@ export function useRouteMapController({ origin, places, route, crowd, crowdPlace
     origin,
     places,
     route,
+    itineraryRoutes,
     retryNonce,
     crowdVisual,
     crowdPlace,

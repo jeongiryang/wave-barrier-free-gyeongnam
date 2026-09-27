@@ -6,14 +6,15 @@ import type { FacilityMapMarker, MapPickMode, MapPlace, MapProvider, RouteAltern
 
 export type MutableRef<T> = { current: T };
 
-export type MapRenderContent = Pick<MapRendererContext, "origin" | "places" | "route" | "crowdVisual" | "crowdPlace" | "facilityMarkers">;
+export type MapRenderContent = Pick<MapRendererContext, "origin" | "places" | "route" | "itineraryRoutes" | "crowdVisual" | "crowdPlace" | "facilityMarkers">;
 export type MapContentController = { update(content: MapRenderContent): void; dispose(): void };
 
-export function mapContentKey({ places, route, crowdVisual, crowdPlace, facilityMarkers }: MapRenderContent) {
+export function mapContentKey({ places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers }: MapRenderContent) {
   return JSON.stringify([
     places.map(({ id, name, image, mapX, mapY }) => [id, name, image, mapX, mapY]),
     route?.configured,
     route?.geometry,
+    itineraryRoutes?.map(item => [item.mode, item.configured, item.geometry]),
     crowdVisual,
     crowdPlace?.id,
     // 편의 레이어를 켜고 끌 때만 다시 그린다. 같은 마커 집합이면 재그리기하지
@@ -54,6 +55,7 @@ export interface MapRendererContext {
   origin: RoutePoint;
   places: MapPlace[];
   route: RouteAlternative | null;
+  itineraryRoutes?: RouteAlternative[];
   crowdVisual: ReturnType<typeof describeCrowd> | null;
   crowdPlace?: MapPlace;
   /** 켜진 편의 레이어의 마커. 이미 60개 상한이 적용된 목록이다. */

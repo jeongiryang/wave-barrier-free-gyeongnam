@@ -1,6 +1,12 @@
 import type { CSSProperties, SVGProps } from 'react';
 
 const paths: Record<string, string> = {
+  walk: 'M14 3a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM7 10l4-4 4 4 4 2M11 6l-1 8-4 7M10 14l5 2 1 5',
+  bicycle: 'M8 16a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM24 16a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 16l5-9 6 9H4M7 7h5M15 16l4-12h-4M19 4l2 12',
+  train: 'M5 3h14v14H5ZM5 10h14M8 14h1M15 14h1M8 17l-3 5M16 17l3 5M7 20h10',
+  expand: 'M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5',
+  locate: 'M12 2v3M12 19v3M2 12h3M19 12h3M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0ZM14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z',
+  route: 'M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
   play: 'm8 4 12 8-12 8Z',
   pause: 'M8 5v14M16 5v14',

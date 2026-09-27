@@ -21,7 +21,7 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
     const query = new URLSearchParams({
       origin: `${startLng},${startLat}`,
       destination: `${endLng},${endLat}`,
-      priority: "RECOMMEND",
+      priority: "TIME",
       alternatives: "false",
       road_details: "false",
     });
@@ -75,7 +75,7 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
     return {
       alternative: {
         id: "kakao-car",
-        label: "카카오 자동차 추천",
+        label: "카카오 자동차 최단 시간",
         provider: "Kakao Mobility",
         mode: "car",
         totalTime: Math.max(1, Math.round(durationSeconds / 60)),
@@ -85,7 +85,7 @@ export async function fetchKakaoRoute(env: Env, startLat: number, startLng: numb
         transfers: 0,
         totalDistance: Math.round(summary.distance),
         configured: true,
-        segments: [{ type: "car", name: "추천 자동차 경로", minutes: Math.max(1, Math.round(durationSeconds / 60)) }],
+        segments: [{ type: "car", name: "최단 시간 자동차 경로", minutes: Math.max(1, Math.round(durationSeconds / 60)) }],
         geometry,
       },
       provider: { state: "connected", detail: "카카오모빌리티 자동차 경로 응답을 확인했습니다.", queryStatus: "success", resultCount: 1 },

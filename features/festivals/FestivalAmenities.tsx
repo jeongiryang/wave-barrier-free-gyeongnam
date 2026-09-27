@@ -1,4 +1,5 @@
 "use client";
+import { evidenceDate } from '../../lib/evidence-date.js';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supportedPlacePoint } from "../../lib/map-coordinates.js";
@@ -84,7 +85,7 @@ function FestivalAmenityDetails({ place, onClose }: { place: FestivalPlace; onCl
         : !result ? <p role="status">등록된 주변 화장실을 확인하고 있어요.</p>
         : result.status === 'error' ? <div role="alert"><p>주변 화장실 정보를 확인하지 못했어요. 조회 실패는 시설이 없다는 뜻이 아닙니다.</p><button className={styles.retry} type="button" onClick={() => { setResult(null); setRetry(value => value + 1); }}>다시 확인</button></div>
         : <>
-          <p className={styles.evidence}>{result.source} · 자료 확인일 {result.checkedAt.slice(0, 10)}</p>
+          <p className={styles.evidence}>{result.source} · 자료 확인일 {evidenceDate(result.checkedAt)}</p>
           {result.status === 'empty' ? <p role="status">5km 안에 확인된 화장실 기록이 없어요. 주변에 화장실이 없다는 뜻은 아닙니다.</p> : <>
             {point && <RestroomMap point={point} items={result.items} name={place.name} />}
             <ul className={styles.facilities} aria-label="지도와 같은 공중화장실 목록">

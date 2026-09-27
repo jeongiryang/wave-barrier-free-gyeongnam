@@ -1,3 +1,4 @@
+import { mapRouteLines } from "../../lib/map-route-lines.js";
 import { loadKakaoSdk } from "./kakao-sdk";
 import { mapContentKey, mapMarkerState, restoreMapMarkerState, pickedDestination, type MapRenderContent, type MapRendererContext } from "./map-renderer-context";
 import { mapFitPadding, safeMapImageUrl, summarizeMeasurements } from "./map-utils";
@@ -92,7 +93,7 @@ export async function renderKakaoMap(
     renderedKey = nextKey;
     const markerState = mapMarkerState(containerRef.current);
     clearContent();
-    const { places, route, crowdVisual, crowdPlace, facilityMarkers } = content;
+    const { places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers } = content;
     places.forEach((place, index) => {
       const lat = Number(place.mapY);
       const lng = Number(place.mapX);
@@ -120,6 +121,10 @@ export async function renderKakaoMap(
         photo.appendChild(rank);
         marker.appendChild(photo);
       } else marker.textContent = String(index + 1);
+      const placeName = document.createElement("span");
+      placeName.className = "map-place-name";
+      placeName.textContent = place.name;
+      marker.appendChild(placeName);
       marker.addEventListener("click", () => choosePlace(latest.places.find(current => current.id === place.id) || place));
       overlays.push(new K.CustomOverlay({ map, position, content: marker, yAnchor: 1, xAnchor: .5 }));
       if (isCrowdPlace && crowdVisual) overlays.push(new K.Circle({
@@ -155,20 +160,11 @@ export async function renderKakaoMap(
       overlays.push(new K.CustomOverlay({ map, position: new K.LatLng(latitude, longitude), content: button, yAnchor: 1, xAnchor: .5 }));
     }
 
-    const fallbackGeometry = [
-      { lat: origin.lat, lng: origin.lng },
-      ...places.map((place) => ({ lat: Number(place.mapY), lng: Number(place.mapX) }))
-        .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng)),
-    ];
-    const geometry = route?.geometry?.length ? route.geometry : fallbackGeometry;
-    if (geometry.length > 1) overlays.push(new K.Polyline({
-      map,
-      path: geometry.map((point) => new K.LatLng(point.lat, point.lng)),
-      strokeWeight: 6,
-      strokeColor: route?.configured ? "#0a6baf" : "#5aa3c4",
-      strokeOpacity: .82,
-      strokeStyle: route?.configured ? "solid" : "shortdash",
-    }));
+    for (const line of mapRouteLines(route, itineraryRoutes)) {
+      const path = line.geometry.map((point: {lat:number;lng:number}) => new K.LatLng(point.lat, point.lng));
+      overlays.push(new K.Polyline({ map, path, strokeWeight: 9, strokeColor: "#fff", strokeOpacity: .85, strokeStyle: line.road ? "solid" : "shortdash" }));
+      overlays.push(new K.Polyline({ map, path, strokeWeight: 5, strokeColor: "#087df1", strokeOpacity: .95, strokeStyle: line.road ? "solid" : "shortdash" }));
+    }
     restoreMapMarkerState(containerRef.current, markerState);
   };
   update(context);

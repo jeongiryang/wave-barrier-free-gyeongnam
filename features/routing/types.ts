@@ -52,6 +52,7 @@ export type RouteMapProps = {
   origin: RoutePoint;
   places: MapPlace[];
   route: RouteAlternative | null;
+  itineraryRoutes?: RouteAlternative[];
   crowd?: CrowdSignal | null;
   crowdPlaceId?: string;
   focusedPlaceId?: string;

@@ -1,4 +1,5 @@
 'use client';
+import { evidenceDate } from '../../../lib/evidence-date.js';
 import NightIcon from '../../../components/NightIcon';
 
 import { useEffect, useState } from 'react';
@@ -50,7 +51,7 @@ export default function NaruScheduleReview({ visits, onAlternative, onDetails }:
         const source = info[visit.place.id];
         const check = assessVisitHours(source, visit);
         return <li key={visit.place.id}><strong>{visit.place.name}</strong><p>{visit.day || '날짜 미정'} · {check.state === 'within' ? '등록된 운영시간 안에 방문' : check.state === 'conflict' ? `${reason[check.reason] || '운영시간과 겹침'} · 일정 조정 필요` : source ? '시간·휴무 조건을 시설에 확인해 주세요' : '운영 정보를 불러오지 못했어요'}</p>
-          {source && <small>{source.hours || '운영시간 미제공'} · {source.restDays || '휴무 정보 미제공'}<br />{source.source} · {source.checkedAt.slice(0, 10)} 조회</small>}
+          {source && <small>{source.hours || '운영시간 미제공'} · {source.restDays || '휴무 정보 미제공'}<br />{source.source} · {evidenceDate(source.checkedAt)} 조회</small>}
           <div><button type="button" onClick={() => onDetails(visit.place)} data-icon-action="" title="이용 정보·문의"><NightIcon name="info" size={20}/><span className="sr-only">이용 정보·문의</span></button>{check.state === 'conflict' && <button type="button" onClick={() => onAlternative(visit.place.id)}>같은 편의로 다른 장소 찾기</button>}</div>
         </li>;
       })}</ul>

@@ -128,7 +128,7 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
           <em aria-hidden="true">{toneName(tone, en)}</em>
         </button>
         <div className="sr-only" role="status" aria-live="polite">{en ? `Screen tone is ${toneName(tone, true)}.` : `화면 말투는 ${toneName(tone, false)}입니다.`}</div></>}
-        <p>{en ? "Original place information and some features may appear in Korean. " : ""}{en ? "Animations play independently of your device settings." : "기기 설정과 관계없이 애니메이션을 재생합니다."}</p>
+        {en && <p className="preference-note">{en ? "Original place information and some features may appear in Korean. " : ""}</p>}
       </div>}
     </div>
   );

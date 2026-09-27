@@ -1,3 +1,4 @@
+import { mapRouteLines } from "../../lib/map-route-lines.js";
 import { mapContentKey, mapMarkerState, restoreMapMarkerState, pickedDestination, type MapRenderContent, type MapRendererContext } from "./map-renderer-context";
 import { escapeMapHtml, mapFitPadding, safeMapImageUrl } from "./map-utils";
 import { GYEONGNAM_MAP_BOUNDS } from "../../lib/gyeongnam-map-viewport.js";
@@ -106,7 +107,7 @@ export async function renderLeafletMap(
     renderedKey = nextKey;
     const markerState = mapMarkerState(containerRef.current);
     clearContent();
-    const { places, route, crowdVisual, crowdPlace, facilityMarkers } = content;
+    const { places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers } = content;
     places.forEach((place, index) => {
       const lat = Number(place.mapY);
       const lng = Number(place.mapX);
@@ -118,7 +119,7 @@ export async function renderLeafletMap(
       const isCrowdPlace = Boolean(crowdVisual && crowdPlace?.id === place.id);
       const icon = L.divIcon({
         className: `wave-map-icon place${image ? " has-photo" : ""}${isCrowdPlace ? ` crowd-aware crowd-${crowdVisual?.level}` : ""}`,
-        html: markerHtml,
+        html: `${markerHtml}<span class="map-place-name">${escapeMapHtml(place.name)}</span>`,
         iconSize: image ? [84, 92] : [44, 44],
         iconAnchor: image ? [42, 86] : [22, 22],
         popupAnchor: image ? [0, -78] : [0, -24],
@@ -154,19 +155,11 @@ export async function renderLeafletMap(
       overlays.push(layer);
     }
 
-    const geometry = route?.geometry?.length
-      ? route.geometry
-      : bounds.map(([lat, lng]) => ({ lat, lng }));
-    if (geometry.length > 1) overlays.push(L.polyline(
-      geometry.map((point) => [point.lat, point.lng] as [number, number]),
-      {
-        color: route?.configured ? "#0a6baf" : "#5aa3c4",
-        weight: 6,
-        opacity: .82,
-        dashArray: route?.configured ? undefined : "9 10",
-        lineCap: "round",
-      },
-    ).addTo(map));
+    for (const line of mapRouteLines(route, itineraryRoutes)) {
+      const path = line.geometry.map((point: {lat:number;lng:number}) => [point.lat, point.lng] as [number, number]);
+      overlays.push(L.polyline(path, { color: "#fff", weight: 9, opacity: .85, dashArray: line.road ? undefined : "9 10", lineCap: "round", interactive: false }).addTo(map));
+      overlays.push(L.polyline(path, { color: "#087df1", weight: 5, opacity: .95, dashArray: line.road ? undefined : "9 10", lineCap: "round", interactive: false }).addTo(map));
+    }
     map.whenReady(() => {
       if (isCancelled() || !containerRef.current) return;
       for (const { marker, id } of venueMarkers) {

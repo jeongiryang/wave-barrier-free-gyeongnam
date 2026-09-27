@@ -27,7 +27,7 @@ html:root body .wave-night .simple-direct-search-submit{flex:0 0 auto;width:auto
 html:root body :is(.wave-night,.wave-support-panel) :is(.account-popover,.simple-share-menu,.preference-panel){border:1px solid #587b9a;border-radius:18px;background:#132e45;color:#edf6ff;box-shadow:0 12px 36px #0004;padding:12px}
 html:root body .wave-night .account-popover :is(a,button){border-radius:10px;color:#edf6ff;min-height:44px}
 html:root body .wave-night .account-popover :is(a,button):hover{background:#294d69}
-html:root body .wave-night dialog:not(.naru-panel){border:1px solid #587b9a;border-radius:24px;background:#10273b;color:#edf6ff;box-shadow:0 20px 70px #0006}
+html:root body .wave-night dialog:not(.naru-panel){border:0;border-radius:24px;background:#10273b;color:#edf6ff;box-shadow:0 20px 70px #0006}
 html:root body .wave-night dialog:not(.naru-panel)::backdrop{background:#020d1b99;backdrop-filter:blur(5px)}
 html:root body .wave-night :is(details:not(.account-menu)>summary,.mobile-disclosure-toggle){border-radius:12px;transition:background-color .15s}
 html:root body .wave-night details:not(.account-menu)>summary:hover{background:#1b3a5155}
@@ -122,8 +122,6 @@ html:root body .wave-night .night-benefits :is(strong,small){word-break:keep-all
 @media(max-width:600px){html:root body .wave-night .night-benefits{gap:12px 16px;padding:14px}html:root body .wave-night .night-benefits svg{width:26px;height:26px}}
 /* Place expanded festival actions across the full card, including thumbnail layouts. */
 html:root body .wave-night.festival-page .festival-card{background:linear-gradient(145deg,#092036,#03111f);border-color:#315570;border-radius:16px}
-html:root body .wave-night .festival-card>.night-festival-more{grid-column:1/-1;min-width:0}
-html:root body .wave-night .festival-card>.night-festival-more>summary{min-height:44px;gap:12px;font-size:14px}
 html:root body .wave-night .festival-evidence :is(p,small,strong,span){color:#d2e5ff;line-height:1.7}
 html:root body .wave-night .festival-actions{gap:10px}
 html:root body .wave-night .festival-actions button{min-height:44px;border-radius:999px;padding:10px 14px;font-size:14px;line-height:1.5}
@@ -132,7 +130,7 @@ html:root body .wave-night .festival-visit-date{display:grid;gap:8px;margin-bloc
 html:root body .wave-night .festival-source-links{gap:8px 12px;margin-block:12px}
 html:root body .wave-night .festival-source-links :is(a,button){min-height:44px;display:inline-flex;align-items:center;font-size:13px}
 html:root body .night-journey-map .region-picker-list{max-height:none;overflow:visible}
-@media(max-width:600px){html:root body .wave-night .night-planner-form{padding-top:24px}html:root body .wave-night .night-planner-form h2{line-height:1.35;margin:0 0 20px}html:root body .wave-night .simple-search-bar>label,html:root body .wave-night .simple-facility-trigger,html:root body .wave-night .simple-activity-filter button:not([aria-pressed=true]){background:#132e45}html:root body .wave-night .simple-search-bar{margin-bottom:12px}html:root body .wave-night .night-planner-submit{margin-top:16px}html:root body .wave-night .festival-card>.night-festival-more{padding:8px 4px 4px}}
+@media(max-width:600px){html:root body .wave-night .night-planner-form{padding-top:24px}html:root body .wave-night .night-planner-form h2{line-height:1.35;margin:0 0 20px}html:root body .wave-night .simple-search-bar>label,html:root body .wave-night .simple-facility-trigger,html:root body .wave-night .simple-activity-filter button:not([aria-pressed=true]){background:#132e45}html:root body .wave-night .simple-search-bar{margin-bottom:12px}html:root body .wave-night .night-planner-submit{margin-top:16px}}
 /* A shared opening height keeps the three working pages at the same rhythm. */
 html:root body .wave-night :is(.night-photo-opening,.planner-welcome-header){min-height:var(--wave-opening-height);box-sizing:border-box;display:flex;flex-direction:column}
 html:root body .wave-night .night-photo-opening .night-banner{height:auto;min-height:0;flex:1;display:flex;align-items:center}
@@ -146,7 +144,7 @@ html:root body .wave-night .official-exploration-card{position:relative;isolatio
 .official-photo-status{display:flex;height:100%;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#d5e8ed;font-size:13px}.official-exploration-photo img{position:absolute;inset:0}
 /* Profile portraits and names stay together beside each speech bubble. */
 html:root body .wave-night .official-exploration{width:94%;box-sizing:border-box;margin:24px auto;border:1px solid #365872;border-radius:16px;padding:0;overflow:hidden}
-html:root body .wave-night .official-exploration>:not(h2){margin:16px 0}
+html:root body .wave-night .official-exploration>:not(h2,dialog){margin:16px 0}
 .simple-place-heading{grid-area:heading;min-width:0}.simple-place-heading h3{margin:4px 0;line-height:1.5;overflow-wrap:anywhere}.simple-place-heading h3 button{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;min-height:44px}.simple-place-row>.simple-place-photo{grid-area:photo}.simple-place-row>.simple-place-copy{grid-area:copy}.simple-place-row>.simple-place-add{grid-area:add}
 .community-reactions,.community-reactions>span{display:inline-flex;align-items:center;gap:6px}.community-reactions{gap:16px}
 html:root body .wave-night .detail-actions>.community-like{display:inline-flex;flex:0 0 auto;width:auto;min-width:64px;min-height:44px;padding:8px 14px;gap:8px;align-items:center;justify-content:center;border-radius:24px}
@@ -204,8 +202,6 @@ html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy{wi
 html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy h1{font-size:clamp(34px,3.7vw,52px);line-height:1.25;letter-spacing:-.04em;margin:0 0 20px}
 html:root body .landing-page.horizon-edition.night-landing .landing-hero-description{font-size:16px;line-height:1.7;margin:0 auto 24px;max-width:32em}
 html:root body .landing-page.horizon-edition.night-landing .night-hero-search{width:min(100%,380px);margin-inline:auto}
-html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy .landing-actions{width:min(100%,220px);margin:14px auto 0}
-html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy .landing-actions a{font-size:14px;min-height:48px;padding:10px 18px}
 @media(max-width:600px){html:root body .landing-page.horizon-edition.night-landing .landing-hero-copy h1{font-size:32px}html:root body .landing-page.horizon-edition.night-landing .landing-hero-description{font-size:14px}}
 
 html:root body .wave-night dialog.naru-guidance-settings{background:var(--paper);color:var(--ink);border-color:var(--line);color-scheme:light}

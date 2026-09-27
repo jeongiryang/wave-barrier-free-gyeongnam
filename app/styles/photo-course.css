@@ -19,6 +19,7 @@
 .photo-course button:disabled { cursor: not-allowed; opacity: .5; }
 .photo-course-limit, .photo-course-toolbar p, .photo-course-apply p, .photo-course-export p { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.55; }
 .photo-course-notice { margin: 14px 0 0; min-block-size: 1.6em; color: var(--ink-soft); line-height: 1.6; }
+.photo-course-notice:empty { display: none; }
 .photo-course-toolbar { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .photo-course-days { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
 .photo-course-day { padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
@@ -60,7 +61,7 @@
   .photo-course-stop-meta button { width: 100%; margin-left: 0; }
   .photo-course-enrichment { flex-direction: column; }
   .photo-course-enrichment img { width: min(100%, 280px); }
-  .photo-course-actions > *, .photo-course-toolbar button, .photo-course-apply button, .photo-course-export button { flex: 1 1 180px; }
+  .photo-course-actions > :not(.photo-course-input), .photo-course-toolbar button, .photo-course-apply button, .photo-course-export button { flex: 0 1 auto; }
 }
 
 html[data-theme="dark"] .photo-course { color: #eaf5f9; border-color: #2c5568; background: #0c303f; box-shadow: none; }
@@ -73,7 +74,7 @@ html[data-theme="dark"] .photo-course-enrichment { background: #0a2735; }
 html[data-theme="dark"] .photo-course-enrichment p { color: #c4dde8; }
 html[data-theme="dark"] .photo-course-badge.is-unlocated { color: #f0c07a; }
 html[data-theme="dark"] .photo-course-applied { color: #eaf5f9; background: #123d4f; }
-.photo-course-help-button { min-height: 44px; margin-top: 18px; padding: 10px 16px; border: 1px solid currentColor; border-radius: 10px; background: transparent; color: inherit; }
+.photo-course-help-button { min-height: 44px; padding: 10px 16px; border: 1px solid currentColor; border-radius: 10px; background: transparent; color: inherit; }
 .photo-course-help { width: min(620px,calc(100vw - 32px)); }
 .photo-course-help ol { display: grid; gap: 16px; padding-left: 24px; }
 .photo-course-help li span { display: block; margin-top: 4px; color: var(--muted); line-height: 1.7; }

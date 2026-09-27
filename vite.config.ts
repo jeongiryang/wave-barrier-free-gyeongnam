@@ -12,7 +12,10 @@ export default defineConfig(async () => {
     resolve: { alias: [{ find: /^three$/, replacement: fileURLToPath(new URL('./node_modules/three/src/Three.js', import.meta.url)) }] },
     // Three's math modules have shared initialization cycles (Vector3/Quaternion).
     // Size-bounded chunks must preserve their original module execution order.
-    environments: { client: { build: { rolldownOptions: { output: { strictExecutionOrder: true, codeSplitting: { groups: [
+    // Keep one stylesheet so shared palette/control rules are compressed together
+    // and route hydration cannot reorder lazy component CSS after global overrides.
+    // JavaScript remains lazy; the existing 108 KiB total CSS budget is unchanged.
+    environments: { client: { build: { cssCodeSplit: false, rolldownOptions: { output: { strictExecutionOrder: true, codeSplitting: { groups: [
       { name: 'intro-three', test: /node_modules[\\/]three[\\/]src[\\/]/, maxSize: 450_000, minSize: 60_000, priority: 30 },
     ] } } } } } },
     server: {

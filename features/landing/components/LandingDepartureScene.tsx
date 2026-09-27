@@ -17,7 +17,7 @@ export default function LandingDepartureScene() {
       <LandingStoryDialogue speaker="naru">떠나기 전에 날씨와 이동 방법도 확인해 두자.</LandingStoryDialogue><p className="horizon-eyebrow">{en ? "BEFORE YOU GO" : "출발하기 전, 한 번 더"}</p>
       <h2 id="departure-scene-title">{en ? "A lighter heart." : "여행을 더 편하게,"}<br /><em>{en ? "One more check." : "필요한 정보를 한곳에"}</em></h2>
       <p>{en ? "Opening hours, weather, transport and facilities. A little preparation makes room for your day." : <>운영시간과 날씨, 이동수단과 편의시설<br />작은 확인이 여행의 여유를 만들어요</>}</p>
-      <Link href="/guide" className="simple-text-link">{en ? "Prepare my journey" : "내 여행 준비하기"}<span aria-hidden="true"></span></Link>
+      <Link href="/guide" className="simple-text-link">{en ? "Prepare my journey" : "내 여행 준비하기"}</Link>
     </div>
 
   </section>;

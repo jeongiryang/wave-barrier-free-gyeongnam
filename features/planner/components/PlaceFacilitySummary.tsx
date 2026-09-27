@@ -53,6 +53,6 @@ export default function PlaceFacilitySummary({ place, en, highlightConfirmed = f
       <div>{additionalConfirmed.map((item) => <ConfirmedFacility key={item.key} facilityKey={item.key} en={en} />)}</div>
     </details>}
     {rest.filter((item) => item.state === "negative").map((item) => <span className="facility-missing" key={item.key}><StatusShapeIcon kind={item.state} />{facilityLabel(item.key, en)} {en ? "unavailable" : "없음"}</span>)}
-    {rest.filter((item) => item.state === "unknown").map((item) => <span className="facility-unknown" key={item.key}><StatusShapeIcon kind="unknown" />{facilityLabel(item.key, en)} {en ? "not reported" : "정보 없음"}</span>)}
+    {rest.filter((item) => item.state === "unknown").map((item) => <span className="facility-unknown" key={item.key}><StatusShapeIcon kind="unknown" />{facilityLabel(item.key, en)} {en ? "not reported" : "정보 미확인"}</span>)}
   </div>;
 }

@@ -17,7 +17,7 @@ export default function MobileDisclosure({ title, children, className = '' }: { 
   const compact = useSyncExternalStore(subscribe, compactSnapshot, () => false);
   const [expanded, setExpanded] = useState(false);
   const id = useId();
-  return <div className={`mobile-disclosure ${className}`}>
+  return <div className={`mobile-disclosure ${className}`} data-expanded={expanded}>
     <button type="button" className="mobile-disclosure-toggle" disabled={!ready} aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(value => !value)}>{title}<span aria-hidden="true">{expanded ? '−' : '+'}</span></button>
     <div id={id} className="mobile-disclosure-content" hidden={compact && !expanded}>{children}</div>
   </div>;

@@ -1,8 +1,12 @@
 /* Button-linked information always follows its trigger; dialogs keep their own layout. */
+html:root body .header-dropdown.account-actions-menu { width:max-content;min-width:144px;max-width:min(280px,calc(100vw - 24px));padding:8px;gap:4px; }
+html:root body .header-dropdown.account-actions-menu>:is(a,button) { display:flex;align-items:center;min-height:44px;padding:8px 14px;width:auto;border:0;border-radius:10px;background:transparent;font-size:14px;white-space:nowrap; }
+html:root body .header-dropdown.account-actions-menu>:is(a,button):hover { background:#21445f; }
+html:root body .header-dropdown.account-actions-menu>:is(strong,p) { margin:4px 8px;max-width:240px;overflow-wrap:anywhere; }
 html:root body .preference-controls .preference-panel { position:static;inset:auto;width:min(328px,calc(100vw - 48px));max-width:100%;max-height:min(480px,60dvh);overflow:auto;margin-top:10px; }
 html:root body .header-dropdown .preference-controls .preference-panel { width:auto;max-height:none;overflow:visible; }
 html:root body .wave-footer-tools { align-items:flex-start!important; }
 html:root body .community-report-control>div { position:relative;inset:auto;max-height:50dvh;overflow:auto; }
-html:root body .region-picker-preview .region-photo-preview[data-below] { transform:translateX(-50%);min-height:0;height:250px;display:block;overscroll-behavior:contain; }
+html:root body .region-picker-preview .region-photo-preview[data-below] { transform:translateX(-50%);min-height:0;height:auto;display:flex;flex-direction:column;overscroll-behavior:contain; }
 html:root body .github-footer-link::after { top:calc(100% + 9px);bottom:auto;transform:translate(-50%,-5px); }
 html:root body .github-footer-link:is(:hover,:focus-visible)::after { transform:translate(-50%,0); }
