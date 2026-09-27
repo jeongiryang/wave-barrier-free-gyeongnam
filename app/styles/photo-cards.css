@@ -372,6 +372,22 @@ html:root body .wave-night .simple-place-row>.place-card-actions :is(.place-card
     transform:none;
     transition-delay:0s;
   }
+  /* A storage failure must leave its explanation and retry button reachable. */
+  html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-card-footer:has([role=alert]){
+    max-height:none;
+    flex-wrap:wrap;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] .community-card-footer:has([role=alert]) .community-reactions{
+    flex-shrink:1;
+    flex-wrap:wrap;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] .community-bookmark:has([role=alert]){
+    min-width:0;
+    max-width:100%;
+  }
+  html:root body .wave-night .community-list[data-layout=cards] .community-bookmark [role=alert]{
+    overflow-wrap:anywhere;
+  }
 }
 @media (prefers-reduced-motion:reduce){
   html:root body .wave-night .community-list[data-layout=cards] article::after,

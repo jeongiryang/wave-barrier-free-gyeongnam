@@ -38,6 +38,8 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    env: { ...process.env, WAVE_FIELD_REPORT_BOARD: process.env.WAVE_FIELD_REPORT_BOARD || "enabled" },
+    // Ordinary API-failure regressions exercise the production recovery path.
+    // The optional development-only sample places have their own coverage.
+    env: { ...process.env, WAVE_FIELD_REPORT_BOARD: process.env.WAVE_FIELD_REPORT_BOARD || "enabled", VITE_WAVE_LOCAL_EXAMPLES: "off" },
   },
 });

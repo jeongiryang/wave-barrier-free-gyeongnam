@@ -32,6 +32,9 @@ for (const theme of ['light', 'dark']) test(`${theme} device bookmarks agree bet
   await page.goto('/community');
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   const card = page.locator('.community-list article').filter({ hasText: post.title });
+  // Card details now open on keyboard focus as well as hover. Use that real
+  // entry before reaching the local bookmark; coarse-pointer cards stay open.
+  await card.getByRole('link', { name: `${post.title} 게시글 읽기` }).focus();
   await expect(card.getByRole('button', { name: '이 기기에 저장', exact: true })).toBeEnabled();
   await accessible(page);
   await card.getByRole('button', { name: '이 기기에 저장', exact: true }).click();
@@ -51,6 +54,7 @@ for (const theme of ['light', 'dark']) test(`${theme} device bookmarks agree bet
   await saved.getByRole('button', { name: '저장 해제', exact: true }).click();
   await expect(saved.getByRole('heading', { name: '이 기기에 저장한 글' })).toBeFocused();
   await expect(saved).toContainText('아직 이 기기에 저장한 글이 없습니다.');
+  await card.getByRole('link', { name: `${post.title} 게시글 읽기` }).focus();
   await expect(card.getByRole('button', { name: '이 기기에 저장', exact: true })).toHaveAttribute('aria-pressed', 'false');
   expect(writes).toEqual([]);
 });
@@ -82,6 +86,7 @@ for (const theme of ['light', 'dark']) test(`${theme} blocked storage never clai
   await themeSetup(page, theme);
   await page.goto('/community');
   const card = page.locator('.community-list article').filter({ hasText: post.title });
+  await card.getByRole('link', { name: `${post.title} 게시글 읽기` }).focus();
   await expect(card.getByRole('button', { name: '이 기기에 저장', exact: true })).toBeEnabled();
   await page.evaluate(key => {
     localStorage.setItem(key, JSON.stringify(['kept-post']));

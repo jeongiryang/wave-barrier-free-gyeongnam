@@ -153,6 +153,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await openNaruTool(page, "오디오 가이드·후기");
     await expect(page.getByRole("link", { name: "여행 후기 작성", exact: true })).toHaveAttribute("href", /draft=journal/);
     await closeNaruTool(page);
+    if (!mobileLayout) await itinerary.locator('#itinerary-stop-1002 .simple-stop-title h3 button').click();
     await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
     await page.getByRole("dialog", { name: "용지호수공원 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
     await expect(itinerary.locator("#itinerary-stop-1002")).toHaveCount(0);

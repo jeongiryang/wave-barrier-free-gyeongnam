@@ -78,7 +78,7 @@ test("place-photo recovery has a finite timeout and a stale result cannot replac
   assert.match(row, /<SmartSpotImage[^>]*contentId=\{place\.id\}/);
   assert.match(photo, /photo\.onLoad\(\)/);
   assert.match(photo, /rememberPhotoCredits/);
-  assert.match(photo, /onError=\{photo\.onError\}/);
+  assert.match(photo, /onError=\{demoImage \? undefined : photo\.onError\}/);
   assert.match(hook, /const controller = new AbortController\(\)/);
   assert.match(hook, /setTimeout\(\(\) => controller\.abort\(\), 12000\)/);
   assert.match(hook, /cancelled\(\) \|\| controller\.signal\.aborted \|\| fallbackRequest\.current !== request/);
