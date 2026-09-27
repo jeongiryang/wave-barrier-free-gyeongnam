@@ -83,7 +83,7 @@ export async function expectUsableTarget(target: Locator) {
   // Round only floating-point noise; a real subpixel deficit still fails.
   expect(Math.round(box!.height * 1000) / 1000).toBeGreaterThanOrEqual(44);
   expect(Math.round(box!.width * 1000) / 1000).toBeGreaterThanOrEqual(44);
-  expect(await target.evaluate(node => {
+  await expect.poll(() => target.evaluate(node => {
     const r = node.getBoundingClientRect();
     return node.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
   })).toBe(true);

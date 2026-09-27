@@ -130,8 +130,15 @@ export async function openItinerary(page: Page, dates?: { start: string; end?: s
   if (await setup.isVisible()) {
     const start = setup.getByLabel('시작일', { exact: true });
     if (dates || !await start.inputValue()) {
+      await start.focus();
+      await expect(start).toBeFocused();
       await start.fill(dates?.start || '2026-10-08');
-      await setup.getByLabel('마지막 날', { exact: true }).fill(dates?.end || dates?.start || '2026-10-08');
+      await expect(start).toHaveValue(dates?.start || '2026-10-08');
+      const end = setup.getByLabel('마지막 날', { exact: true });
+      await end.focus();
+      await expect(end).toBeFocused();
+      await end.fill(dates?.end || dates?.start || '2026-10-08');
+      await expect(end).toHaveValue(dates?.end || dates?.start || '2026-10-08');
     }
     await setup.getByRole('button', { name: '시간표 만들기', exact: true }).click();
   }

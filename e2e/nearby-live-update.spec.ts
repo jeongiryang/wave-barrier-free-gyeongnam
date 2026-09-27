@@ -91,7 +91,7 @@ for (const update of ["evidence", "route", "crowd"] as const) for (const complet
       expect(JSON.parse(trip["wave-saved-places"])).toEqual(["1001"]);
       expect(JSON.parse(trip["wave-trip-schedule-v1"]).travelStart).toBe("2026-10-08");
       if (update === "evidence") expect(before.markerTitle).toContain(plan.places[0].name + " ·");
-      if (update === "route") expect(before.line?.style).toBe("shortdash");
+      if (update === "route") expect(before.line).toBeNull();
       if (update === "crowd") expect(before.circle).toBeNull();
       release();
       // A preserved SDK is insufficient: its actual data overlays must refresh.

@@ -27,7 +27,7 @@ for (const authenticated of [false, true]) test(`late ${authenticated ? 'signed-
     const resolved = page.waitForResponse(response => new URL(response.url()).pathname === '/api/auth/get-session');
     release();
     await (await resolved).finished();
-    await expect(account).toHaveAccessibleName(authenticated ? '메뉴 여행자 계정 메뉴' : '계정 계정 메뉴');
+    await expect(account).toHaveAccessibleName(authenticated ? '메뉴 여행자 계정 메뉴' : '계정 관리');
     await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     await expect(support).toBeFocused();
     await expect(support).toHaveAttribute('aria-expanded', 'true');

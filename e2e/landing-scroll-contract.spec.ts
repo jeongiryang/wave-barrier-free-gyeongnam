@@ -48,14 +48,14 @@ for (const width of [320, 390]) {
     const example = page.locator(".simple-naru-example");
     await expect(example.locator("input")).toHaveCount(0);
     await expect(example.getByRole("button")).toHaveCount(1);
-    await expect(example.locator(".example-duration strong")).toHaveText("60분");
+    await expect(example.locator(".example-duration strong:not(.example-proposed)")).toHaveText("60분");
     const apply = example.getByRole("button", { name: "예시 일정에 적용", exact: true });
     await expectUsableTarget(apply);
     await apply.press("Enter");
-    await expect(example.locator(".example-duration strong")).toHaveText("90분");
+    await expect(example.locator(".example-duration strong:not(.example-proposed)")).toHaveText("90분");
     await expect(example.locator('[aria-live="polite"]')).toHaveText("예시 일정에 90분 체류를 적용했어요.");
     await example.getByRole("button", { name: "되돌리기", exact: true }).press("Enter");
-    await expect(example.locator(".example-duration strong")).toHaveText("60분");
+    await expect(example.locator(".example-duration strong:not(.example-proposed)")).toHaveText("60분");
     await expectUsableTarget(page.locator(".night-hero-search button[type=submit]"));
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });

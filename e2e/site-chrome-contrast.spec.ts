@@ -17,6 +17,7 @@ async function closingTextContrast(page: Page) {
   const closing = page.locator("#closing");
   await closing.scrollIntoViewIfNeeded();
   await expect(closing).toBeVisible();
+  await expect.poll(() => closing.locator('.landing-closing-copy').evaluate(node => node.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
   await expect(page.locator(".landing-finale img,.landing-finale .award-panorama")).toHaveCount(0);
   await expect(closing.locator("img,figcaption,a,button")).toHaveCount(0);
   const samples = await closing.evaluate(root => {

@@ -36,7 +36,7 @@ async function setup(page: Page, haptics?: "on" | "off") {
   await chooseTripConditions(page);
   for (const name of ["경남도립미술관", "용지호수공원", "시민문화쉼터"]) await page.getByRole("button", { name: name + " 일정에 담기", exact: true }).click();
   await openItinerary(page);
-  await openNaruTool(page, '이동 구간 확인');
+  await openNaruTool(page, '여행 당일 안내');
 }
 
 const guide = (page: Page) => page.getByRole("region", { name: "여행 당일 진행", exact: true });

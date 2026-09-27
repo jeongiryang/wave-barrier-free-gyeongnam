@@ -38,7 +38,7 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
   function selectStop(place: Place) {
     // The wide layout moves row details into the focused center column.
     // Read the breakpoint at activation so a resized view keeps its own action.
-    if (mapView && window.matchMedia('(min-width:1280px)').matches) onFocusPlace(place);
+    if (window.matchMedia('(min-width:1280px)').matches) onFocusPlace(place);
     else onSelectPlace(place);
   }
   const outside = trip.orderedSavedPlaces.filter(place => trip.scheduleAssignments[place.id] && !trip.tripDays.includes(trip.scheduleAssignments[place.id]));

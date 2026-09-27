@@ -52,7 +52,7 @@ for (const theme of ["light", "dark"] as const) test(`English preference with Ko
   expect(await language(coverage.locator('p > strong > span'))).toBe("ko");
   await expect(coverage.getByRole('status')).toHaveText(/\d+ of \d+ journeys found for this transport/);
   expect(await language(coverage.getByRole("heading", { name: "Check every journey", exact: true }))).toBe("en");
-  await page.locator(".simple-audio-journal > summary").click();
+  await openNaruTool(page, '오디오 가이드·후기');
   const audio = page.getByRole("complementary", { name: "Place audio guide", exact: true });
   await expect(audio.getByRole("button", { name: "Play", exact: true })).toBeDisabled();
   await audio.getByRole("button", { name: /Show transcript/ }).click();
@@ -102,9 +102,9 @@ test("changing locale updates translated journey evidence while preserving Korea
 test("optional audio loads on request and a missing module leaves itinerary editing usable", async ({ page }) => {
   let guideRequests = 0; page.on("request", request => { if (request.url().includes("AudioGuidePlayer")) guideRequests++; });
   await prepare(page); expect(guideRequests).toBe(0);
-  await page.route("**/AudioGuidePlayer*", route => route.abort()); await tools(page); expect(guideRequests).toBe(0);
+  await page.route("**/AudioGuidePlayer*", route => route.abort());
+  await openNaruTool(page, "오디오 가이드·후기");
   const toggle = page.locator(".simple-audio-journal > summary");
-  await toggle.focus(); await expect(toggle).toBeFocused(); await toggle.press("Enter");
   await expect(page.getByRole("status").filter({ hasText: "audio guide couldn't open" })).toBeVisible();
   await expect(toggle).toBeFocused(); expect(guideRequests).toBeGreaterThan(0);
   const editor = await settings(page); await editor.getByLabel("하루 시작", { exact: true }).fill("10:30");
@@ -118,7 +118,7 @@ test("an audio playback rejection offers the original transcript without an unha
   await page.addInitScript(() => { HTMLMediaElement.prototype.play = async () => { throw new DOMException("Playback blocked", "NotAllowedError"); }; });
   await page.route("https://wave.test/audio-guide.mp3", route => route.fulfill({ status: 200, contentType: "audio/mpeg", body: "" }));
   await prepare(page, { audio: { title: "관광지", audioTitle: "공식 음성 해설", audioUrl: "https://wave.test/audio-guide.mp3", script: "관광지 해설 원문입니다.", playTime: "60" } });
-  await tools(page); await page.locator(".simple-audio-journal > summary").click();
+  await tools(page); await openNaruTool(page, '오디오 가이드·후기');
   const audio = page.getByRole("complementary", { name: "Place audio guide", exact: true });
   await audio.getByRole("button", { name: "Play", exact: true }).click();
   await expect(audio.getByRole("alert")).toContainText("Audio couldn't play");

@@ -109,7 +109,7 @@ test('requested facilities come first, then confirmed, and a chosen condition is
 test('the three states are told apart in words, and unknown is never written as absent', () => {
   assert.equal(diningFacilityTagText({ label: '접근로', state: 'confirmed' }), '접근로');
   assert.equal(diningFacilityTagText({ label: '접근로', state: 'negative' }), '접근로 없음');
-  assert.equal(diningFacilityTagText({ label: '접근로', state: 'unknown' }), '접근로 정보 없음');
+  assert.equal(diningFacilityTagText({ label: '접근로', state: 'unknown' }), '접근로 정보 미확인');
   assert.notEqual(diningFacilityTagText({ label: '접근로', state: 'unknown' }), diningFacilityTagText({ label: '접근로', state: 'negative' }));
   assert.match(DINING_EVIDENCE_NOTE, /정보가 없다고 해서 시설이 없는 것은 아니에요/);
 });

@@ -30,6 +30,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
       const scene = page.locator(`#${id}`);
       await scene.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
       await expect(scene).toBeVisible();
+      await expect.poll(() => scene.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length)).toBe(0);
       expect((await new AxeBuilder({ page }).include(`#${id}`).analyze()).violations).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await scene.screenshot({ path: test.info().outputPath(`${id}-${theme}-${width}.png`) });

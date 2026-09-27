@@ -25,7 +25,7 @@ async function setPin(page:Page,name:string,value:string){
 
 test('anchor expansion previews one nearby stop, preserves the period, and undoes the exact addition',async({page},info)=>{
  await setup(page);await page.goto('/planner');await chooseTripConditions(page);await page.getByRole('button',{name:'경남도립미술관 일정에 담기',exact:true}).click();await openItinerary(page,{start:'2026-10-02',end:'2026-10-03'});await openNaruTool(page, '코스 잇기');
- await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});
+ const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});
  const before=await tripState(page);
  const candidate=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'용지호수공원',exact:true})});await candidate.getByRole('button',{name:'추가 미리보기',exact:true}).click();
  await expect(panel.getByRole('heading',{name:'경남도립미술관 · 용지호수공원',exact:true})).toBeFocused();await expect.poll(()=>tripState(page)).toEqual(before);
@@ -36,7 +36,7 @@ test('anchor expansion previews one nearby stop, preserves the period, and undoe
 test('a later pinned stop blocks course insertion and a new pin prevents undoing an edited addition',async({page})=>{
  await setup(page);await page.goto('/planner');await chooseTripConditions(page);for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();await openItinerary(page,{start:'2026-10-02'});await openNaruTool(page, '코스 잇기');
  const board=page.locator('.simple-timeboard');await setPin(page,'용지호수공원','visit');
- await page.getByText('한 장소에서 코스 이어 담기',{exact:true}).click();const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});await chooseWaveOption(panel.getByRole('combobox',{name:'어느 장소 다음에 갈까요?',exact:true}), '1001');
+ const panel=page.getByRole('region',{name:'한 장소에서 코스 확장',exact:true});await chooseWaveOption(panel.getByRole('combobox',{name:'어느 장소 다음에 갈까요?',exact:true}), '1001');
  const park=panel.getByRole('article').filter({has:page.getByRole('heading',{name:'강변정원',exact:true})});await park.getByRole('button',{name:'추가 미리보기',exact:true}).click();await panel.getByRole('button',{name:'이 장소 이어 담기',exact:true}).click();await expect(panel).toContainText('고정 일정의 순서나 날짜를 지키기 위해 추가하지 않았어요');await expect(board.locator('.simple-stops > li')).toHaveCount(2);
  await setPin(page,'용지호수공원','');await panel.getByRole('button',{name:'이 장소 이어 담기',exact:true}).click();await expect(board.locator('.simple-stops > li')).toHaveCount(3);
  await setPin(page,'강변정원','visit');await panel.getByRole('button',{name:'방금 이어 담기 되돌리기',exact:true}).click();await expect(panel).toContainText('추가한 뒤 일정이 바뀌었어요');await expect(board.locator('.simple-stops > li')).toHaveCount(3);

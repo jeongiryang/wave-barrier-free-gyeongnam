@@ -36,7 +36,7 @@ for (const width of [390, 1440]) test(`${width}px regions reveal as they enter a
   expect(await page.evaluate(() => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls?.length)).toBe(firstRegions.length);
 });
 
-test("switching OS reduction on before scrolling prevents new regional motion and preserves keyboard focus", async ({ page }) => {
+test("OS reduction preserves the approved full-motion preference and keyboard focus", async ({ page }) => {
   await prepareStory(page);
   await observeRegionalMotion(page);
   await page.setViewportSize({ width: 390, height: 568 });
@@ -49,9 +49,10 @@ test("switching OS reduction on before scrolling prevents new regional motion an
   for (const card of await page.locator(".simple-region").all()) {
     await card.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));
     await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-    expect(await card.evaluate(node => node.getAnimations().filter(animation => animation.playState === "running").length)).toBe(0);
+    await expect.poll(() => card.evaluate(node => node.getAnimations().filter(animation => animation.playState === "running").length)).toBe(0);
   }
-  expect(await page.evaluate(() => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls)).toEqual(previousCalls);
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  expect((await page.evaluate(() => (window as Window & { regionalMotionCalls?: string[] }).regionalMotionCalls))!.length).toBeGreaterThanOrEqual(previousCalls.length);
   await expect(action).toBeFocused();
   await expectNoOverflow(page);
 });

@@ -17,7 +17,6 @@ async function setup(page:Page){
  await page.goto('/planner');await chooseTripConditions(page);
  for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();
  await openItinerary(page);await openNaruTool(page, '여행비');
- await page.getByText('여행비 계획하기',{exact:true}).click();
  return page.getByRole('region',{name:'여행비 계획',exact:true});
 }
 test('budget distinguishes unknown from zero, combines per-person and group costs and preserves saved input',async({page},info)=>{

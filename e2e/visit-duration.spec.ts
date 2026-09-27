@@ -34,7 +34,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await page.evaluate(() => document.fonts.ready);
   const minute = (value: string) => Number(value.split(":")[0]) * 60 + Number(value.split(":")[1]);
   const previous = minute((await board.locator(".simple-stop > time").nth(1).textContent())!);
-  await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   const choice = editor.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true });
   await chooseWaveOption(choice, "30");
@@ -42,7 +42,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   expect(minute((await board.locator(".simple-stop > time").nth(1).textContent())!)).toBe(previous);
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => minute((await board.locator(".simple-stop > time").nth(1).textContent())!)).toBe(previous - 90);
-  await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   await chooseWaveOption(choice, "custom");
   const minutes = editor.getByRole("spinbutton", { name: "체류시간(분)", exact: true });
   await minutes.fill("0");
@@ -59,7 +59,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await expect(board.locator(".simple-stop-copy").first()).toContainText("30분 머물러요");
   await editor.getByRole("button", { name: "적용", exact: true }).click();
   await expect(board.locator(".simple-stop-copy").first()).toContainText("137분 머물러요");
-  await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   await chooseWaveOption(choice, "custom");
   const widths = info.project.name.startsWith("desktop") ? [1440, 960] : [390, 320];
   for (const width of widths) {
@@ -83,7 +83,7 @@ test("visit duration recalculates the next stop and persists through sharing, ar
   await expect(page.locator(".travel-book-days")).toContainText("체류 137분");
   await page.getByRole("button", { name: /이 일정 다시 열기/ }).click();
   await expect(board.locator(".simple-stop-copy").first()).toContainText("137분 머물러요");
-  await board.getByLabel("경남도립미술관 일정 수정", { exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   await chooseWaveOption(choice, "default");
   await expect(waveSelectNative(choice).locator("option:checked")).toHaveText("기본 · 약 120분");
   await editor.getByRole("button", { name: "적용", exact: true }).click();

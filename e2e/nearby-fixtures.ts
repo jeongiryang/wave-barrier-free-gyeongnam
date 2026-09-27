@@ -82,8 +82,7 @@ export async function openNearby(page: Page, english = false, theme = "light", p
   await openPlannerMap(page);
   await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
   if (english) await changeMapLanguage(page, true);
-  await page.getByRole("button", { name: english ? "Map options" : "지도 도구", exact: true }).click();
-  await page.locator('.map-command-bar button[aria-controls="map-panel-nearby"]').click();
+  await openMapTool(page, 'nearby');
   const panel = page.getByRole("region", { name: english ? "Find nearby places" : "주변 장소 찾기", exact: true });
   await expect(panel).toBeVisible();
   expect(await nearbyRequests(page)).toBe(0);
@@ -144,8 +143,11 @@ export async function openMapTool(page: Page, tool: "nearby" | "layers" | "expor
 
 /** The same live route state is inspected through Naru, then the map regains input. */
 export async function withRouteCoverage(page: Page, action: () => Promise<void> = async () => {}) {
+  const routeDetailsOpen = await page.locator('.reference-route-details[open]').count() > 0;
   await openNaruTool(page, '이동 구간 확인');
   await expect(page.locator('.itinerary-route-coverage')).toBeVisible();
   await action();
   if (await naruDialog(page).isVisible()) await closeNaruTool(page);
+  await ensureMapView(page);
+  if (routeDetailsOpen) await openRouteDetails(page);
 }

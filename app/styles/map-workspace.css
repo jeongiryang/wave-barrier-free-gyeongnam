@@ -139,7 +139,6 @@ html[data-theme="dark"] .map-side-drawer header > button { color: #e7f2f7; borde
 }
 @media (max-width: 620px) {
   .map-command-bar .map-expand-button { width: 44px; min-width: 44px; padding-inline: 0; }
-  .map-expand-label { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .navigation-section { padding-right: 12px; padding-left: 12px; }
   .navigation-workspace { border-radius: 18px; }
   .map-panel { --route-map-height: 500px; }

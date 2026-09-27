@@ -59,6 +59,7 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   await prepareStory(page); await page.goto('/'); await storyReady(page);
   const footer = page.locator('.landing-page .landing-finale > .wave-balanced-footer');
   await footer.scrollIntoViewIfNeeded(); await expect(footer).toBeVisible();
+  await expect.poll(() => page.locator('#closing .landing-closing-copy').evaluate(node => node.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
   const measured = await footer.evaluate(node => {
     const box = node.getBoundingClientRect();
     return { left: box.left, right: box.right, width: document.documentElement.clientWidth,

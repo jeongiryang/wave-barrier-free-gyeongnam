@@ -52,11 +52,11 @@ test("the travel narrative and labelled Naru example remain free of trip request
   await expect(conversation).toHaveAccessibleName("대화 예시");
   await expect(conversation).toContainText("90분");
   await expect(conversation.locator("input,textarea,form,[contenteditable=true]")).toHaveCount(0);
-  await expect(conversation.locator(".example-duration strong")).toHaveText("60분");
+  await expect(conversation.locator(".example-duration strong:not(.example-proposed)")).toHaveText("60분");
   await conversation.getByRole("button", { name: "예시 일정에 적용", exact: true }).click();
-  await expect(conversation.locator(".example-duration strong")).toHaveText("90분");
+  await expect(conversation.locator(".example-duration strong:not(.example-proposed)")).toHaveText("90분");
   await conversation.getByRole("button", { name: "되돌리기", exact: true }).click();
-  await expect(conversation.locator(".example-duration strong")).toHaveText("60분");
+  await expect(conversation.locator(".example-duration strong:not(.example-proposed)")).toHaveText("60분");
   await expect(page.locator(".landing-naru-usecases button")).toHaveCount(6);
   await expect(page.locator(".night-journey-input > .night-primary")).toHaveAttribute("href", /^\/planner\?region=/);
   await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");

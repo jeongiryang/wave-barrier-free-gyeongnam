@@ -5,11 +5,15 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { expect, test } from "@playwright/test";
 import * as copy from "../features/routing/map-status-copy";
-import NightIcon from "../components/NightIcon";
 
 // Render the real status component with controlled provider messages that no public
 // endpoint currently emits. Only preferences are injected; browser DOM resolves lang.
 const require = createRequire(import.meta.url);
+const iconModule = { exports: {} as { default: ComponentType<Record<string, unknown>> } };
+const iconCode = ts.transpileModule(readFileSync(new URL("../components/NightIcon.tsx", import.meta.url), "utf8"), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
+}).outputText;
+new Function("require", "exports", "module", iconCode)(require, iconModule.exports, iconModule);
 const code = ts.transpileModule(readFileSync(new URL("../features/routing/components/MapCommandBar.tsx", import.meta.url), "utf8"), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 },
 }).outputText;
@@ -19,7 +23,7 @@ for (const en of [false, true]) test(`map status language is explicit for origin
   new Function("require", "exports", "module", code)((id: string) => {
     if (id.endsWith("/SitePreferences")) return { useSitePreferences: () => ({ locale: en ? "en" : "ko" }) };
     if (id === "../map-status-copy") return copy;
-    if (id.endsWith("/NightIcon")) return { default: NightIcon };
+    if (id.endsWith("/NightIcon")) return iconModule.exports;
     if (id === "react" || id === "react/jsx-runtime") return require(id);
     throw new Error(`Unexpected component import: ${id}`);
   }, componentModule.exports, componentModule);

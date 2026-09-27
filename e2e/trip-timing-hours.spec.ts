@@ -28,7 +28,7 @@ const count = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getIte
 test('existing operating-hours evidence immediately guards device save and public share without extra provider requests', async ({ page }) => {
   const calls = await setup(page, '09:00~18:00');
   expect(calls.requests()).toBe(0);
-  const hours = page.locator('.simple-stops .visit-hours');
+  const hours = page.locator('#itinerary .visit-hours:visible');
   await hours.locator('summary').click(); await expect(hours).toContainText('예상 도착이 개장 전이에요');
   // No intervening itinerary edit: the completed evidence request itself must update the guard.
   await page.locator('[data-planner-tool=save] > button').click();
@@ -50,7 +50,7 @@ test('existing operating-hours evidence immediately guards device save and publi
 
 test('conditional operating hours stay unconfirmed and do not invent a save conflict', async ({ page }) => {
   const calls = await setup(page, '하절기 09:00~18:00 / 동절기 10:00~17:00');
-  const hours = page.locator('.simple-stops .visit-hours');
+  const hours = page.locator('#itinerary .visit-hours:visible');
   await hours.locator('summary').click(); await expect(hours).toContainText('이용시간이 없거나 조건에 따라 달라요');
   await page.locator('[data-planner-tool=save] > button').click();
   await expect.poll(() => count(page)).toBe(1); await expect(review(page)).toHaveCount(0);
@@ -62,7 +62,7 @@ test('newly loaded hours guard the next automatic edit until their warning is ac
   const save = page.locator('[data-planner-tool=save] > button');
   await save.click(); await expect.poll(() => count(page)).toBe(1);
   const before = await page.evaluate(() => localStorage.getItem('wave-travel-book-v1'));
-  const hours = page.locator('.simple-stops .visit-hours');
+  const hours = page.locator('#itinerary .visit-hours:visible');
   await hours.locator('summary').click(); await expect(hours).toContainText('예상 도착이 개장 전이에요');
   // Reading evidence alone must not rewrite an unchanged saved trip.
   await setStart(page, '07:00');

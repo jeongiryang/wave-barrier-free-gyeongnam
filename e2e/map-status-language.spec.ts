@@ -43,7 +43,7 @@ for (const theme of ["light", "dark"]) {
     const expand = commands.locator(".map-expand-button");
     await expect(expand).toHaveAccessibleName("⛶ Expand map");
     await expand.click(); await expect(expand).toHaveAttribute("aria-pressed", "true");
-    await expect(expand).toHaveText("× Close expanded map");
+    await expect(expand).toHaveAccessibleName("× Close expanded map");
     await page.keyboard.press("Escape"); await expect(expand).toBeFocused();
     await expect(expand).toHaveAttribute("aria-pressed", "false");
     await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true);
