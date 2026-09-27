@@ -128,6 +128,21 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
     } catch (error) {
       cancelReveal();
       if (controller.signal.aborted) return false;
+      if (import.meta.env.DEV && page === 1) {
+        const { localExamplePlan } = await import("../services/local-example-plan");
+        const example = localExamplePlan(requestedRegion, requestedFacilities);
+        latestPlan.current = example;
+        setPlan(example);
+        setResultSignature(requestedSignature);
+        setPlanError("");
+        setRecentPlan(null);
+        setUsingRecent(null);
+        setNoticeKind("error");
+        resetAudio();
+        if (revealResults && !reveal.signal.aborted) onRevealResults?.();
+        restoreRequestFocus();
+        return true;
+      }
       const message = planFailureKind(error, navigator.onLine !== false);
       setPlanError(message);
       const cached = readPlanResultCache(window.localStorage, requestedSignature);

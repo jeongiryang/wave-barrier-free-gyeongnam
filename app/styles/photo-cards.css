@@ -125,3 +125,12 @@ html:root body .wave-night .festival-icon-action::after{top:auto;bottom:calc(100
 html:root body .wave-night .festival-actions button:first-child{display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
 
 .wave-action-toast:popover-open{position:fixed;inset:auto 16px max(28px,env(safe-area-inset-bottom)) 16px;margin-inline:auto;width:fit-content;max-width:min(440px,calc(100% - 32px));padding:14px 22px;border:1px solid #6bcfe08c;border-radius:16px;background:#123650ed;color:#dff7ff;box-shadow:0 6px 28px #001a3960;font-size:16px;font-weight:600;line-height:1.5;text-align:center;pointer-events:none}
+
+/* Planner place cards keep photographs unobstructed and place information below a divider. */
+html:root body .wave-night .simple-place-row,html:root body .wave-night [data-place-view=grid] .simple-place-row{min-height:0;padding:0;gap:0;background:#123246;text-shadow:none}
+html:root body .wave-night .simple-place-row>.simple-place-photo,html:root body .wave-night [data-place-view=grid] .simple-place-row>.simple-place-photo{position:relative;inset:auto;order:1;width:100%;height:auto;aspect-ratio:4/3;border-radius:19px 19px 0 0}
+html:root body .wave-night .simple-place-row>.simple-place-heading{order:2;width:100%;max-width:none;margin:0;padding:16px 18px 8px;border-top:1px solid #8bb8ca66;border-radius:0;background:#123246!important;backdrop-filter:none;color:#fff;text-shadow:none}
+html:root body .wave-night .simple-place-row>.simple-place-copy{order:3;width:100%;max-width:none;margin:0;padding:0 18px 8px;border-radius:0;background:#123246!important;backdrop-filter:none;color:#dcecf2;text-shadow:none}
+html:root body .wave-night .simple-place-row:not(:has(.simple-place-heading))>.simple-place-copy{padding-top:16px;border-top:1px solid #8bb8ca66}
+html:root body .wave-night .simple-place-row>.place-card-actions{order:4;margin:0;padding:8px 18px 18px;background:#123246}
+html:root body .wave-night .simple-place-row :is(.simple-place-heading,.simple-place-copy)>*{background:none!important;backdrop-filter:none;text-shadow:none}

@@ -17,6 +17,7 @@ import type { Place } from "../types";
 import PlaceAudioGuide from "./PlaceAudioGuide";
 import styles from "./TravelExperience.module.css";
 import { buildEvidenceReviewQueue } from "../../../lib/evidence-cycle.js";
+const visibleSensoryKeys = ["mobility", "restroom"] as const;
 export default function SensoryMap({
   places,
   onSelectPlace,
@@ -31,7 +32,7 @@ export default function SensoryMap({
     [now, setNow] = useState(0),
     [version, setVersion] = useState(0);
   const [selected, setSelected] = useState(places[0]?.id || ""),
-    [layer, setLayer] = useState("noise"),
+    [layer, setLayer] = useState<(typeof visibleSensoryKeys)[number]>("mobility"),
     [busy, setBusy] = useState(false);
   const [readings, setReadings] = useState<Record<string, string>>({}),
     [ago, setAgo] = useState("0");
@@ -82,9 +83,11 @@ export default function SensoryMap({
       document.removeEventListener("visibilitychange", refresh);
     };
   }, [ids, version]);
-  const points = places.flatMap((p) => {
+  const points = places.map((p, index) => {
     const point = supportedPlacePoint(p.mapX, p.mapY);
-    return point ? [{ place: p, ...point }] : [];
+    return point
+      ? { place: p, ...point, synthetic: false }
+      : { place: p, lng: 128.1 + (index % 4) * 0.12, lat: 35.05 + Math.floor(index / 4) * 0.1, synthetic: true };
   });
   const minX = Math.min(...points.map((p) => p.lng)),
     maxX = Math.max(...points.map((p) => p.lng));
@@ -162,18 +165,18 @@ export default function SensoryMap({
     <div className={styles.experience}>
       <h3>감각지도·지금 현장</h3>
       <p>
-        여행자가 직접 관찰한 소리·혼잡·이동·휴식 정보입니다. 관찰 후 2시간이
+        여행자가 직접 관찰한 휠체어 이동·화장실 정보입니다. 관찰 후 2시간이
         지나면 현재 정보에서 제외해요. 제보가 없는 곳은 미확인입니다.
       </p>
       <div className={styles.actions}>
-        {Object.entries(SENSORY_FIELDS).map(([key, field]) => (
+        {visibleSensoryKeys.map(key => (
           <button
             type="button"
             key={key}
             aria-pressed={layer === key}
             onClick={() => setLayer(key)}
           >
-            {field.label}
+            {SENSORY_FIELDS[key].label}
           </button>
         ))}
       </div>
@@ -196,16 +199,20 @@ export default function SensoryMap({
                 reports.filter((r) => r.placeId === p.place.id),
                 now,
               )[layer];
-            const x = 50 + ((p.lng - minX) / (maxX - minX || 1)) * 500,
-              y = 210 - ((p.lat - minY) / (maxY - minY || 1)) * 150;
+            const x = maxX === minX ? 300 : 50 + ((p.lng - minX) / (maxX - minX)) * 500,
+              y = maxY === minY ? 130 : 210 - ((p.lat - minY) / (maxY - minY)) * 150;
             return (
-              <g key={p.place.id}>
+              <g key={p.place.id} role="button" tabIndex={0} aria-label={`${p.place.name}${p.synthetic ? " 시연용 임의 위치" : " 위치"}`} onClick={() => setSelected(p.place.id)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelected(p.place.id); } }} style={{ cursor: "pointer" }}>
                 <circle
                   cx={x}
                   cy={y}
                   r="20"
                   fill={summary.count && !error ? "#165f52" : "#586962"}
                 />
+                {layer === "restroom" && <g className="restroom-location-pin" transform={`translate(${x} ${y})`} aria-hidden="true">
+                  <path d="M0 0C-5-8-20-20-20-36A20 20 0 1 1 20-36C20-20 5-8 0 0Z" fill="#d92d20" stroke="#fff" strokeWidth="3" />
+                  <circle cx="0" cy="-36" r="7" fill="#fff" />
+                </g>}
                 <text
                   x={x}
                   y={y + 6}
@@ -222,7 +229,9 @@ export default function SensoryMap({
                   fill="#243b35"
                   fontSize="12"
                 >
-                  {error
+                  {p.synthetic
+                    ? "시연용 위치"
+                    : error
                     ? "갱신 실패"
                     : summary.conflict
                       ? "제보 차이"
@@ -280,7 +289,7 @@ export default function SensoryMap({
                 {s.conflict ? " · 서로 다른 제보가 있어요" : ""}
               </p>
               {!supportedPlacePoint(p.mapX, p.mapY) && (
-                <small>좌표 미확인 · 목록으로 제공</small>
+                <small>좌표 미확인 · 지도에는 시연용 임의 위치를 표시하며 실제 위치가 아닙니다.</small>
               )}
             </li>
           );
@@ -308,7 +317,7 @@ export default function SensoryMap({
               <p key={r.id || i}>
                 여행자 관찰 · {new Date(r.observedAt).toLocaleString("ko-KR")} ·{" "}
                 {Object.entries(r.readings)
-                  .filter(([k, v]) => SENSORY_FIELDS[k]?.values[v])
+                  .filter(([k, v]) => visibleSensoryKeys.includes(k as (typeof visibleSensoryKeys)[number]) && SENSORY_FIELDS[k]?.values[v])
                   .map(
                     ([k, v]) =>
                       `${SENSORY_FIELDS[k].label}: ${SENSORY_FIELDS[k].values[v]}`,
@@ -334,7 +343,9 @@ export default function SensoryMap({
                   ))}
                 </WaveSelect>
               </label>
-              {Object.entries(SENSORY_FIELDS).map(([key, field]) => (
+              {visibleSensoryKeys.map(key => {
+                const field = SENSORY_FIELDS[key];
+                return (
                 <label key={key}>
                   {field.label}
                   <WaveSelect
@@ -351,7 +362,7 @@ export default function SensoryMap({
                     ))}
                   </WaveSelect>
                 </label>
-              ))}
+              );})}
             </div>
             <div className={styles.actions}>
               <button
