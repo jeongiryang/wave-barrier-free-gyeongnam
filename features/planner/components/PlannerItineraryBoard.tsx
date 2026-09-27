@@ -52,6 +52,8 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
       return field?.state === "confirmed" ? [] : [`${facilityLabel(key, false)} ${field?.state === "negative" ? "조건과 맞지 않음" : "정보 미확인"}`];
     }),
   })).filter(item => item.items.length > 0);
+  const focusedEntry = active?.entries.find(entry => entry.place.id === focusedPlaceId) || active?.entries[0];
+  const focusedMovement = focusedEntry ? trip.movementFor(focusedEntry.place.id) : null;
   return <>
     <div className="simple-itinerary-board" data-map={mapView}>
       <section lang="ko" className="simple-timeboard" aria-label="날짜별 여행 일정">
@@ -77,6 +79,27 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
         {outside.length > 0 && <section className="simple-outside-dates"><h3>기간 밖에 남아 있는 장소</h3>{outside.map(place => <div key={place.id}><span>{place.name} · {trip.scheduleAssignments[place.id]}</span><button type="button" onClick={() => setEditing(place)} data-icon-action="" title="날짜 수정"><NightIcon name="calendar" size={20}/><span className="sr-only">날짜 수정</span></button></div>)}</section>}
         <PlannerToolPortal group="comfort"><details className="simple-day-options"><summary>걷기·휴식·마치는 시각</summary>{trip.activeDay && <DayDeadlineControl key={trip.activeDay} day={trip.activeDay} value={trip.dayDeadlines[trip.activeDay]} entries={active?.entries || []} onChange={value => trip.applyTripCommand({ type: 'deadline', day: trip.activeDay, value })} />}<TripComfortPlan trip={trip} coverage={coverage} schedule={schedule} />{!!active?.entries.length && <div className="travel-book-actions"><button type="button" onClick={() => window.dispatchEvent(new CustomEvent('wave:open-restroom-finder', { detail: { contentId: active.entries.at(-1)?.place.id } }))}>화장실 찾기</button></div>}<RestStopFinder trip={trip} places={places} requiredKeys={requiredKeys} onSelectPlace={onSelectPlace} /></details></PlannerToolPortal>
       </section>
+      {focusedEntry && <section className="simple-focus-stop" aria-label={`${focusedEntry.place.name} 선택 일정 상세`}>
+        <div className="simple-focus-photo"><SmartSpotImage src={focusedEntry.place.image} title={focusedEntry.place.name} region={focusedEntry.place.city} contentId={focusedEntry.place.id} tag="관광" rank={0} showMeta={false} /></div>
+        <div className="simple-focus-overlay"><time>{focusedEntry.startsAtLabel}</time><button className="simple-edit-stop" type="button" onClick={() => setEditing(focusedEntry.place)} aria-label={`${focusedEntry.place.name} 일정 수정`} title="수정"><ActionIcon label="수정" /></button></div>
+        <div className="simple-focus-copy">
+          <h3><button type="button" onClick={() => onSelectPlace(focusedEntry.place)}>{focusedEntry.place.name}</button></h3>
+          <p>{focusedEntry.visitMinutes}분 머묾 · {focusedEntry.visitEndsAtLabel}까지</p>
+          <PlaceFacilitySummary place={focusedEntry.place} en={false} />
+        </div>
+        <div className="simple-focus-details">
+          <TripBreakSummary minutes={focusedEntry.breakMinutes} purpose={trip.restPurposeByPlaceId[focusedEntry.place.id]} start={focusedEntry.visitEndsAtLabel} end={focusedEntry.endsAtLabel} />
+          <FixedVisitSummary fixed={trip.fixedVisits[focusedEntry.place.id]} waiting={focusedEntry.waitingMinutes} late={focusedEntry.lateMinutes} />
+          <div className="simple-stop-controls">
+            <button type="button" aria-label={`${focusedEntry.place.name} 같은 날 앞 순서로 이동`} disabled={!focusedMovement?.up} onClick={() => trip.applyTripCommand({ type: 'move', id: focusedEntry.place.id, direction: 'up' })} data-icon-action="" title="앞"><NightIcon name="up" size={20}/><span className="sr-only">앞</span></button>
+            <button type="button" aria-label={`${focusedEntry.place.name} 같은 날 뒤 순서로 이동`} disabled={!focusedMovement?.down} onClick={() => trip.applyTripCommand({ type: 'move', id: focusedEntry.place.id, direction: 'down' })} data-icon-action="" title="뒤"><NightIcon name="down" size={20}/><span className="sr-only">뒤</span></button>
+            <button type="button" aria-label={`${focusedEntry.place.name} 지도에서 보기`} aria-pressed={focusedEntry.place.id === focusedPlaceId} disabled={!supportedPlacePoint(focusedEntry.place.mapX, focusedEntry.place.mapY)} onClick={() => onFocusPlace(focusedEntry.place)} data-icon-action="" title="지도"><NightIcon name="map" size={20}/><span className="sr-only">지도</span></button>
+            <button type="button" aria-label={`${focusedEntry.place.name} 비슷한 장소로 교체`} onClick={() => onAlternative(focusedEntry.place.id)}>비슷한 장소로 교체</button>
+          </div>
+          <PlaceVisitHours id={focusedEntry.place.id} name={focusedEntry.place.name} visit={{ day: active!.day, startsAt: focusedEntry.startsAt, endsAt: focusedEntry.endsAt }} />
+          <p className="simple-leg-time">{focusedEntry.travelSource === 'route' ? `여기까지 이동 ${focusedEntry.travelMinutes}분` : focusedEntry.travelSource === 'estimate' ? `여기까지 이동 약 ${focusedEntry.travelMinutes}분 · 직선거리 추정` : '여기까지 이동시간 미확인'}{focusedEntry.crossesDateBoundary ? ' · 다음 날로 이어짐' : ''}</p>
+        </div>
+      </section>}
       {mapMounted && <div className="simple-itinerary-map" hidden={!mapView}>{map}</div>}
     </div>
     {editing && <Suspense fallback={<LoadingState>일정 수정을 열고 있어요.</LoadingState>}><StopEditor key={editing.id} place={editing} trip={trip} onClose={closeEditor} /></Suspense>}
