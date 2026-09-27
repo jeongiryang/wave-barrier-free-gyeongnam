@@ -405,3 +405,185 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 .scenery-hint { margin: 10px 0 0; color: var(--ink-soft); font-size: .875rem; line-height: 1.6; }
 .scenery-hint span,.scenery-hint small { display: block; }
 .scenery-hint small { margin-top: 2px; color: var(--muted); font-size: .75rem; }
+
+
+/* Three-column itinerary workspace based on the approved full-screen reference. */
+.simple-focus-stop{display:none}
+@media(min-width:1280px){
+  .simple-itinerary-board[data-map=true]{
+    grid-template-columns:minmax(250px,.72fr) minmax(380px,1fr) minmax(420px,1.18fr);
+    gap:14px;
+  }
+  .simple-timeboard{
+    min-width:0;
+    max-height:calc(100dvh - 120px);
+    overflow:auto;
+    padding-right:2px;
+  }
+  .simple-timeboard .simple-itinerary-attention{padding:14px}
+  .simple-timeboard .simple-itinerary-attention>p,
+  .simple-timeboard .simple-itinerary-attention>ul{font-size:12px}
+  .simple-timeboard .simple-day-tabs{margin-top:10px}
+  .simple-timeboard .simple-stops{margin:14px 0}
+  .simple-timeboard .simple-stops>li{
+    min-height:112px;
+    padding:8px;
+    border:1px solid transparent;
+    border-radius:14px;
+    background:#0d2940;
+  }
+  .simple-timeboard .simple-stops>li+li{margin-top:8px}
+  .simple-timeboard .simple-stops>li[data-selected=true]{
+    border-color:#20bfff;
+    box-shadow:0 0 0 1px #20bfff33 inset;
+  }
+  .simple-timeboard .simple-stop{
+    grid-template-columns:42px minmax(0,1fr);
+    gap:8px;
+  }
+  .simple-timeboard .simple-stop>time{
+    padding-top:8px;
+    font-size:12px;
+    text-align:center;
+  }
+  .simple-timeboard .simple-stop-card{
+    min-width:0;
+    display:grid;
+    grid-template-columns:72px minmax(0,1fr);
+    gap:10px;
+    align-items:center;
+  }
+  .simple-timeboard .night-stop-photo{
+    position:relative!important;
+    inset:auto!important;
+    z-index:0!important;
+    width:72px!important;
+    height:72px!important;
+    border-radius:10px!important;
+    overflow:hidden;
+  }
+  .simple-timeboard .simple-stop-copy{
+    min-width:0;
+    padding:0!important;
+  }
+  .simple-timeboard .simple-stop-copy h3{font-size:14px}
+  .simple-timeboard .simple-stop-copy h3 button{min-height:32px}
+  .simple-timeboard .simple-stop-copy>p{font-size:12px}
+  .simple-timeboard .simple-stop-copy .simple-facility-summary,
+  .simple-timeboard .simple-stop-details,
+  .simple-timeboard .simple-edit-stop{display:none!important}
+
+  .simple-focus-stop{
+    position:sticky;
+    top:90px;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:1px solid #24516f;
+    border-radius:18px;
+    background:#0a2338;
+    color:#fff;
+  }
+  .simple-focus-photo{
+    position:relative;
+    height:310px;
+    overflow:hidden;
+    background:#18394c;
+  }
+  .simple-focus-photo .smart-spot-image,
+  .simple-focus-photo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .simple-focus-photo::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg,transparent 48%,rgba(3,17,31,.78));
+    pointer-events:none;
+  }
+  .simple-focus-overlay{
+    position:absolute;
+    z-index:2;
+    top:14px;
+    left:14px;
+    right:14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .simple-focus-overlay time{
+    padding:8px 12px;
+    border-radius:999px;
+    background:#08263edd;
+    font-size:13px;
+    font-weight:800;
+  }
+  .simple-focus-overlay .simple-edit-stop{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    color:#dff7ff;
+    background:#08263edd;
+  }
+  .simple-focus-copy{
+    margin-top:-92px;
+    z-index:2;
+    padding:18px 18px 14px;
+  }
+  .simple-focus-copy h3{margin:0}
+  .simple-focus-copy h3 button{
+    min-height:42px;
+    padding:0;
+    border:0;
+    background:none;
+    color:#fff;
+    font-size:24px;
+    font-weight:850;
+    text-align:left;
+  }
+  .simple-focus-copy>p{margin:2px 0 8px;color:#e5f1f7}
+  .simple-focus-copy .simple-facility-summary{
+    margin-top:10px;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  .simple-focus-details{
+    padding:0 18px 18px;
+  }
+  .simple-focus-details .simple-stop-controls{
+    display:grid;
+    grid-template-columns:44px 44px 44px minmax(0,1fr);
+    gap:8px;
+  }
+  .simple-focus-details .simple-stop-controls button{
+    border-color:#2a6684;
+    border-radius:12px;
+    color:#dff7ff;
+    background:#0b304a;
+  }
+  .simple-focus-details .simple-stop-controls button:last-child{
+    padding-inline:14px;
+    white-space:normal;
+  }
+  .simple-focus-details .simple-leg-time{
+    display:inline-flex;
+    margin-top:10px;
+    padding:7px 10px;
+    border-radius:10px;
+    color:#dff7ff;
+    background:#123b53;
+  }
+  .simple-itinerary-map{
+    position:sticky;
+    top:90px;
+    min-width:0;
+  }
+  .simple-itinerary-map .map-panel{border-radius:18px}
+}
+@media(min-width:1024px) and (max-width:1279px){
+  .simple-focus-stop{display:none}
+}
