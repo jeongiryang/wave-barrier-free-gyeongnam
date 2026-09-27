@@ -28,6 +28,8 @@ Owner가 동작 줄이기 설정 때문에 일부 휴대폰·노트북에서 인
 - 인트로/첫 페인트 36개: 최초 35 PASS, 내부 replay 이벤트를 effect 구독 전에 보내던 테스트 준비 경합 1개 발견. `wave-arrival-ready` 신호를 기다리도록 수정 후 해당 여정 desktop/mobile 2/2 PASS. 렌더러 준비 경계를 타임아웃 확대로 숨기지 않았다.
 - 390/960/1440px에서 reduce/calm 상태의 실제 canvas·원안 경남 자막·12.731초 자동 완료·초점 복귀 확인. 설정 변경 중 재생 유지·Esc·세션 재방문·내부 replay·8초 준비 실패 복구도 확인했다.
 - 독립 QA: Chromium desktop/mobile 각 reduce·normal 4개, Firefox reduce 1개, WebKit reduce 1개 PASS. 실제 재생 시간 증가, 닫기, 재방문, 내부 replay, 초점/스크롤 복귀를 확인했다. QA 설정의 엔진 channel 오류 및 WebKit 정적 manifest fixture 누락은 보정 후 해당 미완료 케이스만 실행했다.
+- 주변 화면의 영향 계약 60/60 PASS(원본 assertion을 유지하고 외부/미모킹 API를 차단한 사본), reduced motion 이후 랜딩 조작 6/6 PASS.
+- Quick 초기 실행은 53/54 PASS. 커뮤니티 나루 말풍선의 400ms 나타남 중간 프레임을 axe가 샘플링한 대비 실패(측정 전경 #5b7a92, 원안 CSS 전경 #143b5a)를 분리했다. 해당 읽기·로그인 여정은 모션 감소 상태에서 완성된 글자 대비를 검사하도록 명시했으며 제품 색·모션과 axe 기준은 변경하지 않았다. 최종 결과와 독립 측정은 PR에 기록한다.
 - 로컬 증거: `harness-results/intro-device-visibility/`의 원본 로그·브라우저 결과·독립 보고서. Quick CI 및 주변 계약 검사의 최종 결과는 PR에 기록한다.
 
 ## 실제 확인 범위

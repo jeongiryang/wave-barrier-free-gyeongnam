@@ -198,6 +198,9 @@ test("planner announces a delayed request and replaces its skeleton with officia
 });
 
 test("community remains readable without login and protects writing", async ({ page }) => {
+  // Check settled text contrast, not an intermediate frame of Naru's 400ms
+  // welcome fade. This journey covers reading and authentication, not motion.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.route("**/api/auth/get-session", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: "null" }));
   await page.route("**/api/community/posts**", (requestRoute) => requestRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ posts: [], page: 1, hasMore: false }) }));
   await page.goto("/community");
