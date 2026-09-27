@@ -255,7 +255,7 @@ test("missing tourism images use official live lookup and a visual fallback", as
   assert.match(component, /contentId/);
   assert.match(component, /smart-image-skeleton/);
   assert.match(component, /photo\.failed &&/);
-  assert.match(component, /className="smart-image-fallback"/);
+  assert.match(component, /smart-image-fallback/);
   assert.match(component, /smart-image-fallback-compact/);
   assert.match(component, /en \? "Official photo unavailable" : "공식 사진을 확인할 수 없어요"/);
   assert.match(planner, /className="simple-place-photo" onClick=\{onDetails\}/);
@@ -774,11 +774,24 @@ test("route-map rendering delegates controller, provider adapters, controls and 
   assert.match(imageExport, /URL\.revokeObjectURL/);
 });
 
-test("landing entry has no intro animation lifecycle or blocking dialog", async () => {
-  const page = await source("app/page.tsx");
-  assert.doesNotMatch(page, /LandingIntro|requestAnimationFrame|createIntroMasks|useEffect|<WaveField|<dialog/);
-  assert.match(page, /<SkipLink/);
-  assert.match(page, /<LandingHero/);
+test("arrival motion belongs to an isolated component and cleans up lifecycle listeners", async () => {
+  const [page, intro, css, renderer] = await Promise.all([
+    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"),
+    source("features/landing/components/LandingIntro.module.css"),
+    source("features/landing/intro/wave-intro.tsx"),
+  ]);
+  assert.match(page, /<LandingIntro/);
+  assert.doesNotMatch(page, /requestAnimationFrame|createIntroMasks|useEffect|<WaveField/);
+  assert.match(intro, /useEffect\(\(\) =>/);
+  assert.match(intro, /clearTimeout\(watchdog\)/);
+  assert.match(renderer, /document\.removeEventListener\("visibilitychange", resetClock\)/);
+  assert.match(renderer, /cancelAnimationFrame\(frame\)/);
+  assert.match(renderer, /document\.hidden \|\| controls\.current\.paused \? 0/);
+  assert.match(intro, /media\.removeEventListener\("change", reduce\)/);
+  assert.match(intro, /node\.close\(\)/);
+  assert.match(intro, /if \(media\.matches\) finish\(\)/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks/);
 });
 
 test("every user-facing footer exposes the repository with an accessible tooltip", async () => {

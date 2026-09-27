@@ -1,4 +1,7 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   passportEntry,
@@ -194,7 +197,7 @@ export default function TravelPassport({
       <div className={styles.fields}>
         <label>
           기록할 장소
-          <select
+          <WaveSelect
             value={selectedId}
             onChange={(e) => setPlaceId(e.target.value)}
           >
@@ -203,17 +206,17 @@ export default function TravelPassport({
                 {p.name}
               </option>
             ))}
-          </select>
+          </WaveSelect>
         </label>
         <label>
           참여 방식
-          <select value={kind} onChange={(e) => setKind(e.target.value)}>
+          <WaveSelect value={kind} onChange={(e) => setKind(e.target.value)}>
             {Object.entries(PASSPORT_KINDS).map(([id, label]) => (
               <option key={id} value={id}>
                 {label}
               </option>
             ))}
-          </select>
+          </WaveSelect>
         </label>
         <label>
           참여 날짜
@@ -248,9 +251,7 @@ export default function TravelPassport({
           type="button"
           onClick={download}
           disabled={!ready || !entries.length}
-        >
-          여행여권 내보내기
-        </button>
+         data-icon-action="" title="여행여권 내보내기"><NightIcon name="download" size={20}/><span className="sr-only">여행여권 내보내기</span></button>
       </div>
       <p role="status">{notice}</p>
       <p>

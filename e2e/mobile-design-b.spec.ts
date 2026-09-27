@@ -109,7 +109,7 @@ test('festival duplicate confirmation preserves the trip until a date choice and
   await page.route('**/api/wave?**', route => new URL(route.request().url()).searchParams.get('action') === 'places' ? route.fulfill({ json: { places: [festival], missing: [] } }) : route.fallback());
   await page.goto('/festivals');
   const card = page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: festival.name, exact: true }) });
-  await card.locator('.night-festival-more > summary').click();
+  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   await card.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
   const before = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
   await card.getByRole('button', { name: '내 일정에 담기', exact: true }).click();

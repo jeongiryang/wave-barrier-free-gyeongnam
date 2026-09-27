@@ -1,3 +1,4 @@
+import PolicyFooterLinks from "../../../components/PolicyFooterLinks";
 import SkipLink from "../../../components/SkipLink";
 import WaveHeader from "../../../components/WaveHeader";
 import NightAccountVisual from "../../../components/NightAccountVisual";
@@ -10,5 +11,6 @@ export default function AuthShell({ mode, returnTo }: { mode: AuthMode; returnTo
     <SkipLink href="#auth-title">계정 입력으로 바로가기</SkipLink>
     <WaveHeader current="other" />
     <div className="auth-layout"><NightAccountVisual /><AuthForm mode={mode} returnTo={returnTo} kakaoEnabled={isKakaoAuthConfigured()} publicPreview={process.env.WAVE_PUBLIC_PREVIEW === '1'} /></div>
+    <footer className="auth-policy-footer"><PolicyFooterLinks /></footer>
   </main>;
 }

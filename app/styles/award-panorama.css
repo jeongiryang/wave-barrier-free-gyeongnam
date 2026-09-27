@@ -3,7 +3,7 @@
 .award-panorama-images{z-index:-2;position:absolute;inset:0;overflow:hidden}
 .award-panorama-images img{position:absolute;width:106%;height:106%;max-width:none;inset:-3%;object-fit:cover;opacity:0;transition:opacity 2.4s ease;animation:award-drift 24s ease-in-out infinite alternate}
 .award-panorama-images img.is-current{opacity:1}
-.award-panorama:after{z-index:-1;content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,15,29,.83),rgba(3,15,29,.4) 65%,rgba(3,15,29,.28));pointer-events:none}
+.award-panorama:after{z-index:-1;content:'';position:absolute;inset:0;background:none;pointer-events:none}
 .award-panorama[data-paused=true] img{animation-play-state:paused}
 .award-panorama-credit{position:absolute;z-index:3;bottom:24px;right:clamp(24px,4vw,64px);left:24px;display:flex;justify-content:flex-end;align-items:center;gap:16px;color:white;text-align:right;font-size:12px;pointer-events:auto}
 .award-panorama-credit span{max-width:420px;text-shadow:0 1px 5px #000}
@@ -15,7 +15,7 @@
 .simple-landing .landing-hero{padding-bottom:110px}
 .simple-landing .night-hero-signature{display:none}
 @keyframes award-drift{from{transform:translateX(-2%)}to{transform:translateX(2%)}}
-@media(max-width:600px){.award-panorama-credit{bottom:18px;left:20px;right:20px;font-size:11px}.award-panorama-credit span{max-width:260px}.award-panorama:after{background:linear-gradient(90deg,#03101dd9,#03101d77)}}
+@media(max-width:600px){.award-panorama-credit{bottom:18px;left:20px;right:20px;font-size:11px}.award-panorama-credit span{max-width:260px}.award-panorama:after{background:none}}
 @media(prefers-reduced-motion:reduce){.award-panorama-images img{animation:none;transition:none}}
 html body .landing-page.night-landing .landing-opening .landing-hero-split{background:transparent;padding-bottom:110px;isolation:auto}
 html:root body .wave-night .landing-opening .wave-header{background:transparent;border-bottom-color:#ffffff26;backdrop-filter:none}
@@ -41,16 +41,16 @@ html:root body .wave-night .night-photo-opening .night-banner-note{display:block
 /* One photo spans the closing content and all footer links, without a divider. */
 html:root body .wave-night :is(.landing-finale,.night-photo-footer) .simple-footer{border:0;box-shadow:none;background:transparent;margin-top:0}
 html:root body .wave-night .night-photo-footer :is(.community-guides,.night-festival-courses){width:calc(100% - 2 * var(--wave-gutter,24px));max-width:1440px;margin:0 auto;padding:28px 0;border:0;border-radius:0;background:transparent;color:#edf5ff}
-.night-photo-footer .award-panorama:after{background:linear-gradient(#041321b8,#041321a8)}
+.night-photo-footer .award-panorama:after{background:none}
 html:root body .wave-night .night-photo-footer .night-festival-courses header p{color:#edf5ff}
 html:root body .wave-night .night-photo-footer .night-course-card{background:#071725b8}
 
-/* Keep navigation reachable beyond the opening photograph. */
-html:root body .landing-page .landing-opening{overflow:visible;padding-top:76px}
-html:root body .landing-page .landing-opening .wave-header{position:fixed;top:0;left:0;background:#071725}
-@media(max-width:600px){html:root body .landing-page .landing-opening{padding-top:96px}}
+/* Keep navigation outside the photograph's isolated stacking context. */
+html:root body .landing-page{padding-top:0;scroll-padding-top:16px}
+html:root body .landing-page.horizon-edition.night-landing>.wave-header{position:relative;inset:auto;z-index:100;background:#071725;border:0;box-shadow:0 8px 24px #020b1426}
+html:root body .landing-page .landing-opening{overflow:hidden}
+html:root body .landing-page section[id]{scroll-margin-top:88px}
+@media(max-width:600px){html:root body .landing-page{padding-top:0}html:root body .landing-page section[id]{scroll-margin-top:108px}}
 
 /* Contrast follows the letters without changing photograph exposure. */
-html:root body .landing-opening .landing-hero-copy :is(h1,.landing-hero-description){text-shadow:-1px -1px #142d43,0 -1px #142d43,1px -1px #142d43,-1px 0 #142d43,1px 0 #142d43,-1px 1px #142d43,0 1px #142d43,1px 1px #142d43}
-
-html:root body .landing-opening .landing-hero-copy #landing-title em{background:none;-webkit-text-fill-color:#fff;color:#fff;animation:none}
+html:root body .landing-opening .landing-hero-copy :is(h1,.landing-hero-description){text-shadow:0 2px 12px #173e6540}

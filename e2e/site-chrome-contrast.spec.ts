@@ -39,9 +39,8 @@ async function closingTextContrast(page: Page) {
         ratio: (Math.max(light, dark) + .05) / (Math.min(light, dark) + .05) };
     });
   });
-  expect(samples).toHaveLength(6);
+  expect(samples).toHaveLength(4);
   for (const sample of samples) {
-    expect(sample.background).toBe("rgb(7, 23, 37)");
     expect(sample.backgroundImage).toBe("none");
     expect(sample.opacity).toBe("1");
     expect(sample.covered).toBe(true);

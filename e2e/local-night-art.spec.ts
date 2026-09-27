@@ -7,11 +7,11 @@ for(const width of [390,960,1440]) test(`local night artwork and source catalog 
  await page.setViewportSize({width,height:900});
  await mockPlannerApi(page);
  await page.goto('/planner');
- const scene=page.locator('.naru-header-scene');
- await expect(scene).toBeVisible();
- await expect(scene.locator('img.is-visible')).toHaveAttribute('src','/naru/conversation-map-night.webp');
- await expect.poll(()=>scene.locator('img.is-visible').evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0)).toBe(true);
- await expect(page.locator('.planner-welcome-header')).toHaveCSS('background-image',/night-coast.webp/);
+ await expect(page.locator('.naru-header-scene')).toHaveAttribute('data-frame','4');
+ const background=page.locator('.scenic-background img.is-current');
+ await expect(background).toHaveAttribute('src','/naru/night-journey-map.webp');
+ await expect.poll(()=>background.evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0)).toBe(true);
+ await expect(page.locator('.scenic-background')).toHaveCSS('position','fixed');
  await expect(page.locator('.naru-launcher').first()).not.toHaveCSS('background-color','rgb(255, 255, 255)');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await page.screenshot({path:testInfo.outputPath(`naru-night-${width}.png`)});

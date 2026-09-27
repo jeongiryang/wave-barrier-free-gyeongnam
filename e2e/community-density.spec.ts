@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test, type Locator } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPublicShellApi } from './fixtures';
@@ -133,7 +134,7 @@ test('community density changes both real post and editorial grids without chang
   });
   await page.goto('/community');
   const list = page.locator('.community-list'), stories = page.locator('.community-editorial-grid');
-  await page.locator('.community-guides > summary').filter({ hasText: /^여행 준비 가이드$/ }).click();
+  await expect(page.locator('.community-guides .community-travel-stories')).toBeVisible();
   await expect(list.locator('article')).toHaveCount(8);
   await expect(stories.locator('article')).toHaveCount(3);
   const storyLinks = await stories.locator('h3 a').evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).getAttribute('href')));
@@ -177,4 +178,50 @@ test('community density changes both real post and editorial grids without chang
     await expect(credit.locator(`a[href="${photo.licenseUrl}"]`)).toHaveText(photo.license);
   }
   expect(errors).toEqual([]);
+});
+
+test('structured service errors show readable recovery copy', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/api/community/posts?*', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'unavailable' } }) }));
+  await page.goto('/community');
+  const error = page.locator('.community-state[role=alert]');
+  await expect(error).toContainText('잠시 후 다시 시도해 주세요.');
+  await expect(error).not.toContainText('[object Object]');
+  await expect(error.getByRole('button', { name: '다시 시도' })).toBeEnabled();
+});
+
+
+test('loading cards match the final grid and photo loading never draws fake text behind a post', async ({page}, info) => {
+  await mockPublicShellApi(page);
+  let releasePosts = () => {}, releasePhoto = () => {};
+  const postGate = new Promise<void>(resolve => { releasePosts = resolve; });
+  const photoGate = new Promise<void>(resolve => { releasePhoto = resolve; });
+  await page.route('**/api/community/posts**', async route => { await postGate; await route.fulfill({json:{posts:posts.slice(0,4),page:1,hasMore:false}}); });
+  await page.route('**/api/wave?**', async route => {
+    if(new URL(route.request().url()).searchParams.get('action') !== 'spot-photo') return route.fallback();
+    await photoGate;await route.fulfill({json:{image:'https://tong.visitkorea.or.kr/loading-check.webp'}});
+  });
+  const bitmap = await readFile('public/media/wave-story/hero-coast-small.webp');
+  await page.route('https://tong.visitkorea.or.kr/loading-check.webp', route => route.fulfill({contentType:'image/webp',body:bitmap}));
+  try {
+    await page.goto('/community');
+    const loading=page.locator('.community-skeletons');await loading.scrollIntoViewIfNeeded();
+    await expect(loading.locator('article')).toHaveCount(4);
+    const columns=await loading.evaluate(e=>getComputedStyle(e).gridTemplateColumns);
+    await expect(loading.locator('article').first()).toHaveCSS('animation-name','none');
+    await loading.screenshot({path:info.outputPath('community-loading-grid.png')});
+    releasePosts();
+    const grid=page.locator('.community-list:not(.community-skeletons)');
+    await expect(grid.locator('article')).toHaveCount(4);
+    await expect(grid).toHaveCSS('grid-template-columns',columns);
+    await expect(grid.locator('.smart-image-skeleton')).toHaveCount(4);
+    await expect(grid.locator('.smart-image-skeleton i,.smart-image-skeleton b')).toHaveCount(0);
+    await expect(grid.getByRole('heading',{name:'여행자의 현장 기록 1'})).toBeVisible();
+    await grid.screenshot({path:info.outputPath('community-photo-loading.png')});
+    releasePhoto();
+    await expect(grid.locator('.smart-image-skeleton')).toHaveCount(0);
+    await expect(grid.locator('.smart-image-fallback')).toHaveCount(0);
+    expect(await grid.locator('img').first().evaluate(e=>(e as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  } finally {releasePosts();releasePhoto();}
 });

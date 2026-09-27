@@ -41,8 +41,8 @@ test("PC는 같은 날짜의 시간표 왼쪽과 지도 오른쪽, 모바일은 
   assert.match(itinerary, /media\.removeEventListener\('change', update\)/);
   assert.match(itinerary, /const mapView = desktop \|\| props\.mapView/);
   assert.match(itinerary, /!desktop &&[\s\S]*aria-label="일정 보기 방식"/);
-  assert.match(itinerary, /aria-pressed=\{!mapView\} onClick=\{\(\) => setMapView\(false\)\}>시간표/);
-  assert.match(itinerary, /aria-pressed=\{mapView\} onClick=\{\(\) => setMapView\(true\)\}>지도/);
+  assert.match(itinerary, /aria-pressed=\{!mapView\} onClick=\{\(\) => setMapView\(false\)\}[^>]*>[\s\S]*?className="sr-only">시간표/);
+  assert.match(itinerary, /aria-pressed=\{mapView\} onClick=\{\(\) => setMapView\(true\)\}[^>]*>[\s\S]*?className="sr-only">지도/);
   assert.ok(board.indexOf('className="simple-timeboard"') < board.indexOf('className="simple-itinerary-map"'));
   assert.match(board, /schedule\.find\(day => day\.day === trip\.activeDay\)/);
   assert.match(itinerary, /scheduleAssignments\[place\.id\] \|\| tripDays\[0\]\) === activeDay/);

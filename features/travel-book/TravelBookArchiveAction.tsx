@@ -1,4 +1,5 @@
 "use client";
+import NightIcon from "../../components/NightIcon";
 import Link from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Spinner } from '../../components/LoadingState';
@@ -121,5 +122,5 @@ export default function TravelBookArchiveAction(input: Props) {
     const timer = setTimeout(() => void saveRef.current(true), 900);
     return () => clearTimeout(timer);
   }, [identity, inputKey, isPending, userId, failed, busy]);
-  return <div lang="ko" className="simple-save-control" data-planner-tool="save"><button type="button" className="primary" disabled={!identity || isPending || busy || !input.places.length} onClick={() => void save()}>{busy ? <><Spinner />저장 중</> : failed ? '저장 다시 시도' : identity?.binding?.kind === 'account' && identity.binding.role === 'member' ? '내 여행에 사본 저장' : '내 여행에 저장'}</button>{identity?.binding && <Link href={identity.binding.kind === 'account' ? `/my-trips/${identity.binding.id}` : '/travel-book'}>저장한 여행</Link>}{notice && <p role={failed ? 'alert' : 'status'}>{notice}{failed && failureStatus === 401 && <Link href="/login?next=%2Fplanner">다시 로그인</Link>}{failed && failureStatus === 409 && <button type="button" disabled={busy} onClick={() => void save(false, true)}>현재 일정을 사본으로 저장</button>}</p>}{timing.confirmation}</div>;
+  return <div lang="ko" className="simple-save-control" data-planner-tool="save"><button type="button" className="primary" data-icon-action="" title={busy ? '저장 중' : failed ? '저장 다시 시도' : '내 여행에 저장'} disabled={!identity || isPending || busy || !input.places.length} onClick={() => void save()}>{busy ? <Spinner /> : <NightIcon name={failed ? 'refresh' : 'save'}/>}<span className="sr-only">{busy ? '저장 중' : failed ? '저장 다시 시도' : identity?.binding?.kind === 'account' && identity.binding.role === 'member' ? '내 여행에 사본 저장' : '내 여행에 저장'}</span></button>{identity?.binding && <Link href={identity.binding.kind === 'account' ? `/my-trips/${identity.binding.id}` : '/travel-book'}>저장한 여행</Link>}{notice && <p role={failed ? 'alert' : 'status'}>{notice}{failed && failureStatus === 401 && <Link href="/login?next=%2Fplanner">다시 로그인</Link>}{failed && failureStatus === 409 && <button type="button" disabled={busy} onClick={() => void save(false, true)}>현재 일정을 사본으로 저장</button>}</p>}{timing.confirmation}</div>;
 }

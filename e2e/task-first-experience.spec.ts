@@ -18,7 +18,9 @@ test('task pages put actual collections first at desktop, tablet and mobile widt
       await expect(page.getByText('일정의 ‘내 여행에 저장’을 눌러 주세요.', { exact: true })).toBeVisible();
       await expect(page.locator('.travel-book-landscapes')).toHaveCount(0);
     } else {
-      await expect(page.locator('.night-community-sidebar').getByRole('heading',{name:'여행 준비 가이드'})).toBeVisible();
+      await page.getByRole('button',{name:'여행 준비 도움말',exact:true}).click();
+      await expect(page.locator('.community-tools-popover:popover-open').getByRole('heading',{name:'여행 준비 가이드'})).toBeVisible();
+      await page.keyboard.press('Escape');
       await expect(page.getByRole('link',{name:'운영정책',exact:true})).toHaveAttribute('href','/policies');
     }
     for (const width of info.project.name.startsWith('desktop') ? [1440,960] : [390]) {

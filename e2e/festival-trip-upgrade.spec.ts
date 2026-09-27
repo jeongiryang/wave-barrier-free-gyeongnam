@@ -44,7 +44,7 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   await expect(filters.getByLabel('언제까지', { exact: true })).toHaveValue('2026-10-12');
   await expect(page.getByRole('heading', { name: event.name, exact: true })).toBeVisible();
   const card = page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: event.name, exact: true }) });
-  await card.locator('.night-festival-more > summary').click();
+  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   return card;
 }
 
@@ -254,13 +254,13 @@ for (const change of ['region', 'date'] as const) test(`축제 ${change === 'reg
   try {
     await setup(page, handler); const before = await records(page);
     const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
-    if (change === 'region') await filters.getByRole('combobox', { name: '지역 선택', exact: true }).selectOption('통영');
+    if (change === 'region') { await filters.getByRole('combobox', { name: '지역 선택', exact: true }).click(); await page.getByRole('option', { name: '통영', exact: true }).click(); }
     else await filters.getByLabel('언제부터', { exact: true }).fill('2026-09-25');
     await expect(page.locator('#festival-results')).toHaveAttribute('aria-busy', 'true');
     await expect(page.getByRole('heading', { name: event.name, exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '내 일정에 담기', exact: true })).toHaveCount(0);
     await expect.poll(() => delayed).toBe(1);
-    if (change === 'region') await filters.getByRole('combobox', { name: '지역 선택', exact: true }).selectOption('거제');
+    if (change === 'region') { await filters.getByRole('combobox', { name: '지역 선택', exact: true }).click(); await page.getByRole('option', { name: '거제', exact: true }).click(); }
     else await filters.getByLabel('언제부터', { exact: true }).fill('2026-09-26');
     await expect(page.getByRole('heading', { name: nextEvent.name, exact: true })).toBeVisible();
     gate.release(); await expect.poll(() => completed).toBe(true);
@@ -279,4 +279,28 @@ for (const fresh of [false, true]) test(`축제 ${fresh ? '새 여행' : '일정
   await expect(page).toHaveURL(/\/festivals$/);
   expect(await records(page)).toEqual(before);
   await expect(card.getByLabel('방문 날짜', { exact: true })).toHaveValue('2026-09-21');
+});
+
+for (const width of [390, 960, 1440]) test(`festival photo cards and compact actions at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  const card = await setup(page);
+  const info = card.getByRole('button', { name: '행사 정보', exact: true });
+  await info.click();
+  await expect(info).toHaveAttribute('aria-expanded', 'true');
+  const panel = card.locator('.night-festival-more');
+  const buttonBox = await info.boundingBox(), panelBox = await panel.boundingBox();
+  expect(panelBox!.y).toBeGreaterThanOrEqual(buttonBox!.y + buttonBox!.height);
+  for (const name of ['행사 정보', '일정 담기', '현장 편의 지도']) {
+    const box = await card.getByRole('button', { name, exact: true }).boundingBox();
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+  const geometry = await card.evaluate(el => {
+    const photo = el.querySelector('.festival-card-photo')!, copy = el.querySelector('.festival-card-copy')!;
+    const imageBox = photo.getBoundingClientRect(), copyBox = copy.getBoundingClientRect();
+    return { height: imageBox.height, photoBottom: imageBox.bottom, textTop: copyBox.top };
+  });
+  expect(geometry.height).toBeGreaterThanOrEqual(240);
+  expect(geometry.textTop).toBeGreaterThanOrEqual(geometry.photoBottom - 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

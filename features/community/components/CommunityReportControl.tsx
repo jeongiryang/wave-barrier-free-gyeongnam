@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
@@ -53,7 +55,7 @@ export default function CommunityReportControl({ label, busy, onReport }: {
   }, [feedback]);
 
   return <div className="community-report-control">
-    <button ref={triggerRef} type="button" disabled={busy} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((current) => !current)}>신고</button>
+    <button ref={triggerRef} type="button" disabled={busy} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((current) => !current)} data-icon-action="" title="신고"><NightIcon name="flag" size={20}/><span className="sr-only">신고</span></button>
     {open && <div ref={panelRef} id={panelId} role="group" aria-label={`${label} 신고 이유`}>
       <p>운영팀에 전달할 이유를 선택해 주세요.</p>
       {reasons.map(([reason, reasonLabel]) => <button type="button" key={reason} disabled={busy} onClick={async () => { const result = await onReport(reason); setFeedback(result); if (result.ok) closeAndRestoreFocus(); }}>{reasonLabel}</button>)}

@@ -1,3 +1,4 @@
+import NightIcon from "../../../components/NightIcon";
 import { useMemo } from "react";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import SmartSpotImage from "../../tourism/components/SmartSpotImage";
@@ -58,12 +59,9 @@ export default function ThemeExplorer({
           {!spot.address && !spot.summary && <p>{english ? `${spot.tag} travel information in ${regionLabel}` : `${region}에서 만나는 ${spot.tag} 여행 정보`}</p>}
           {needsVisitConfirmation && <>
             {!spot.summary && <p>{english ? "A place description has not been provided." : "장소 설명이 제공되지 않았어요."}</p>}
-            <p className="modal-note">{richMode === "pet"
-              ? (english ? "Pet entry conditions are not confirmed by this listing. Ask the venue before visiting. Pet listings do not verify guide-dog access or accessibility facilities." : "이 목록만으로 반려동물 동반 조건이 확인되지는 않아요. 방문 전 운영기관에 문의해 주세요. 안내견 동반·무장애 편의와는 별도 정보예요.")
-              : (english ? "Ask the venue about programmes, reservations and visitor requirements. A wellness listing does not guarantee therapeutic effects or suitability for everyone." : "프로그램·예약·이용 조건은 운영기관에 확인해 주세요. 웰니스 분류는 치료 효과나 모든 이용자의 이용 가능성을 보장하지 않아요.")}</p>
             {/^[1-9]\d{0,11}$/.test(spot.id) && <PlaceVisitHours id={spot.id} name={spot.title} en={english} />}
           </>}
-          <button type="button" disabled={!spot.mapX || !spot.mapY} onClick={() => onRouteFromSpot(spot)}>{spot.mapX && spot.mapY ? (english ? "View route on the map" : "지도에서 경로 보기") : (english ? "Coordinates unavailable" : "좌표 정보 미제공")}<span></span></button>
+          <button type="button" data-icon-action="" title={english ? "View route on the map" : "지도에서 경로 보기"} aria-label={spot.mapX && spot.mapY ? (english ? "View route on the map" : "지도에서 경로 보기") : (english ? "Coordinates unavailable" : "좌표 정보 미제공")} disabled={!spot.mapX || !spot.mapY} onClick={() => onRouteFromSpot(spot)}><NightIcon name="map" size={20}/></button>
         </section>
       </article>)}
     </div>

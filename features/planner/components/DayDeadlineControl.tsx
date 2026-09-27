@@ -1,4 +1,5 @@
 "use client";
+import WaveSelect from "../../../components/WaveSelect";
 import { useRef, useState } from "react";
 import { assessDayDeadline, validTripClock, type DayDeadline } from "../../../lib/trip-time-constraints.js";
 import { formatScheduleTime } from "../optimization/itinerary-schedule.js";
@@ -41,7 +42,7 @@ export default function DayDeadlineControl({ day, value, entries, onChange, en =
         <p>{en ? "Set the time you need to arrive after the last visit." : "마지막 장소를 둘러본 뒤 도착해야 할 시각을 정해요."}</p>
         <div className="auth-field"><label>{en ? "Arrive by" : "도착 마감 시각"}<input type="time" value={time} aria-invalid={invalid && !validTripClock(time) || undefined} onChange={event => setTime(event.target.value)} /></label></div>
         <div className="auth-field"><label>{en ? "Return travel (minutes, optional)" : "마지막 장소부터 이동 (분, 선택)"}<input type="number" inputMode="numeric" min={0} max={720} step={1} value={returnMinutes} aria-invalid={invalid && returnMinutes !== "" && (!/^\d{1,3}$/.test(returnMinutes) || Number(returnMinutes) > 720) || undefined} placeholder={en ? "Unknown" : "모르면 비워두세요"} onChange={event => setReturnMinutes(event.target.value)} /></label></div>
-        <div className="auth-field"><label>{en ? "Extra buffer" : "추가 여유시간"}<select value={buffer} onChange={event => setBuffer(event.target.value)}>{[...new Set([0, 15, 30, 60, 90, 120, value?.bufferMinutes ?? 15])].sort((a, b) => a - b).map(minutes => <option key={minutes} value={minutes}>{minutes}{en ? " min" : "분"}</option>)}</select></label></div>
+        <div className="auth-field"><label>{en ? "Extra buffer" : "추가 여유시간"}<WaveSelect value={buffer} onChange={event => setBuffer(event.target.value)}>{[...new Set([0, 15, 30, 60, 90, 120, value?.bufferMinutes ?? 15])].sort((a, b) => a - b).map(minutes => <option key={minutes} value={minutes}>{minutes}{en ? " min" : "분"}</option>)}</WaveSelect></label></div>
         {invalid && <p role="alert">{en ? "Choose a time and enter 0–720 whole minutes, or leave travel blank." : "시각과 이동시간을 확인해 주세요. 이동은 0~720분 정수 또는 빈칸으로 입력해요."}</p>}
         <div className="travel-book-actions"><button type="button" onClick={apply}>{en ? "Apply" : "적용"}</button><button type="button" onClick={() => { reset(); close(); }}>{en ? "Cancel" : "취소"}</button>{value && <button type="button" onClick={() => { onChange(null); setNotice(en ? "Deadline removed." : "마감시간을 해제했어요."); close(); }}>{en ? "Remove deadline" : "마감 해제"}</button>}</div>
       </div>

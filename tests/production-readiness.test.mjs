@@ -333,7 +333,7 @@ test("wide screens keep the full-width header and put the itinerary beside its m
   assert.match(css, /\.planner-simple \.simple-planner-heading,\.planner-simple \.planner-journey-workspace \{[^}]*width: min\(1600px,calc\(100% - var\(--wave-gutter\) \* 2\)\)/);
   assert.match(css, /\.simple-itinerary-board\[data-map=true\] \{ grid-template-columns: minmax\(360px,\.9fr\) minmax\(0,1\.1fr\)/);
   assert.match(css, /@media\(max-width:1023px\) \{ \.simple-itinerary-board\[data-map=true\] \.simple-timeboard \{ display: none/);
-  assert.match(css, /\.simple-planner-tabs button \{[^}]*min-height: 48px/);
+  assert.match(await source("components/wave-select.css"), /min-height:\s*44px/);
 });
 
 test("landing offers five fixed full-photo links then all eighteen and preserves the verified boundary data", async () => {
@@ -397,13 +397,25 @@ test("preserved feature previews retain their order and motion safety; current c
   }
 });
 
-test("landing does not load intro playback or gate main content behind it", async () => {
-  const landing = await source("app/page.tsx");
-  assert.doesNotMatch(landing, /LandingIntro|wave-intro|arrival-scene|wave-arrival-session/);
+test("arrival intro hosts the approved renderer with explicit playback and bounded recovery", async () => {
+  const [landing, intro, css] = await Promise.all([
+    source("app/page.tsx"), source("features/landing/components/LandingIntro.tsx"), source("features/landing/components/LandingIntro.module.css"),
+  ]);
+  assert.match(intro, /import\("\.\.\/intro\/wave-intro"\)/);
+  assert.doesNotMatch(intro, /EditorialPhoto|<img|<video/);
+  assert.match(landing, /<LandingIntro \/><main/);
+  assert.match(intro, /<dialog ref=\{dialog\}/);
+  assert.match(intro, /onCancel=/);
+  assert.match(intro, /건너뛰기/);
+  assert.match(intro, /prefers-reduced-motion: reduce/);
+  assert.match(intro, /onComplete=\{\(\)=>finishRef\.current\(\)\}/);
+  assert.match(intro, /watchdog\s*=\s*setTimeout\([\s\S]*!ready\.current[\s\S]*8000\)/);
+  assert.match(intro, /onFailure=\{\(\)=>finishRef\.current\(\)\}/);
+  assert.doesNotMatch(intro, /일시정지|이전 장면|다음 장면/);
+  assert.match(intro, /sessionStorage\.setItem\("wave-arrival-session-v1", "done"\)/);
+  assert.match(intro, /clearTimeout\(watchdog\)/);
+  assert.match(css, /\.scene\s*\{[^}]*position:\s*fixed/);
   assert.doesNotMatch(landing, /<LandingSectionProgress|<LandingAccountStory/);
-  assert.match(landing, /<LandingHeader/);
-  assert.match(landing, /<LandingHero/);
-  assert.match(landing, /<LandingFeatureLinks/);
 });
 
 test("interactive help follows real sections on every public journey and remains accessible on mobile", async () => {

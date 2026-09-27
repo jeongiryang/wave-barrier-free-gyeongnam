@@ -17,6 +17,9 @@ import LandingRegionStory from "../features/landing/components/LandingRegionStor
 import LandingAssistantStory from "../features/landing/components/LandingAssistantStory";
 import LandingFeatureLinks from "../features/landing/components/LandingFeatureLinks";
 import LandingFeatureList from "../features/landing/components/LandingFeatureList";
+import ScenicBackground from "../components/ScenicBackground";
+import LandingUseExample from "../features/landing/components/LandingUseExample";
+import LandingIntro from "../features/landing/components/LandingIntro";
 
 function subscribeCompact(onChange: () => void) {
   const query = window.matchMedia("(max-width: 600px)");
@@ -31,16 +34,21 @@ export default function LandingPage() {
   const root = useRef<HTMLElement>(null);
   const compact = useSyncExternalStore(subscribeCompact, compactSnapshot, desktopSnapshot);
   useLandingReveal(root);
-  return <AwardPhotoProvider><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing" lang={locale}>
+  return <AwardPhotoProvider><LandingIntro /><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing scenic-page" lang={locale}>
+    <ScenicBackground kind="home" />
     <SkipLink href="#top">{t("skip", "본문으로 바로가기")}</SkipLink>
-    <div className="landing-opening"><AwardPanorama /><LandingHeader scrolled={false} t={t} />
+    <LandingHeader scrolled={false} t={t} />
+    <div className="landing-opening"><AwardPanorama />
     <LandingHero /></div>
+    <div className="landing-content">
+    <LandingUseExample />
     {compact
       ? [<LandingFeatureLinks key="features" />, <LandingRegionStory key="regions" />]
       : [<LandingRegionStory key="regions" />, <LandingFeatureLinks key="features" />]}
     <LandingChapters />
-    <div className="night-discover-grid"><LandingCommunityScene /><LandingDepartureScene /></div>
+    <div className="night-discover-grid"><LandingDepartureScene /><LandingCommunityScene /></div>
     <div className="night-feature-content"><LandingAssistantStory /><LandingFeatureList /></div>
+    </div>
     <div className="landing-finale"><LandingCallToAction t={t} />
     <LandingFooter t={t} /></div>
   </main></AwardPhotoProvider>;

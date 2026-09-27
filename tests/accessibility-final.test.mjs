@@ -15,9 +15,8 @@ test("공개 화면의 공통 헤더는 주요 메뉴와 현재 페이지 및 �
     source("features/auth/components/AuthShell.tsx"),
     source("components/NightBanner.tsx"),
   ]);
-  assert.match(header, /contains\(document\.activeElement\)/);
-  assert.match(header, /addEventListener\("focusin", focus\)/);
-  assert.match(header, /removeEventListener\("focusin", focus\)/);
+  // In-flow navigation remains keyboard reachable and scrolls out with the page.
+  assert.doesNotMatch(header, /data-hidden|navigationScroll/);
   assert.match(header, /aria-current=\{current === "planner" \? "page" : undefined\}/);
   for (const header of [landingHeader, communityHeader]) assert.match(header, /WaveHeader/);
   assert.match(authShell, /SkipLink/);

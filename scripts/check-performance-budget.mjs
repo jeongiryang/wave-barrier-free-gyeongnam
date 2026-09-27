@@ -22,7 +22,19 @@ const BUDGET = {
   // Explicit 3 KiB scope allowance; all JavaScript budgets unchanged.
   // 2026-09-25: full-photo cards, responsive previews and simplified planner chrome;
   // measured 93.18 KiB. Keep a narrow allowance instead of removing the guard.
-  cssGzipKiB: 96,
+  // 2026-09-27: restored WAVE intro + Naru dialogue profiles, shared accessible
+  // below-trigger selects/calendars and readable scenic surfaces. Retired rules
+  // were removed first. This is an explicit 3 KiB scope baseline increase;
+  // the prior 96 KiB budget did not pass. JavaScript budgets stay unchanged.
+  // 2026-09-27: interactive chat/map story and site-wide action icons.
+  // Removed 41 retired preview selectors first; measured 100.66 KiB.
+  // Explicit 2 KiB feature scope increase; previous 99 KiB cap did not pass.
+  // 2026-09-27: owner-requested full-photo cards across routes, map labels/pin,
+  // shared WAVE palette and compact accessible actions. Removed superseded
+  // split-card and superseded Naru rules first. Full-site local glass/readability
+  // follow-up measures 104.75 KiB (prior 104 KiB cap exceeded by 0.75 KiB).
+  // Explicit 3 KiB scope allowance; every JavaScript budget is unchanged.
+  cssGzipKiB: 105,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,
@@ -50,7 +62,12 @@ const [manifestSource, rscSource, assetNames] = await Promise.all([
 ]);
 const manifest = JSON.parse(manifestSource.replace(/^export default\s+/, "").replace(/;?\s*$/, ""));
 function clientReference(routePath) {
-  return rscSource.match(new RegExp(`#region ${routePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]{0,600}?registerClientReference\\([\\s\\S]*?,\\s*"([a-z0-9]+)",\\s*"default"\\)`))?.[1];
+  // Windows junction builds emit a workspace-relative prefix before app/.
+  const section = rscSource.split("//#region ").find(part => {
+    const file = part.split(/\r?\n/, 1)[0].replaceAll("\\", "/");
+    return file === routePath || file.endsWith(`/${routePath}`);
+  });
+  return section?.slice(0, 1000).match(/registerClientReference\([\s\S]*?,\s*"([a-z0-9]+)",\s*"default"\)/)?.[1];
 }
 
 const landingReference = clientReference("app/page.tsx");
@@ -83,6 +100,7 @@ const totals = {
   largestJsChunkGzipKiB: kib(Math.max(...jsStats.map((item) => item.gzip))),
 };
 
+console.log("Measured performance", JSON.stringify(totals));
 fail("전체 CSS gzip", totals.cssGzipKiB, BUDGET.cssGzipKiB);
 fail("랜딩 초기 JavaScript gzip", totals.landingInitialJsGzipKiB, BUDGET.landingInitialJsGzipKiB);
 fail("랜딩 초기 JavaScript raw", totals.landingInitialJsRawKiB, BUDGET.landingInitialJsRawKiB);

@@ -167,7 +167,7 @@ test("photo course UI documents limitations and supports accessible correction",
   assert.match(component, /HEIC는 이번 버전에서 지원하지 않습니다/);
   assert.match(component, /<AccessibleDateInput/);
   assert.match(component, /순서를 위로/);
-  assert.match(component, /<select/);
+  assert.match(component, /<WaveSelect/);
   assert.match(component, /role="status"/);
   assert.match(component, /aria-live="polite"/);
 });

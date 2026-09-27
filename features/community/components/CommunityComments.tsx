@@ -11,7 +11,7 @@ export default function CommunityComments({ detail }: { detail: ReturnType<typeo
   } = detail;
   return <section className="comments" aria-labelledby="comments-title">
     <div className="comments-heading"><div><h2 id="comments-title">댓글 {comments.length}</h2></div><p>서로의 이동 조건과 경험이 다를 수 있어요. 단정하기보다 직접 확인한 범위를 함께 적어 주세요.</p></div>
-    <form className="comment-form" onSubmit={submitComment}>
+    <form className="comment-form" onSubmit={submitComment} noValidate={!session?.user}>
       <label htmlFor="new-comment">댓글 남기기</label>
       <textarea id="new-comment" value={comment} onChange={(event) => setComment(event.target.value)} rows={4} minLength={2} maxLength={1000} required placeholder={session?.user ? "궁금한 점이나 직접 확인한 경험을 적어 주세요." : "로그인 후 댓글을 남길 수 있습니다."} />
       <div><small>2자 이상 1,000자 이하</small><span>{comment && <button type="button" onClick={discardCommentDraft}>초안 지우기</button>}<button type="submit" disabled={commentState === "saving"}>{commentState === "saving" ? "등록하는 중…" : session?.user ? "댓글 등록" : "로그인하고 댓글 쓰기"}</button></span></div>

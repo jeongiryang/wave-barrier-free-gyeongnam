@@ -1,5 +1,6 @@
 "use client";
 
+import { showActionToast } from "../../../lib/action-toast";
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { changeCommunityBookmark, COMMUNITY_BOOKMARK_KEY, readCommunityBookmarks } from '../../../lib/community/bookmarks';
 
@@ -26,6 +27,7 @@ export function useCommunityBookmarks() {
     try {
       changeCommunityBookmark(localStorage, id, saved);
       refresh();
+      showActionToast(saved ? "글을 저장했습니다." : "글 저장을 해제했습니다.");
       return true;
     } catch (error) {
       setMessage(error instanceof RangeError ? '이 기기에 50개까지 저장할 수 있어요. 다른 글을 해제한 뒤 다시 저장해 주세요.' : '저장 상태를 바꾸지 못했어요. 브라우저 저장 공간과 설정을 확인한 뒤 다시 시도해 주세요.');

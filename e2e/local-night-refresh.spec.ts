@@ -8,7 +8,8 @@ for (const width of [390, 960, 1440]) test(`night dropdowns remain readable and 
   await mockPlannerApi(page);
   await page.route('**/api/auth/**', route => route.fulfill({json:null}));
   await page.goto('/');
-  await expect(page.locator('#arrival-boot,.arrival-scene')).toHaveCount(0);
+  await expect(page.locator('#arrival-boot')).toHaveCount(0);
+  await expect(page.locator('.arrival-scene')).toBeHidden();
   const support = page.getByRole('button', {name:'WAVE 이용 안내 메뉴',exact:true});
   await support.click();
   await page.getByRole('button',{name:'환경설정 열기',exact:true}).click();

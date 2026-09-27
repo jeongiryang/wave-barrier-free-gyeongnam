@@ -1,9 +1,9 @@
+import PolicyFooterLinks from "../../../components/PolicyFooterLinks";
 import type { ReactNode } from "react";
 import WaveHeader from "../../../components/WaveHeader";
 import SkipLink from "../../../components/SkipLink";
 
 export default function AuthUtilityShell({
-  eyebrow,
   title,
   description,
   children,
@@ -19,16 +19,15 @@ export default function AuthUtilityShell({
       <WaveHeader current="other" />
       <div className="auth-layout auth-utility-layout">
         <section className="auth-story" aria-labelledby="auth-story-title">
-          <p className="section-kicker">{eyebrow}</p>
           <h2 id="auth-story-title">{title}</h2>
           <p>{description}</p>
         </section>
         <section className="auth-card auth-utility-card" aria-labelledby="auth-title">
-          <p className="auth-kicker">{eyebrow}</p>
           <h1 id="auth-title">{title}</h1>
           {children}
         </section>
       </div>
+      <footer className="auth-policy-footer"><PolicyFooterLinks /></footer>
     </main>
   );
 }

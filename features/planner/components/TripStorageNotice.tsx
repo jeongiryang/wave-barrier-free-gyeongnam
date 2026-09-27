@@ -1,4 +1,6 @@
 'use client';
+import NightIcon from '../../../components/NightIcon';
+
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { replaceCurrentTrip, subscribeTripStorage, tripStorageFailed, tripStorageConflict } from '../../../lib/current-trip-storage.js';
 
@@ -20,6 +22,6 @@ export default function TripStorageNotice({ snapshot }: { snapshot: Record<strin
     <button type="button" onClick={() => {
       const url = URL.createObjectURL(new Blob([JSON.stringify({ version: 1, values: snapshot }, null, 2)], { type: 'application/json' }));
       const link = document.createElement('a'); link.href = url; link.download = 'wave-current-trip.json'; link.click(); URL.revokeObjectURL(url);
-    }}>여행 파일 내려받기</button>
+    }} data-icon-action="" title="여행 파일 내려받기"><NightIcon name="download" size={20}/><span className="sr-only">여행 파일 내려받기</span></button>
   </div>;
 }

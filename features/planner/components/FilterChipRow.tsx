@@ -1,4 +1,6 @@
 'use client';
+import NightIcon from '../../../components/NightIcon';
+
 import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
@@ -69,7 +71,7 @@ export default function FilterChipRow({ options, selected, onToggle, onClear, ar
         <button type="button" style={offChip} onClick={() => setShowAll(true)}>더 보기 +{hiddenCount}</button>
       </li>}
       {selected.length > 0 && <li style={{ listStyle: 'none' }}>
-        <button type="button" style={offChip} onClick={onClear}>선택 지우기</button>
+        <button type="button" style={offChip} onClick={onClear} data-icon-action="" title="선택 지우기"><NightIcon name="close" size={20}/><span className="sr-only">선택 지우기</span></button>
       </li>}
     </ul>
   </div>;

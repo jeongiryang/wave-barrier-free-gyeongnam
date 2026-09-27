@@ -1,5 +1,4 @@
 /* Deferred Landing journey/date/map and removed standalone panorama styles. Their original components and recordings remain preserved for issue 386; the current seven-chapter registry does not render them. */
-.story-edition .story-expansion { --scene-open: var(--cinema-progress); width: 100%; margin: 0; padding: 0; min-height: min(860px,95svh); display: grid; align-items: end; overflow: hidden; }
 .chapter-heading h2 { margin: 18px 0 24px; font-size: clamp(2.6rem,4.8vw,5.2rem); line-height: 1.17; letter-spacing: -.055em; white-space: pre-line; }
 .chapter-heading > p:not(.section-kicker) { max-width: 540px; line-height: 1.8; color: var(--muted); }
 .itinerary-chapter { background: var(--panel); }
@@ -11,9 +10,6 @@
 .journey-dated-scene > figcaption span { color: var(--muted); font-size: .85rem; }.journey-dated-scene > figcaption strong { font-size: 1.6rem; }
 @media (max-width: 960px) {
  .journey-sequence { gap: 20px; }
-}
-@media (max-width: 600px) {
- .story-edition .story-expansion { min-height: 580px; }
 }
 @media (max-width: 600px) {
  .journey-sequence { grid-template-columns: 1fr; gap: 44px; max-width: 420px; }

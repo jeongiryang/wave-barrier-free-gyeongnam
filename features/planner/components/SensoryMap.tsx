@@ -1,4 +1,7 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -243,9 +246,7 @@ export default function SensoryMap({
           : "현장 정보를 확인하고 있어요."}
       </p>
       <div className={styles.actions}>
-        <button type="button" onClick={() => setVersion((v) => v + 1)}>
-          현장 정보 새로 확인
-        </button>
+        <button type="button" onClick={() => setVersion((v) => v + 1)} data-icon-action="" title="현장 정보 새로 확인"><NightIcon name="refresh" size={20}/><span className="sr-only">현장 정보 새로 확인</span></button>
         <button type="button" onClick={nearbyGuide}>
           내 근처 일정 장소 찾기
         </button>
@@ -325,18 +326,18 @@ export default function SensoryMap({
             <div className={styles.fields}>
               <label>
                 관찰한 때
-                <select value={ago} onChange={(e) => setAgo(e.target.value)}>
+                <WaveSelect value={ago} onChange={(e) => setAgo(e.target.value)}>
                   {[0, 15, 30, 60, 90].map((m) => (
                     <option key={m} value={m}>
                       {m ? `${m}분 전` : "방금"}
                     </option>
                   ))}
-                </select>
+                </WaveSelect>
               </label>
               {Object.entries(SENSORY_FIELDS).map(([key, field]) => (
                 <label key={key}>
                   {field.label}
-                  <select
+                  <WaveSelect
                     value={readings[key] || ""}
                     onChange={(e) =>
                       setReadings({ ...readings, [key]: e.target.value })
@@ -348,7 +349,7 @@ export default function SensoryMap({
                         {label}
                       </option>
                     ))}
-                  </select>
+                  </WaveSelect>
                 </label>
               ))}
             </div>
@@ -357,9 +358,7 @@ export default function SensoryMap({
                 type="button"
                 disabled={busy || !Object.values(readings).some(Boolean)}
                 onClick={() => void submit()}
-              >
-                현장 정보 공유
-              </button>
+               data-icon-action="" title="현장 정보 공유"><NightIcon name="share" size={20}/><span className="sr-only">현장 정보 공유</span></button>
               <button
                 type="button"
                 disabled={busy}

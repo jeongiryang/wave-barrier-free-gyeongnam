@@ -1,5 +1,6 @@
 "use client";
 
+import WaveSelect from "../../components/WaveSelect";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
@@ -25,13 +26,6 @@ const subscribeToHydration = () => () => undefined;
 const browserReady = () => true;
 const serverReady = () => false;
 
-function positionPanel(details: HTMLDivElement | null) {
-  if (details?.dataset.open !== "true") return;
-  const top = details.querySelector(".preference-trigger")?.getBoundingClientRect().top;
-  if (top === undefined) return;
-  const bottom = Math.min(window.innerHeight - 96, Math.max(16, window.innerHeight - top + 10));
-  details.style.setProperty("--preference-bottom", `${bottom}px`);
-}
 
 export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean }) {
   const controlsReady = useSyncExternalStore(subscribeToHydration, browserReady, serverReady);
@@ -46,7 +40,6 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
   const trigger = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const [open, setOpen] = useState(false);
-  useEffect(() => { if (open) positionPanel(disclosure.current); }, [open]);
   const [colorAssistNotice, setColorAssistNotice] = useState("");
   const [textScaleNotice, setTextScaleNotice] = useState("");
 
@@ -56,16 +49,8 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
       if (event.target instanceof Node && !details?.contains(event.target)) setOpen(false);
     };
     document.addEventListener("pointerdown", closeOutside);
-    const reposition = () => positionPanel(disclosure.current);
-    const observer = new ResizeObserver(reposition);
-    if (disclosure.current?.parentElement) observer.observe(disclosure.current.parentElement);
-    window.addEventListener("resize", reposition);
-    document.addEventListener("scroll", reposition, true);
     return () => {
       document.removeEventListener("pointerdown", closeOutside);
-      window.removeEventListener("resize", reposition);
-      document.removeEventListener("scroll", reposition, true);
-      observer.disconnect();
     };
   }, []);
 
@@ -93,9 +78,9 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
         </div>
         {showPresentationOptions && <><label className="preference-row">
           <span><b>{t("language", "언어")}</b><small>{en ? "Some pages are in Korean" : "한국어 전체 지원"}</small></span>
-          <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>
+          <WaveSelect value={locale} onChange={(event) => setLocale(event.target.value as Locale)} aria-label={t("language", "언어")}>
             {localeOptions.map((item) => <option value={item.id} key={item.id}>{item.short} · {en && item.id === "ko" ? "Korean" : item.label}{item.beta ? en ? " · partial" : " · 부분 지원" : ""}</option>)}
-          </select>
+          </WaveSelect>
         </label>
         <button className="preference-row" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? t("light", "라이트모드") : t("dark", "다크모드")}>
           <span><b>{en ? "Appearance" : "화면 색상"}</b><small>{theme === "dark" ? en ? "Dark appearance" : "어두운 화면" : en ? "Light appearance" : "밝은 화면"}</small></span>

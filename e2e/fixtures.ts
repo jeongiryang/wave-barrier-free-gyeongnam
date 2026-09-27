@@ -102,8 +102,9 @@ export async function chooseTripConditions(page: Page) {
   };
   page.on('response', onResponse);
   try {
-    let changed = await region.inputValue() !== '창원';
-    await region.selectOption('창원');
+    let changed = (await region.innerText()).trim() !== '창원';
+    await region.click();
+    await page.getByRole("option", { name: "창원", exact: true }).click();
     const nature = page.getByRole('button', { name: '자연·휴양', exact: true });
     if (await nature.getAttribute('aria-pressed') !== 'true') { changed = true; await nature.click(); }
     await page.locator('.simple-facility-trigger').click();

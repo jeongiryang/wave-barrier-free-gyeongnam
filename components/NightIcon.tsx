@@ -1,9 +1,32 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, SVGProps } from 'react';
 
 const paths: Record<string, string> = {
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  play: 'm8 4 12 8-12 8Z',
+  pause: 'M8 5v14M16 5v14',
+  stop: 'M5 5h14v14H5Z',
+  undo: 'M9 5 3 11l6 6M3 11h10a7 7 0 0 1 7 7',
+  refresh: 'M20 7V2m0 5h-5M4 17v5m0-5h5M20 7a9 9 0 0 0-15-2M4 17a9 9 0 0 0 15 2',
+  up: 'm6 15 6-6 6 6',
+  down: 'm6 9 6 6 6-6',
+  left: 'm15 6-6 6 6 6',
+  right: 'm9 6 6 6-6 6',
+  copy: 'M9 9h12v12H9ZM5 15H3V3h12v2',
+  save: 'M4 3h13l4 4v14H3V3ZM7 3v6h10V3M7 21v-8h10v8',
+  download: 'M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5',
+  share: 'M12 16V3m-5 5 5-5 5 5M5 12H3v9h18v-9h-2',
+  trash: 'M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7',
+  'bookmark-remove': 'M6 21V4h12v17l-6-4ZM9 9h6',
+  flag: 'M5 22V3m0 0c5-4 9 4 15 0v11c-6 4-10-4-15 0',
+  phone: 'M6 3H3c0 10 8 18 18 18v-3l-5-3-3 3a16 16 0 0 1-7-7l3-3-3-5Z',
+  volume: 'M3 9h4l5-5v16l-5-5H3ZM16 8a6 6 0 0 1 0 8M19 5a10 10 0 0 1 0 14',
+  sort: 'M4 5h16M4 12h11M4 19h6',
+  info: 'M12 16v-5M12 7h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z',
+  plus: 'M12 5v14M5 12h14',
   settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM9 2h6l1 3 3 1 3 3v6l-3 1-1 3-3 3H9l-1-3-3-1-3-3V9l3-1 1-3Z',
   close: 'M6 6l12 12M18 6 6 18',
   search: 'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
+  'photo-off': 'M3 3l18 18M7 3h14v14M17 21H3V7M3 17l5-5 4 4M15 8h.01',
   heart: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z',
   chat: 'M21 11a9 9 0 0 1-9 9H3l2-5a9 9 0 1 1 16-4ZM8 8h8M8 12h5',
   pin: 'M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0ZM15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
@@ -15,6 +38,7 @@ const paths: Record<string, string> = {
   calendar: 'M4 5h16v17H4ZM4 10h16M8 2v6M16 2v6M8 14h3M14 14h2M8 18h3',
   map: 'm2 5 6-3 8 3 6-3v17l-6 3-8-3-6 3ZM8 2v17M16 5v17',
   access: 'M14 4a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM11 8v7h7l3 6M11 11h7M8 11a6 6 0 1 0 7 9',
+  car: 'M3 16V9l3-6h12l3 6v7ZM3 9h18M5 16v4M19 16v4M6 12h1M17 12h1',
   bus: 'M5 3h14v15H5ZM5 10h14M8 18v3M16 18v3M8 14h1M15 14h1',
   bed: 'M2 20V6M2 15h20v5M5 9h5v6M10 11h9a3 3 0 0 1 3 3v1',
   arrow: 'M4 12h16M14 6l6 6-6 6',
@@ -23,6 +47,6 @@ const paths: Record<string, string> = {
   user: 'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 22v-3a8 8 0 0 1 16 0v3',
   check: 'm5 12 4 4L20 5',
 };
-export default function NightIcon({ name, size = 22, style }: { name: string; size?: number; style?: CSSProperties }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}><path d={paths[name] || paths.star}/></svg>;
+export default function NightIcon({ name, size = 22, style, ...props }: SVGProps<SVGSVGElement> & { name: string; size?: number; style?: CSSProperties }) {
+  return <svg {...props} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}><path d={paths[name] || paths.star}/></svg>;
 }

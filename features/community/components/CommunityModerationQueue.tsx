@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -52,7 +54,7 @@ export default function CommunityModerationQueue() {
   return <section className="moderation-queue" aria-labelledby="moderation-title">
     <header><p className="section-kicker">COMMUNITY CARE</p><h1 id="moderation-title">커뮤니티 운영 목록</h1><p>신고된 여행 경험을 확인하고 공개 유지 또는 숨김을 결정합니다. 운영자 ID는 서버 환경 변수로만 관리됩니다.</p></header>
     {state === "loading" && <div className="community-detail-state" role="status">운영 목록을 불러오는 중</div>}
-    {state === "error" && <div className="community-detail-state" role="alert"><b>운영 목록을 열지 못했습니다.</b><p>{message}</p><button type="button" onClick={() => void load(undefined, true)}>다시 시도</button><Link href="/community">커뮤니티로 돌아가기</Link></div>}
+    {state === "error" && <div className="community-detail-state" role="alert"><b>운영 목록을 열지 못했습니다.</b><p>{message}</p><button type="button" onClick={() => void load(undefined, true)} data-icon-action="" title="다시 시도"><NightIcon name="refresh" size={20}/><span className="sr-only">다시 시도</span></button><Link href="/community">커뮤니티로 돌아가기</Link></div>}
     {state === "ready" && !reports.length && <div className="community-detail-state" role="status"><b>처리할 신고가 없습니다.</b><Link href="/community">커뮤니티로 돌아가기</Link></div>}
     {state === "ready" && reports.length > 0 && <ol>{reports.map((report) => <li key={report.id}>
       <div><span>{reasonLabels[report.reason] || report.reason}</span><small>{report.targetType === "post" ? "게시글" : "댓글"} · {new Date(report.createdAt).toLocaleString("ko-KR")}</small></div>

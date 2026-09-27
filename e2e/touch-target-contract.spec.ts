@@ -79,7 +79,8 @@ for (const width of [1440, 390]) {
       await accountMenu.press("Escape");
       await openSupportMenu(page);
       if (path === "/planner") {
-        await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+        await page.getByRole("combobox", { name: "여행 지역", exact: true }).click();
+        await page.getByRole("option", { name: "창원", exact: true }).click();
         await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
         await openItinerary(page);
         if (width < 1024) await page.getByRole("group", { name: "일정 보기 방식" }).getByRole("button", { name: "지도", exact: true }).click();

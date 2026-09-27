@@ -1,3 +1,5 @@
+
+import NightIcon from '../../../components/NightIcon';
 import { useId, useState } from 'react';
 import type { GuidancePreferences } from '../../../lib/guidance-preferences.js';
 import { usePlaceDialogFocus } from '../hooks/usePlaceDialogFocus';
@@ -20,7 +22,7 @@ export default function NaruGuidanceSettings({ value, onApply, onClose }: {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onClose(); }
   }}>
     <form onSubmit={event => { event.preventDefault(); onApply(draft); }}>
-      <header><h2 id={`${id}-title`} tabIndex={-1}>나루 안내 설정</h2><button type="button" aria-label="안내 설정 닫기" onClick={onClose}>×</button></header>
+      <header><h2 id={`${id}-title`} tabIndex={-1}>나루 안내 설정</h2><button type="button" aria-label="안내 설정 닫기" onClick={onClose} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
       <p id={`${id}-intro`}>나루가 어떻게 안내하면 좋을까요? 필요한 것만 골라주세요. 여러 개를 함께 선택할 수 있어요.</p>
       <fieldset><legend>원하는 안내 방식</legend>{choices.map(({ key, title, description }) => <label key={key}>
         <input type="checkbox" checked={Boolean(draft[key])} aria-labelledby={`${id}-${key}-title`} aria-describedby={`${id}-${key}-description`} onChange={event => {

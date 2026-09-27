@@ -1,3 +1,4 @@
+import ActionToast from "../components/ActionToast";
 import GlobalTravelWorkspace from "../components/GlobalTravelWorkspace";
 import WaveFooterTools from "../components/WaveFooterTools";
 import type { Metadata, Viewport } from "next";
@@ -60,6 +61,10 @@ import "./styles/submission-refinements.css";
 import { SitePreferencesProvider } from "../components/SitePreferences";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN, SITE_TITLE, SOCIAL_IMAGE } from "../lib/site-metadata";
 import "./styles/local-night-refinement.css";
+import "./styles/scenic-design.css";
+import "./styles/dropdown-placement.css";
+import "./styles/photo-cards.css";
+import "./styles/wave-palette.css";
 
 const productionUrl = new URL(SITE_ORIGIN);
 const preferenceBootScript = `(()=>{try{const d=document.documentElement;const e=${process.env.NODE_ENV === "development" ? "localStorage.getItem('wave-dev-presentation')==='enabled'" : "false"};const m=matchMedia('(prefers-color-scheme: dark)').matches;const r=matchMedia('(prefers-reduced-motion: reduce)').matches;const t=localStorage.getItem('wave-theme');d.dataset.theme=e?(t==='dark'||t==='light'?t:(m?'dark':'light')):'light';d.dataset.motion=r?'calm':'full';const s=localStorage.getItem('wave-text-scale-v1');d.dataset.textScale=s==='large'||s==='larger'?s:'standard';d.dataset.colorAssist=localStorage.getItem('wave-color-assist-v1')==='on'?'on':'off';d.dataset.tone=e&&localStorage.getItem('wave-tone-v1')==='gyeongnam'?'gyeongnam':'standard';d.lang='ko';d.style.colorScheme=d.dataset.theme}catch{}})()`;
@@ -128,7 +133,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <noscript><style>{".arrival-intro{display:none!important}"}</style><p>WAVE 여행 설계를 이용하려면 브라우저에서 JavaScript를 허용해 주세요.</p></noscript>
-        <SitePreferencesProvider><GlobalTravelWorkspace>{children}</GlobalTravelWorkspace><WaveFooterTools /></SitePreferencesProvider>
+        <SitePreferencesProvider><GlobalTravelWorkspace>{children}</GlobalTravelWorkspace><WaveFooterTools /><ActionToast /></SitePreferencesProvider>
       </body>
     </html>
   );

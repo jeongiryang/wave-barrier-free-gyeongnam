@@ -1,3 +1,5 @@
+
+import NightIcon from '../../../components/NightIcon';
 import { useSitePreferences } from "../../../components/SitePreferences";
 
 interface MapExportPanelProps {
@@ -12,7 +14,7 @@ export default function MapExportPanel({ onClose, onExport, onShare, actionNotic
   const { locale } = useSitePreferences();
   const en = locale === "en";
   return <section id="map-panel-export" className="map-tool-panel map-side-drawer map-export-panel" aria-label={en ? "Journey image" : "지도 이미지 저장"} tabIndex={-1}>
-    <header><div><strong>{en ? "Journey image" : "지도 이미지 저장"}</strong><span>{en ? "An overview of places and your selected journey" : "여행 장소와 선택한 이동 구간 안내도"}</span></div><button type="button" onClick={onClose} aria-label={en ? "Close journey image" : "이미지 저장 닫기"}>×</button></header>
+    <header><div><strong>{en ? "Journey image" : "지도 이미지 저장"}</strong><span>{en ? "An overview of places and your selected journey" : "여행 장소와 선택한 이동 구간 안내도"}</span></div><button type="button" onClick={onClose} aria-label={en ? "Close journey image" : "이미지 저장 닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
     <div className="map-export-preview"><span>WAVE</span><strong>{en ? "Journey schematic" : "여행 장소 안내도"}</strong><small>1600 × 1000px</small></div>
     <p>{en ? "Map tiles are excluded. Connecting lines may differ from actual routes and do not guarantee accessible travel. Place names use the original data." : "지도 배경은 포함하지 않습니다. 장소를 잇는 선은 실제 경로와 다를 수 있으며 무장애 이동을 보장하지 않습니다."}</p>
     <div className="map-export-actions">

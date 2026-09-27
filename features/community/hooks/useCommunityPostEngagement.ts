@@ -1,5 +1,7 @@
 "use client";
 
+import { showActionToast } from "../../../lib/action-toast";
+import { useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { CommunityPost } from "../../../lib/community/types";
 import { communityErrorMessage, removeCommunityPost, setCommunityLike } from "../client/api";
@@ -13,17 +15,21 @@ export function useCommunityPostEngagement({ postId, post, setPost, setMessage, 
   onLogin: () => void;
   onDeleted: () => void;
 }) {
+  const busy = useRef(false);
+  const [liking, setLiking] = useState(false);
   async function toggleLike() {
     if (!authenticated) { onLogin(); return; }
-    if (!post) return;
+    if (!post || busy.current) return;
+    busy.current = true; setLiking(true); setMessage("");
     try {
       const { ok, status, payload } = await setCommunityLike(postId, post.likedByMe);
       if (status === 401) { onLogin(); return; }
-      if (!ok) { setMessage(payload.error || "좋아요를 반영하지 못했습니다."); return; }
-      setPost((current) => current ? { ...current, likedByMe: Boolean(payload.liked), likeCount: Number(payload.likeCount || 0) } : current);
+      if (!ok) { const message = payload.error || "좋아요를 반영하지 못했습니다."; setMessage(message); showActionToast(message); return; }
+      setPost((current) => current?.id === postId ? { ...current, likedByMe: Boolean(payload.liked), likeCount: Number(payload.likeCount || 0) } : current);
+      showActionToast(payload.liked ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다.");
     } catch (error) {
-      setMessage(communityErrorMessage(error, "좋아요를 반영하지 못했습니다."));
-    }
+      const message = communityErrorMessage(error, "좋아요를 반영하지 못했습니다."); setMessage(message); showActionToast(message);
+    } finally { busy.current = false; setLiking(false); }
   }
 
   async function deletePost() {
@@ -37,5 +43,5 @@ export function useCommunityPostEngagement({ postId, post, setPost, setMessage, 
     }
   }
 
-  return { toggleLike, deletePost };
+  return { toggleLike, liking, deletePost };
 }

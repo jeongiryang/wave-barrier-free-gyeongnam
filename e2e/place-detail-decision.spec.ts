@@ -24,7 +24,8 @@ async function prepare(page: Page, en = false) {
   await page.goto("/planner");
   // Route is the only selected requirement. Unselected negative/unknown fields
   // remain intact, while aggregate counts deliberately conflict with evidence.
-  await page.getByRole("combobox", { name: "여행 지역", exact: true }).selectOption("창원");
+  await page.getByRole("combobox", { name: "여행 지역", exact: true }).click();
+  await page.getByRole("option", { name: "창원", exact: true }).click();
   await page.locator(".simple-facility-trigger").click();
   const facilities = page.getByRole("dialog", { name: "필요한 편의", exact: true });
   await facilities.getByRole("checkbox", { name: "접근로", exact: true }).check();

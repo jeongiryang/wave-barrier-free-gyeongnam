@@ -68,10 +68,10 @@ html[data-theme="dark"] .map-crowd-legend p { color: #b7cdd7; }
 /* V20 — resilient photography, calm region hover, weather and point selection */
 
 .smart-spot-image { min-height: 225px; padding: 18px; position: relative; display: flex; align-items: flex-end; justify-content: space-between; overflow: hidden; isolation: isolate; color: #fff; background: linear-gradient(145deg,#49a9d4,#2c718f 55%,#74a296); }
-.smart-spot-image::after { content: ""; z-index: -1; position: absolute; inset: 0; background: linear-gradient(180deg,transparent 34%,rgba(3,33,47,.82)); }
+.smart-spot-image::after { content: ""; z-index: -1; position: absolute; inset: 0; background: none; }
 .smart-spot-image > img { z-index: -2; width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; opacity: 0; transform: scale(1.025); transition: opacity .45s ease,transform .7s ease; }.smart-spot-image:not(.loading) > img { opacity: 1; transform: scale(1); }
 .smart-spot-image > em { z-index: 2; padding: 6px 8px; border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.92); font-size: .67rem; font-style: normal; font-weight: 850; }.smart-spot-image > strong { z-index: 2; font-size: 2.4rem; line-height: 1; opacity: .9; }
-.smart-image-skeleton { z-index: 1; position: absolute; inset: 0; padding: 24px; display: grid; align-content: end; gap: 10px; background: linear-gradient(105deg,#22566d 18%,#397690 38%,#22566d 58%); background-size: 220% 100%; animation: region-photo-loading 1.15s linear infinite; }.smart-image-skeleton i { width: 72%; height: 13px; display: block; border-radius: 999px; background: rgba(255,255,255,.22); }.smart-image-skeleton i:nth-child(2) { width: 48%; }.smart-image-skeleton i:nth-child(3) { width: 88%; height: 32px; }
+.smart-image-skeleton{z-index:1;position:absolute;inset:0;display:block;border-radius:inherit;background:linear-gradient(110deg,#1d455b 20%,#28566b 42%,#1d455b 64%);background-size:220% 100%;animation:region-photo-loading 2.8s ease-in-out infinite}
 .smart-image-fallback { z-index: 1; position: absolute; inset: 0; padding: 24px; display: flex; flex-direction: column; justify-content: center; background: radial-gradient(circle at 78% 18%,rgba(125,235,233,.36),transparent 38%),linear-gradient(145deg,#236784,#1a4f66 58%,#528080); }.smart-image-fallback small { color: #ccefef; font-size: .62rem; letter-spacing: .08em; }.smart-image-fallback b { max-width: 80%; margin-top: 8px; font-size: 1.15rem; }
 
 .weather-board { margin: 0 0 18px; padding: 18px; display: grid; grid-template-columns: minmax(250px,.72fr) minmax(0,1.28fr); gap: 14px; border: 1px solid rgba(255,255,255,.13); border-radius: 24px; background: radial-gradient(circle at 0 0,rgba(58,189,255,.23),transparent 38%),rgba(255,255,255,.045); }
@@ -92,3 +92,5 @@ html[data-theme="dark"] .trip-point-picker { color: #e7f3f8; border-color: #3059
 @media (prefers-reduced-motion: reduce) { .smart-image-skeleton,.weather-skeleton > * { animation: none !important; } }
 .weather-scenery-hint { grid-column: 1 / -1; margin: 0; color: var(--ink-soft); font-size: .875rem; line-height: 1.6; }
 .weather-scenery-hint small { display: block; color: var(--muted); font-size: .75rem; }
+
+html[data-motion=calm] .smart-image-skeleton{animation:none}

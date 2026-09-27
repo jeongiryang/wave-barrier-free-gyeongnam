@@ -32,7 +32,7 @@ for (const legacy of [false, true]) test(`축제를 담고 돌아와도 ${legacy
   }, { legacy, selected, original: plan.places[0] });
   await page.goto('/festivals');
   const card = page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: event.name, exact: true }) });
-  await card.locator('.night-festival-more > summary').click();
+  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   await card.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
   await card.getByRole('button', { name: '내 일정에 담기', exact: true }).click();
   await expect(page).toHaveURL(/\/planner\?region=.*#itinerary$/);

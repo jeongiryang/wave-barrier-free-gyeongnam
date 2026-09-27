@@ -8,10 +8,9 @@ html:root body .wave-night .transport-provider-strip .connected small{color:var(
 html:root body .wave-night .skip-link{background:#091b2d;color:#edf4ff}
 html:root body .wave-night :is(.route-mode-sections>button>span,.route-mode-order-note,.route-notice){color:var(--muted)}
 html:root body .wave-night :is(.route-kakao-secondary,.restroom-alternatives button,.dining-accessibility button:not([aria-pressed])){background:var(--paper);color:var(--ink);border-color:var(--line)}
-html:root body .night-landing .brand-meaning p{color:#edf4ff}
 /* Loading surfaces follow the rendered night UI, not the legacy light preference. */
 :is(.wave-night,.naru-workspace) .wave-skeleton-lines i,
-.wave-night :is(.community-skeletons i,.account-loading i,.community-detail-state i),
+.wave-night :is(.account-loading i,.community-detail-state i),
 .wave-night .route-option-skeleton :is(i,b,span,em) {
   background:linear-gradient(100deg,#172b42 20%,#263d55 50%,#172b42 80%);background-size:200% 100%;
 }

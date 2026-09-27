@@ -177,7 +177,7 @@ test('CSS를 늘리지 않도록 기존 클래스만 재사용한다', () => {
   const row = assistantSource.match(/const resultRow = \(place: Place[\s\S]*?<\/article>;/)?.[0] || '';
   const classes = [...`${renderBlock}${row}`.matchAll(/className="([^"]+)"/g)].flatMap(match => match[1].split(/\s+/));
   assert.ok(classes.length > 0);
-  for (const name of classes) assert.ok(['naru-result-list', 'naru-place-name', 'access-badge'].includes(name), `unexpected new class: ${name}`);
+  for (const name of classes) assert.ok(['naru-result-list', 'naru-place-name', 'access-badge', 'sr-only'].includes(name), `unexpected new class: ${name}`);
 });
 
 // 회귀 고정: 시스템 프롬프트에 한 문단만 더하고 안전 규칙은 하나도 지우지 않는다.

@@ -11,7 +11,7 @@ async function prepare(page: Page) {
   await mockPlannerApi(page); await mockPublicShellApi(page);
   await page.route('**/api/assistant', route => route.fulfill({ json: { available: false } }));
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
+  await page.getByRole('combobox', { name: '여행 지역', exact: true }).click();await page.getByRole('option',{name:'창원',exact:true}).click();
   await expect(page.locator('.simple-place-list .simple-place-row')).toHaveCount(2);
 }
 async function tool(page: Page, label: string) {
@@ -88,8 +88,8 @@ test('공식 탐색 후보 버튼이 이름을 채워 직접 검색을 실행한
     return route.fulfill({ json: { places: [], officialPlaces: [], officialState: 'empty' } });
   });
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).selectOption('창원');
-  await page.locator('.official-exploration > summary').click();
+  await page.getByRole('combobox', { name: '여행 지역', exact: true }).click();await page.getByRole('option',{name:'창원',exact:true}).click();
+  await expect(page.locator('.official-exploration')).toBeVisible();
   await page.getByRole('button', { name: '이 관광지 검색', exact: true }).click();
   await expect(page.getByRole('combobox', { name: '여행지 검색', exact: true })).toHaveValue('창원 경남도립미술관');
   await expect.poll(() => query).toBe('창원 경남도립미술관');

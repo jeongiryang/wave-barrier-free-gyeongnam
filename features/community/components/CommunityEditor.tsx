@@ -1,5 +1,6 @@
 "use client";
 
+import WaveSelect from "../../../components/WaveSelect";
 import Link from "next/link";
 import { useState } from "react";
 import { COMMUNITY_CATEGORY_LABELS, COMMUNITY_REGIONS } from "../../../lib/community/types";
@@ -27,8 +28,8 @@ export default function CommunityEditor({ postId, fieldReportsEnabled = false }:
       {values.category !== "field-report" && values.placeId && values.placeName && <aside className="editor-place"><div><small>연결된 관광지</small><strong>{values.region ? `${values.region} · ` : ""}{values.placeName}</strong></div><button type="button" onClick={() => setValues((current) => ({ ...current, placeId: "", placeName: "", fieldReports: [], journalPlaces: [], visitPhotos: [], photoConsent: false }))}>연결 해제</button></aside>}
       {values.journalPlaces.length > 1 && <aside className="editor-journal-places" aria-labelledby="journal-places-title"><div><small>ITINERARY DRAFT</small><strong id="journal-places-title">일정에서 연결한 장소 {values.journalPlaces.length}곳</strong></div><ol>{values.journalPlaces.map((place) => <li key={place.id}><span>{place.day || "날짜 미지정"}</span><b>{place.name}</b></li>)}</ol></aside>}
       <div className="editor-grid">
-        <label>게시판<select value={values.category} onChange={(event) => setValues((current) => ({ ...current, category: event.target.value as keyof typeof COMMUNITY_CATEGORY_LABELS, ...(event.target.value === "review" || event.target.value === "field-report" ? {} : { visitDate: "", fieldReports: [], journalPlaces: [], visitPhotos: [], photoConsent: false }) }))}>{Object.entries(COMMUNITY_CATEGORY_LABELS).filter(([value]) => value !== "field-report" || fieldReportsEnabled || values.category === "field-report").map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <label>지역<select value={values.region} onChange={(event) => setValues((current) => ({ ...current, region: event.target.value }))}>{COMMUNITY_REGIONS.map((region) => <option key={region || "none"} value={region}>{region || "지역 선택 안 함"}</option>)}</select></label>
+        <label>게시판<WaveSelect value={values.category} onChange={(event) => setValues((current) => ({ ...current, category: event.target.value as keyof typeof COMMUNITY_CATEGORY_LABELS, ...(event.target.value === "review" || event.target.value === "field-report" ? {} : { visitDate: "", fieldReports: [], journalPlaces: [], visitPhotos: [], photoConsent: false }) }))}>{Object.entries(COMMUNITY_CATEGORY_LABELS).filter(([value]) => value !== "field-report" || fieldReportsEnabled || values.category === "field-report").map(([value, label]) => <option key={value} value={value}>{label}</option>)}</WaveSelect></label>
+        <label>지역<WaveSelect value={values.region} onChange={(event) => setValues((current) => ({ ...current, region: event.target.value }))}>{COMMUNITY_REGIONS.map((region) => <option key={region || "none"} value={region}>{region || "지역 선택 안 함"}</option>)}</WaveSelect></label>
       </div>
       {values.category === "travel-talk" && <p className="editor-public-notice">연락처와 개인정보를 본문에 적지 마세요. 공개된 글이에요.</p>}
       {values.category !== "field-report" && <label>제목<input value={values.title} onChange={(event) => setValues((current) => ({ ...current, title: event.target.value }))} required minLength={5} maxLength={120} aria-describedby="editor-title-help" /><small id="editor-title-help">5자 이상 120자 이하</small></label>}

@@ -68,7 +68,7 @@ export default function RouteMapWorkspace({ focusedPlaceId, onPlaceFocus, compac
         }} onDestinationChange={onMapDestination} onSavePlaces={onSaveMapPlaces} />
       </Suspense> : <div className="map-load-placeholder" role="status">{english ? "The interactive map loads in the itinerary and travel stage." : "일정과 이동 단계에서 대화형 지도를 불러옵니다."}</div>}
       <div className="map-legend"><span><i className="origin" /> {english ? "Departure" : "출발지"}</span><span><i className="destination" /> {english ? "Selected day's itinerary" : "선택 날짜의 일정"}</span><span><i className={activeRoute?.configured ? "real" : "preview"} /> {activeRoute?.provider === "ODsay" ? (english ? "Stop connections, not road geometry" : "정류장 연결 개요 · 실제 도로선 아님") : activeRoute?.configured ? (english ? "One selected journey leg" : "선택한 한 구간의 경로") : (english ? "Straight connection preview" : "직선 미리보기")}</span></div>
-      <p className="route-scope-note">{english ? "Estimated time covers one departure-to-destination leg, not the whole trip or wheelchair access. Check walking and cycling routes in an external map." : "예상 시간은 현재 출발지 · 도착지 한 구간의 값입니다. 일정 전체 시간이나 휠체어 이동 가능 여부를 보장하지 않습니다. 도보·자전거 경로는 외부 지도에서 확인해 주세요."}</p>
+      <p className="route-scope-note">{english ? "Estimated time: current departure-to-destination leg." : "현재 출발지 → 도착지 한 구간의 예상 시간입니다."}</p>
     </div>
     {compact ? <details className="reference-route-details"><summary>이동수단·경로 비교</summary><RouteComparisonPanel route={route} /></details> : <RouteComparisonPanel route={route} />}
   </div>;

@@ -1,4 +1,5 @@
 "use client";
+import WaveSelect from "../../../components/WaveSelect";
 import { useId, useRef, useState } from "react";
 import { MAX_VISIT_MINUTES, MIN_VISIT_MINUTES, validVisitMinutes } from "../../../lib/visit-durations.js";
 
@@ -18,7 +19,7 @@ export default function VisitDurationControl({ name, value, defaultMinutes = 90,
   function apply() { if (valid) { onChange(Number(draft)); closeEditor(); } }
   return <div className="auth-field">
     <label htmlFor={id}>{c("머무는 시간", "Visit duration")}</label>
-    <select ref={select} id={id} aria-label={c(`${name} 머무는 시간`, `${name} visit duration`)} value={editing ? "custom" : value === undefined ? "default" : custom ? "saved" : String(value)} onChange={event => {
+    <WaveSelect ref={select} id={id} aria-label={c(`${name} 머무는 시간`, `${name} visit duration`)} value={editing ? "custom" : value === undefined ? "default" : custom ? "saved" : String(value)} onChange={event => {
       if (event.target.value === "custom") { setDraft(String(value ?? defaultMinutes)); setEditing(true); window.requestAnimationFrame(() => { input.current?.focus(); input.current?.select(); }); }
       else { setEditing(false); if (event.target.value !== "saved") onChange(event.target.value === "default" ? null : Number(event.target.value)); }
     }}>
@@ -26,7 +27,7 @@ export default function VisitDurationControl({ name, value, defaultMinutes = 90,
       {presets.map(minutes => <option key={minutes} value={minutes}>{c(`${minutes}분`, `${minutes} min`)}</option>)}
       {custom && <option value="saved">{c(`${value}분 · 직접 설정`, `${value} min · your choice`)}</option>}
       <option value="custom">{c("직접 입력", "Enter minutes")}</option>
-    </select>
+    </WaveSelect>
     {editing && <div className="auth-field">
       <label htmlFor={`${id}-custom`}>{c("체류시간(분)", "Duration in minutes")}</label>
       <input ref={input} id={`${id}-custom`} type="number" min={MIN_VISIT_MINUTES} max={MAX_VISIT_MINUTES} step={1} inputMode="numeric" value={draft} aria-invalid={valid ? undefined : true} aria-describedby={`${id}-hint`} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); apply(); } if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeEditor(); } }} />

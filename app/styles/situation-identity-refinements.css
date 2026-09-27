@@ -30,19 +30,6 @@ html[data-theme="dark"] .help-button,html[data-theme="dark"] .account-button,htm
 
 /* Official-photo states: no blank cards, no oversized placeholder shapes. */
 .rich-card .smart-spot-image { min-height: 225px; border-radius: 0; background: #10445b; }
-.rich-card .smart-spot-image .smart-image-skeleton {
-  z-index: 1; inset: 0; padding: 24px; display: grid; align-content: end; gap: 10px;
-  border-radius: 0; background: linear-gradient(118deg,#10445b 8%,#1d6683 31%,#38849e 48%,#1d6683 65%,#10445b 90%);
-  background-size: 240% 100%; animation: region-photo-loading 1.25s linear infinite;
-}
-.rich-card .smart-image-skeleton::before,.rich-card .smart-image-skeleton::after {
-  content: ""; position: absolute; right: -12%; left: -12%; height: 54%; border-radius: 48% 52% 0 0 / 30% 34% 0 0;
-  background: rgba(125,235,233,.1); transform: rotate(-2deg);
-}
-.rich-card .smart-image-skeleton::before { bottom: -30%; }.rich-card .smart-image-skeleton::after { bottom: -39%; left: -25%; background: rgba(255,255,255,.08); transform: rotate(3deg); }
-.rich-card .smart-image-skeleton i { width: 68%; height: 11px; display: block; border-radius: 999px; background: rgba(255,255,255,.2); }
-.rich-card .smart-image-skeleton i:nth-child(2) { width: 46%; }.rich-card .smart-image-skeleton i:nth-child(3) { width: 82%; }
-.rich-card .smart-image-skeleton b { width: 108px; height: 28px; position: absolute; top: 22px; left: 22px; border-radius: 999px; background: rgba(255,255,255,.14); }
 .rich-card .smart-image-fallback {
   z-index: 1; inset: 0; padding: 24px; display: flex; justify-content: center; align-items: flex-start; flex-direction: column;
   border-radius: 0; background: radial-gradient(circle at 82% 17%,rgba(125,235,233,.32),transparent 31%),linear-gradient(145deg,#144f68,#09374c 62%,#156077);
@@ -52,4 +39,3 @@ html[data-theme="dark"] .help-button,html[data-theme="dark"] .account-button,htm
 .rich-card .smart-image-fallback > i { width: 42px; height: 42px; margin-bottom: 16px; display: block; border: 2px solid rgba(255,255,255,.4); border-radius: 47% 53% 44% 56%; box-shadow: inset 0 -12px 0 rgba(125,235,233,.25); }
 .rich-card .smart-image-fallback small { color: #a7d4d9; letter-spacing: .04em; }.rich-card .smart-image-fallback b { z-index: 1; max-width: 88%; margin: 7px 0 4px; color: #fff; font-size: 1.2rem; line-height: 1.22; }
 .rich-card .smart-image-fallback span { z-index: 1; color: #a7c4d1; font-size: .66rem; }
-@media (prefers-reduced-motion: reduce) { .rich-card .smart-spot-image .smart-image-skeleton { animation: none !important; } }

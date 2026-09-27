@@ -8,6 +8,7 @@ import { CLIENT_BUDGET_MS } from "../../lib/request-budget.js";
 import type { Place } from "../planner/types";
 import { plannerJson } from "../planner/services/api";
 import { usePlaceDialogFocus } from "../planner/hooks/usePlaceDialogFocus";
+import NightIcon from "../../components/NightIcon";
 import styles from "./FestivalAmenities.module.css";
 
 type FestivalPlace = Place & { websiteUrl?: string; officialUrl?: string; phone?: string };
@@ -112,7 +113,7 @@ export default function FestivalAmenities({ place }: { place: FestivalPlace }) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
   return <>
-    <button type="button" className={styles.openButton} onClick={() => setOpen(true)}>현장 편의 지도</button>
+    <button type="button" className="festival-icon-action" aria-label="현장 편의 지도" onClick={() => setOpen(true)}><NightIcon name="map"/></button>
     {open && <FestivalAmenityDialog place={place} onClose={close} />}
   </>;
 }
@@ -122,7 +123,7 @@ function FestivalAmenityDialog({ place, onClose }: { place: FestivalPlace; onClo
   return <dialog ref={dialog} className={styles.dialog} aria-labelledby={`festival-amenity-title-${place.id}`} data-testid="festival-amenity-dialog">
     <header className={styles.dialogHeader}>
       <h2 id={`festival-amenity-title-${place.id}`} tabIndex={-1}>{place.name} 현장 편의 정보</h2>
-      <button type="button" aria-label="현장 편의 지도 닫기" onClick={onClose}>×</button>
+      <button type="button" aria-label="현장 편의 지도 닫기" onClick={onClose} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
     </header>
     <FestivalAmenityDetails key={`${place.id}:${place.mapX}:${place.mapY}`} place={place} onClose={onClose} />
   </dialog>;

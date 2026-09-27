@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 
 import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useSitePreferences } from '../../preferences/context';
@@ -81,7 +83,7 @@ export default function OnsiteCommunicationBoard({ initialTopic, en, onEnd, onCl
 
   return <div className="onsite-communication" data-stage={stage}>
     <header><div><p className="section-kicker">WAVE · 현장 의사소통</p>
-    <h2 id="inquiry-title" tabIndex={-1} ref={stage === "answer" ? answerTitle : undefined}>{stage === "question" ? say("직원과 화면으로 대화", "Talk with staff on screen") : stage === "staff" ? say("답을 골라 주세요", "Choose an answer") : say("직원이 고른 답이에요", "The staff member chose this answer")}</h2></div><button type="button" onClick={onClose} aria-label={say("현장 의사소통판 닫기", "Close onsite communication board")}>×</button></header>
+    <h2 id="inquiry-title" tabIndex={-1} ref={stage === "answer" ? answerTitle : undefined}>{stage === "question" ? say("직원과 화면으로 대화", "Talk with staff on screen") : stage === "staff" ? say("답을 골라 주세요", "Choose an answer") : say("직원이 고른 답이에요", "The staff member chose this answer")}</h2></div><button type="button" onClick={onClose} aria-label={say("현장 의사소통판 닫기", "Close onsite communication board")} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
     <p>{stage === "question" ? say("질문을 보여주고 직원의 답을 화면으로 받아요.", "Show your question and receive the staff member's answer on screen.") : stage === "staff" ? say("화면에서 알맞은 답을 골라 주세요.", "Choose the best answer on screen.") : say("선택한 답을 확인해 주세요.", "Please check the selected answer.")}</p>
     <ol className="communication-steps" aria-label="대화 단계">
       {(en ? ["Question", "Staff answer", "Check"] : ["질문", "직원 답변", "확인"]).map((label, index) => <li key={label} aria-current={step === index + 1 ? "step" : undefined}>{index + 1} {label}</li>)}

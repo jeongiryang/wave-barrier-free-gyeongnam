@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { inquiryOptions, inquiryText } from "../../../lib/place-decision-tools.js";
@@ -48,7 +50,7 @@ export default function PlaceInquiryDialog({ place, en, selected, extra, onSelec
   }
   return createPortal(<dialog ref={dialog} className="region-change-dialog inquiry-dialog" data-large={large && !communicating} aria-labelledby="inquiry-title">
     {communicating ? <Suspense fallback={<p role="status">현장 의사소통판을 준비하고 있어요…</p>}><OnsiteCommunicationBoard initialTopic={initialTopic} en={en} onEnd={leaveCommunication} onClose={onClose} /></Suspense> : <>
-    <header><div><p className="section-kicker">WAVE · {say("방문 전 문의", "VISITOR CARD")}</p><h2 id="inquiry-title" tabIndex={-1}>{say("이렇게 물어보세요.", "Ask in Korean.")}</h2></div><button type="button" onClick={onClose} aria-label={say("문의 카드 닫기", "Close inquiry card")}>×</button></header>
+    <header><div><p className="section-kicker">WAVE · {say("방문 전 문의", "VISITOR CARD")}</p><h2 id="inquiry-title" tabIndex={-1}>{say("이렇게 물어보세요.", "Ask in Korean.")}</h2></div><button type="button" onClick={onClose} aria-label={say("문의 카드 닫기", "Close inquiry card")} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
     {!large && <div className="inquiry-editor"><fieldset><legend>{say("물어보고 싶은 내용", "Choose your questions")}</legend><div>{inquiryOptions.map(option => <label key={option.id}><input type="checkbox" checked={selected.includes(option.id)} onChange={event => { onSelection(event.target.checked ? [...selected, option.id] : selected.filter(id => id !== option.id)); setNotice(""); }} /><span lang="ko">{option.label}</span></label>)}</div></fieldset><label className="inquiry-extra">{say("추가로 전하고 싶은 말", "Add your own words")}<textarea value={extra} maxLength={500} rows={2} onChange={event => { onExtra(event.target.value); setNotice(""); }} placeholder={say("직접 전하고 싶은 내용을 적어주세요.", "Write what you would like to say.")} /></label></div>}
     <div className="inquiry-card-preview" lang="ko"><small>{place.name}</small><p>{text}</p><span>WAVE</span></div>
     <div className="inquiry-actions"><button type="button" aria-pressed={large} onClick={() => setLarge(!large)}>{large ? say("질문 수정하기", "Edit questions") : say("큰 글씨로 보기", "Show large text")}</button><button type="button" disabled={!ready} onClick={() => void copy()}>{say("내용 복사", "Copy text")}</button><button type="button" disabled={!ready || exporting} aria-busy={exporting} onClick={() => void download()}>{exporting ? say("이미지 만드는 중…", "Creating image…") : say("이미지 저장", "Save image")}</button><button ref={communicationTrigger} className="onsite-communication-entry" type="button" disabled={!ready || !boardReady} onClick={() => setCommunicating(true)}>화면으로 대화</button>{onHelpRequest && <button type="button" onClick={onHelpRequest}>{say("도움이 필요해요", "I need help")}</button>}</div>

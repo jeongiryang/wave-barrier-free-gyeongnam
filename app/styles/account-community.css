@@ -38,7 +38,7 @@ html[data-theme="dark"] .community-state,html[data-theme="dark"] .comment-form,h
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .account-loading i,.community-skeletons i,.community-detail-state i { animation: none; }
+  .community-skeletons i,.community-detail-state i { animation: none; }
   .community-list article { transition: none; }
   .community-list article:hover { transform: none; }
 }

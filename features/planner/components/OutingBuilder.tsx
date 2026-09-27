@@ -1,4 +1,7 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
+import WaveSelect from "../../../components/WaveSelect";
 import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';
 import {profiles as availableProfiles,regions,themes as availableThemes,departurePresets} from '../constants';
@@ -34,16 +37,16 @@ export default function OutingBuilder(){
   <section aria-label="짧은 나들이 조건" hidden={step!==0} inert={!ready} style={step===0?courseCard:{display:'none'}}>
    <div><p style={courseCopy}>01 · 나에게 있는 시간</p><h2 style={{fontSize:26,margin:'8px 0'}}>몇 시간의 여유가 있나요?</h2><p style={courseCopy}>필요한 편의를 고르고 한두 곳을 천천히 만나보세요. 출발과 복귀는 아래 공개 장소를 기준으로 계산합니다.</p></div>
    <div style={courseGrid}>
-    <label style={courseLabel}>여행 지역<select style={courseInput} value={region} onChange={event=>setRegion(event.target.value)}>{regions.map(value=><option key={value}>{value}</option>)}</select></label>
-    <label style={courseLabel}>출발·복귀 장소<select style={courseInput} value={originId} onChange={event=>setOriginId(event.target.value)}>{departurePresets.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+    <label style={courseLabel}>여행 지역<WaveSelect style={courseInput} value={region} onChange={event=>setRegion(event.target.value)}>{regions.map(value=><option key={value}>{value}</option>)}</WaveSelect></label>
+    <label style={courseLabel}>출발·복귀 장소<WaveSelect style={courseInput} value={originId} onChange={event=>setOriginId(event.target.value)}>{departurePresets.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</WaveSelect></label>
     <label style={courseLabel}>여행 날짜<AccessibleDateInput style={courseInput} value={date} onChange={event=>setDate(event.target.value)}/></label>
     <label style={courseLabel}>출발 시각<input type="time" style={courseInput} value={time} onChange={event=>setTime(event.target.value)}/></label>
-    <label style={courseLabel}>쓸 수 있는 시간<select style={courseInput} value={hours} onChange={event=>setHours(Number(event.target.value))}>{[1,2,3,4,5,6].map(value=><option key={value} value={value}>{value}시간</option>)}</select></label>
-    <label style={courseLabel}>한 장소에서 머무는 시간<select style={courseInput} value={stay} onChange={event=>setStay(Number(event.target.value))}>{[15,30,45,60,90,120].map(value=><option key={value} value={value}>{value}분</option>)}</select></label>
+    <label style={courseLabel}>쓸 수 있는 시간<WaveSelect style={courseInput} value={hours} onChange={event=>setHours(Number(event.target.value))}>{[1,2,3,4,5,6].map(value=><option key={value} value={value}>{value}시간</option>)}</WaveSelect></label>
+    <label style={courseLabel}>한 장소에서 머무는 시간<WaveSelect style={courseInput} value={stay} onChange={event=>setStay(Number(event.target.value))}>{[15,30,45,60,90,120].map(value=><option key={value} value={value}>{value}분</option>)}</WaveSelect></label>
    </div>
    <fieldset style={{border:0,padding:0,margin:0}}><legend style={{fontSize:16,marginBottom:12}}>필요한 편의</legend><div className="travel-book-actions" style={courseActions}>{availableProfiles.map(item=><button type="button" key={item.id} aria-pressed={profiles.includes(item.id)} onClick={()=>setProfiles(profiles.includes(item.id)?profiles.filter(id=>id!==item.id):[...profiles,item.id])}>{profiles.includes(item.id)?'✓ ':''}{item.label}</button>)}</div></fieldset>
    <fieldset style={{border:0,padding:0,margin:0}}><legend style={{fontSize:16,marginBottom:12}}>하고 싶은 활동</legend><div className="travel-book-actions" style={courseActions}>{availableThemes.map(item=><button type="button" key={item.id} aria-pressed={theme.split(',').includes(item.id)} onClick={()=>{const next=theme.split(',').filter(Boolean);setTheme(next.includes(item.id)?next.filter(id=>id!==item.id).join(','):[...next,item.id].join(','));}}>{theme.split(',').includes(item.id)?'✓ ':''}{item.label}</button>)}</div></fieldset>
-   <div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} aria-busy={search.busy} disabled={!validInput||search.busy} onClick={()=>void find()}>{search.busy?'나들이를 찾는 중…':'이 시간에 나들이 찾기'}</button>{search.busy&&<button type="button" onClick={search.cancel}>찾기 중단</button>}<Link href="/planner">전체 여행 설계로 돌아가기</Link></div>
+   <div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} aria-busy={search.busy} disabled={!validInput||search.busy} onClick={()=>void find()}>{search.busy?'나들이를 찾는 중…':'이 시간에 나들이 찾기'}</button>{search.busy&&<button type="button" onClick={search.cancel} data-icon-action="" title="찾기 중단"><NightIcon name="stop" size={20}/><span className="sr-only">찾기 중단</span></button>}<Link href="/planner">전체 여행 설계로 돌아가기</Link></div>
    {!validInput&&ready&&<p style={courseCopy}>날짜·편의·활동을 고르고, 같은 날 안에 돌아올 수 있는 시간대를 선택하세요.</p>}
    <p role="status" style={courseCopy}>{search.notice} {message}</p>
   </section>
@@ -65,7 +68,7 @@ export default function OutingBuilder(){
      <div className="travel-book-actions" style={courseActions}><button type="button" aria-pressed={isChosen} disabled={!isChosen&&(!timing?.fits||selected.length>=2)} onClick={()=>choose(row.place)}>{isChosen?`${row.place.name} 빼기`:`${row.place.name} 나들이에 담기`}</button></div>
     </article>;
    })}</div>
-   {candidates.length>3&&<div className="travel-book-actions" style={courseActions}><button type="button" disabled={pageNumber===0} onClick={()=>{setPageNumber(pageNumber-1);resultHeading.current?.focus();}}>이전 후보</button><p style={courseCopy}>{pageNumber+1} / {Math.ceil(candidates.length/3)}</p><button type="button" disabled={(pageNumber+1)*3>=candidates.length} onClick={()=>{setPageNumber(pageNumber+1);resultHeading.current?.focus();}}>다음 후보</button></div>}
+   {candidates.length>3&&<div className="travel-book-actions" style={courseActions}><button type="button" disabled={pageNumber===0} onClick={()=>{setPageNumber(pageNumber-1);resultHeading.current?.focus();}} data-icon-action="" title="이전 후보"><NightIcon name="left" size={20}/><span className="sr-only">이전 후보</span></button><p style={courseCopy}>{pageNumber+1} / {Math.ceil(candidates.length/3)}</p><button type="button" disabled={(pageNumber+1)*3>=candidates.length} onClick={()=>{setPageNumber(pageNumber+1);resultHeading.current?.focus();}} data-icon-action="" title="다음 후보"><NightIcon name="arrow" size={20}/><span className="sr-only">다음 후보</span></button></div>}
    {!candidates.length&&<p style={courseCopy}>선택한 편의를 확인할 후보가 없어요. 미확인 정보도 비교하거나 다른 지역·활동을 찾아보세요.</p>}
    {selected.length>0&&<div style={courseCard}><p style={courseCopy}>담은 순서: {selected.map(place=>place.name).join(' · ')}</p>{selected.length===2&&<div className="travel-book-actions" style={courseActions}><button type="button" onClick={()=>{setChosen([...chosen].reverse());setReview('');}}>두 장소 순서 바꾸기</button></div>}<p style={courseCopy}>{preview?`${origin.name} 복귀 ${preview.endLabel} 추정 · ${preview.fits?`약 ${preview.remainingMinutes}분 여유`:`약 ${-preview.remainingMinutes}분 초과`}`:'같은 날 안에서 날짜와 시간대를 확인해 주세요.'}</p><div className="travel-book-actions" style={courseActions}><button type="button" style={coursePrimary} disabled={!preview?.fits} onClick={()=>{setReview(selectionKey);setStep(2);requestAnimationFrame(()=>reviewHeading.current?.focus());}}>이 나들이 살펴보기</button><button type="button" onClick={()=>{setChosen([]);setReview('');}}>선택한 장소 비우기</button></div></div>}
   </section>}

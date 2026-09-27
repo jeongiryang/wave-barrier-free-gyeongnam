@@ -16,6 +16,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:preview": "node scripts/dev-public-preview.mjs",
     "build": "npm run build:vercel",
     "build:vercel": "node scripts/build-portable.mjs vercel",
     "start": "vinext start",

@@ -77,7 +77,8 @@ for (const locale of ["ko", "en"]) {
       await trigger.focus();
       await expect(trigger).toBeInViewport();
       await page.keyboard.press("Enter");
-      await preferences.getByLabel("언어", { exact: true }).selectOption("en");
+      await preferences.getByRole("combobox", { name: "언어", exact: true }).click();
+      await page.getByRole("option", { name: /English/ }).click();
       await openSupportMenu(page);
       await preferences.getByLabel("Open preferences", { exact: true }).click();
     }

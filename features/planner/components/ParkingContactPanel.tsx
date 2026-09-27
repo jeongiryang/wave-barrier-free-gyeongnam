@@ -1,4 +1,6 @@
 'use client';
+import NightIcon from '../../../components/NightIcon';
+
 import { useMemo, useRef, useState } from 'react';
 import { buildParkingContactQuestion, createParkingTelHref, isKakaoRelayOpen } from '../../../lib/parking-contact.js';
 
@@ -52,7 +54,7 @@ export default function ParkingContactPanel({ id, parkingName, phoneNumber, plac
       <p>주차장에서는 별도 앱 없이 일반 전화를 받으면 돼요.</p>
       <ol><li>아래에서 질문을 복사합니다.</li><li>카카오톡 또는 107 웹 문자중계를 엽니다.</li><li>문자중계 채팅창에 복사한 내용을 붙여 넣습니다.</li></ol>
       <div className="parking-actions parking-contact-actions">
-        <button type="button" onClick={() => void copyQuestion()}>질문 복사하기</button>
+        <button type="button" onClick={() => void copyQuestion()} data-icon-action="" title="질문 복사하기"><NightIcon name="copy" size={20}/><span className="sr-only">질문 복사하기</span></button>
         <a href={KAKAO_RELAY_URL} target="_blank" rel="noopener noreferrer">카카오톡 문자중계 열기</a>
         <a href={WEB_RELAY_URL} target="_blank" rel="noopener noreferrer">107 웹 문자중계 열기</a>
       </div>

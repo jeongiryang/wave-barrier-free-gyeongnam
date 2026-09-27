@@ -66,14 +66,12 @@ export default function AccountMenu({ loginHref = "/login", initialOpen = false,
       <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(value => !value)} ref={(element) => { entry.current = element; }} role="button" aria-label={en ? `${label} account menu` : `${label} 계정 메뉴`}>{iconOnly ? <ProfileIcon /> : <><span>{label}</span></>}</button>
       {open && <div id={panelId} ref={panel} popover="auto" className="account-popover header-dropdown">
         {isPending ? <p role="status">{en ? "Loading account status" : "계정 상태를 불러오는 중"}</p> : !session?.user ? <>
-          <strong>{en ? "Your WAVE account" : "나의 WAVE 계정"}</strong>
           <a href={loginHref}>{en ? "Log in" : "로그인"}</a>
           <a href="/register">{en ? "Create account" : "회원가입"}</a>
         </> : <>
-        <strong>{label}</strong><small>{en ? "WAVE account" : "WAVE 계정"}</small>
+        <strong>{label}</strong>
         <a href="/account">{en ? "Manage account" : "계정 관리"}</a>
-        <Link href="/my-trips">{en ? "Saved account trips" : "계정에 저장한 여행"}</Link>
-        <Link href="/guide">{en ? "Travel guide (Korean)" : "여행 저장·동행 사용법"}</Link>
+        <Link href="/my-trips">{en ? "My trips" : "내 여행"}</Link>
         <button type="button" disabled={signingOut} onClick={signOut}>{signingOut ? en ? "Logging out…" : "로그아웃 중…" : en ? "Log out" : "로그아웃"}</button>
         {failed && <p role="alert">{en ? "We couldn't log you out. Please try again." : "로그아웃을 완료하지 못했습니다. 다시 시도해 주세요."}</p>}
       </>}

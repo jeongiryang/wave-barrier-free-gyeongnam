@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState, useEffect } from 'react';
+import { useId, useRef, useState, useEffect, useMemo } from 'react';
+import { regionShowcasePhotos } from '../features/landing/region-showcase-photos';
 import { useRegionApiPhotos } from '../features/landing/useRegionApiPhotos';
 import { rememberPhotoCredits } from '../features/landing/photo-credit-store';
 import { useSitePreferences } from './SitePreferences';
@@ -20,9 +21,16 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
   const [preview, setPreview] = useState<{ name: string; x: number; y: number; below: boolean; maxHeight: number } | null>(null);
   const [visible, setVisible] = useState(false);
   const photos = useRegionApiPhotos(regionBoundaries.map(region => region.name), visible);
+  const [failedPhotos, setFailedPhotos] = useState<string[]>([]);
+  const displayedPhotos = useMemo(() => Object.fromEntries(regionBoundaries.map(({ name }) => {
+    const live = photos[name]?.photo;
+    const cover = regionShowcasePhotos[name];
+    const photo = live && !failedPhotos.includes(live.image) ? live : visible && cover && !failedPhotos.includes(cover.image) ? { ...cover, description: '' } : null;
+    return [name, { photo, representative: Boolean(photo && photo !== live) }];
+  })), [photos, visible, failedPhotos]);
   useEffect(() => {
-    rememberPhotoCredits(Object.values(photos).flatMap(entry => entry.photo ? [{ ...entry.photo, source: '한국관광공사 관광사진' }] : []));
-  }, [photos]);
+    rememberPhotoCredits(Object.values(displayedPhotos).flatMap(entry => entry.photo ? [{ ...entry.photo, source: '한국관광공사 관광사진' }] : []));
+  }, [displayedPhotos]);
   useEffect(() => {
     if (typeof IntersectionObserver !== 'function') {
       // Match the observer's asynchronous notification without requiring the API.
@@ -33,7 +41,6 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
     if (root.current) observer.observe(root.current);
     return () => observer.disconnect();
   }, []);
-  const [failedPhotos, setFailedPhotos] = useState<string[]>([]);
   const { locale } = useSitePreferences();
   const en = locale === 'en';
   const label = (name: string) => en ? regionNames[name] || name : name;
@@ -42,11 +49,12 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
   const showPreview = (name: string, target: Element) => {
     if (dismissed.current) return;
     if (!regionBoundaries.some(region => region.name === name) || !root.current) { setPreview(null); return; }
+    if (window.innerHeight - target.getBoundingClientRect().bottom < 180) target.scrollIntoView({ block: 'center', behavior: 'instant' });
     const rect = target.getBoundingClientRect(), parent = root.current.getBoundingClientRect();
     const half = Math.min(140, (parent.width - 16) / 2);
-    const above = rect.top - 90, belowSpace = window.innerHeight - rect.bottom - 18;
-    const below = above < 300 && belowSpace > above;
-    setPreview({ name, x: Math.max(half + 8, Math.min(parent.width - half - 8, rect.left + rect.width / 2 - parent.left)), y: (below ? rect.bottom + 10 : rect.top - 10) - parent.top, below, maxHeight: Math.max(80, below ? belowSpace : above) });
+    const belowSpace = window.innerHeight - rect.bottom - 18;
+    const below = true;
+    setPreview({ name, x: Math.max(half + 8, Math.min(parent.width - half - 8, rect.left + rect.width / 2 - parent.left)), y: rect.bottom + 10 - parent.top, below, maxHeight: Math.max(0, belowSpace) });
   };
   useEffect(() => {
     const close = () => setPreview(null);
@@ -56,7 +64,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
     window.addEventListener('resize', close);
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape, true); window.removeEventListener('resize', close); };
   }, [preview]);
-  const photo = preview ? photos[preview.name]?.photo : null;
+  const photo = preview ? displayedPhotos[preview.name]?.photo : null;
   const map = <div className="region-picker-visual">
     <span>{en ? 'SOUTH KOREA · SOUTHEAST' : '대한민국 남동쪽, 경상남도'}</span>
     <svg viewBox="0 0 800 814" aria-label={en ? 'Gyeongnam city and county boundaries' : '경상남도 시·군 행정경계'}>
@@ -66,7 +74,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
         {!night && <><circle cx={region.x} cy={region.y} r="5" />{selected(region.name) && <text x={region.x} y={region.y - 14} textAnchor="middle">{label(region.name)}</text>}</>}
       </g>)}
       {night && regionBoundaries.map(r => <g key={r.name} data-region-photo={r.name} aria-hidden="true" onMouseEnter={event => showPreview(r.name, event.currentTarget)} onClick={event => { dismissed.current = false; onChange(r.name); showPreview(r.name, event.currentTarget); }} style={{ cursor: 'pointer' }}>
-        {photos[r.name]?.photo && !failedPhotos.includes(photos[r.name].photo!.image) && <image href={photos[r.name].photo!.image} onError={() => setFailedPhotos(previous => [...previous, photos[r.name].photo!.image])} x={r.x - 25} y={r.y - 50} width="50" height="50" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipPrefix + r.name})`} />}
+        {displayedPhotos[r.name]?.photo ? <image href={displayedPhotos[r.name].photo!.image} onError={() => setFailedPhotos(previous => [...previous, displayedPhotos[r.name].photo!.image])} x={r.x - 25} y={r.y - 50} width="50" height="50" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipPrefix + r.name})`} /> : <g className="region-photo-placeholder" transform={`translate(${r.x} ${r.y - 25})`}><rect x="-24" y="-24" width="48" height="48" rx="24"/><path d="M-12 10V-10H12V10ZM-11 8L-3-1 2 4 6 0 11 7M5-5h1"/></g>}
         <circle className="night-map-photo-ring" cx={r.x} cy={r.y - 25} r="26" /><text x={r.x} y={r.y + 19} textAnchor="middle">{label(r.name)}</text>
       </g>)}
     </svg>
@@ -84,10 +92,9 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
         }} aria-pressed={value === name} aria-describedby={preview?.name === name ? previewId : undefined}><span>{label(name)}{value === name && <span aria-hidden="true"> ✓</span>}</span></button>)}</div>
     </div>
     {compact && <details className="region-map-disclosure"><summary>{en ? 'See regions on the map' : '지도에서 지역 위치 보기'}</summary>{map}</details>}
-    <small className="region-map-credit">{en ? 'SGIS 2020 · simplified boundaries / StatGarten' : '통계청 SGIS 2020 · 경계 단순화 / StatGarten'}</small>
     {preview && <div id={previewId} role="tooltip" className="region-photo-preview" data-below={preview.below} style={{ left: preview.x, top: preview.y, maxHeight: preview.maxHeight }}>
       {photo && !failedPhotos.includes(photo.image) && <img src={photo.image} alt={photo.title} onError={() => setFailedPhotos(previous => [...previous, photo.image])} />}
-      <div><strong>{label(preview.name)}</strong>{photo ? <><p>{photo.title}</p><span>{photo.location}</span>{photo.description && <span>{photo.description}</span>}{failedPhotos.includes(photo.image) && <small>{en ? 'Photo unavailable' : '사진을 불러오지 못했어요'}</small>}</> : <p>{!photos[preview.name] ? (en ? 'Loading photo…' : '관광사진을 불러오는 중…') : photos[preview.name].state === 'empty' ? (en ? 'No photo provided.' : '제공된 관광사진이 없어요.') : (en ? 'Photo temporarily unavailable.' : '관광사진을 불러오지 못했어요.')}</p>}</div>
+      <div><strong>{label(preview.name)}</strong>{photo ? <><p>{photo.title}</p><span>{photo.location}</span>{displayedPhotos[preview.name]?.representative && <small>{en ? 'Regional cover photo · Korea Tourism Organization' : '지역 대표 사진 · 한국관광공사'}</small>}{photo.description && <span>{photo.description}</span>}{failedPhotos.includes(photo.image) && <small>{en ? 'Photo unavailable' : '사진을 불러오지 못했어요'}</small>}</> : <p>{!photos[preview.name] ? (en ? 'Loading photo…' : '관광사진을 불러오는 중…') : photos[preview.name].state === 'empty' ? (en ? 'No photo provided.' : '제공된 관광사진이 없어요.') : (en ? 'Photo temporarily unavailable.' : '관광사진을 불러오지 못했어요.')}</p>}</div>
     </div>}
   </div>;
 }

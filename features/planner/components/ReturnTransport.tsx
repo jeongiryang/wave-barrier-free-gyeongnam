@@ -1,5 +1,8 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
 
+
+import WaveSelect from "../../../components/WaveSelect";
 import { useEffect, useRef, useState } from 'react';
 import type { useTripSelection } from '../hooks/useTripSelection';
 import type { Place } from '../types';
@@ -54,11 +57,11 @@ function PlaceReturnTransport({ place, targets }: { place: Place; targets: Place
     {info && <>
       <p style={copyStyle} role="status">{info.message || (info.status === 'empty' ? '제공된 주변 정류장이 없어요. 운행 여부는 현장 안내나 카카오맵에서 확인해 주세요.' : info.status === 'no-arrivals' ? '현재 제공된 도착 예정 정보가 없어요. 버스 운행 종료를 뜻하지는 않습니다.' : info.selected ? `${info.selected.name}의 도착 예정 노선 ${info.routes.length}개를 확인했어요.` : `주변 정류장 ${info.stops.length}곳을 확인했어요.`)}</p>
       <p style={copyStyle}>{info.source} · 정류장 조회 {stamp(info.checkedAt)}</p>
-      {info.selected ? <label style={labelStyle}>주변 정류장 바꾸기<select style={selectStyle} disabled={busy} value={info.selected.cityCode+':'+info.selected.nodeId} onChange={event => { const stop=info.stops.find(item => item.cityCode+':'+item.nodeId===event.target.value); if(stop) void load(stop); }}>{info.stops.map(stop => <option key={stop.cityCode+':'+stop.nodeId} value={stop.cityCode+':'+stop.nodeId}>{stop.name} · {stop.distance===null?'거리 미확인':`직선 약 ${stop.distance}m`}</option>)}</select></label> : !!info.stops.length && <div style={gridStyle}>{info.stops.map(stop => <article key={stop.cityCode+':'+stop.nodeId} style={cardStyle}><h4 style={{ fontSize: 18, margin: 0 }}>{stop.name}</h4><p style={copyStyle}>{stop.distance === null ? '거리 미확인' : `장소에서 직선거리 약 ${stop.distance}m`} · 정류장 {stop.nodeId}</p><div className="travel-book-actions" style={actionsStyle}><button type="button" aria-busy={busy} disabled={busy} onClick={() => void load(stop)}>이 정류장의 버스 확인</button></div></article>)}</div>}
+      {info.selected ? <label style={labelStyle}>주변 정류장 바꾸기<WaveSelect style={selectStyle} disabled={busy} value={info.selected.cityCode+':'+info.selected.nodeId} onChange={event => { const stop=info.stops.find(item => item.cityCode+':'+item.nodeId===event.target.value); if(stop) void load(stop); }}>{info.stops.map(stop => <option key={stop.cityCode+':'+stop.nodeId} value={stop.cityCode+':'+stop.nodeId}>{stop.name} · {stop.distance===null?'거리 미확인':`직선 약 ${stop.distance}m`}</option>)}</WaveSelect></label> : !!info.stops.length && <div style={gridStyle}>{info.stops.map(stop => <article key={stop.cityCode+':'+stop.nodeId} style={cardStyle}><h4 style={{ fontSize: 18, margin: 0 }}>{stop.name}</h4><p style={copyStyle}>{stop.distance === null ? '거리 미확인' : `장소에서 직선거리 약 ${stop.distance}m`} · 정류장 {stop.nodeId}</p><div className="travel-book-actions" style={actionsStyle}><button type="button" aria-busy={busy} disabled={busy} onClick={() => void load(stop)}>이 정류장의 버스 확인</button></div></article>)}</div>}
       {info.moreStops && <p style={copyStyle}>가까운 정류장 최대 8곳을 표시합니다. 다른 정류장은 지도에서 확인해 주세요.</p>}
       {info.selected && <section aria-label="선택한 정류장의 도착 정보" style={{ display: 'grid', gap: 12, marginTop: 8 }}>
         <h4 style={{ fontSize: 20, margin: 0 }}>{info.selected.name}에서 탈 버스</h4><p style={copyStyle}>도착 정보 조회 {stamp(info.arrivalCheckedAt)} · 조회 시점의 도착 예상입니다.</p>
-        <div className="travel-book-actions" style={actionsStyle}><button type="button" aria-busy={busy} disabled={busy || (info.arrivalCheckedAt ? now-Date.parse(info.arrivalCheckedAt)<15000 : false)} onClick={() => void load(info.selected)}>도착 정보 다시 확인</button></div>
+        <div className="travel-book-actions" style={actionsStyle}><button type="button" aria-busy={busy} disabled={busy || (info.arrivalCheckedAt ? now-Date.parse(info.arrivalCheckedAt)<15000 : false)} onClick={() => void load(info.selected)} data-icon-action="" title="도착 정보 다시 확인"><NightIcon name="refresh" size={20}/><span className="sr-only">도착 정보 다시 확인</span></button></div>
         {info.moreArrivals && <p style={copyStyle}>일부 노선의 도착 정보만 제공되었습니다.</p>}
         <div style={{ ...gridStyle, marginTop: 16 }}>{(allRoutes ? info.routes : info.routes.slice(0,6)).map(route => <article key={route.routeId} style={cardStyle}>
           <h4 style={{ fontSize: 20, margin: 0 }}>{route.routeName}번</h4>
@@ -72,7 +75,7 @@ function PlaceReturnTransport({ place, targets }: { place: Place; targets: Place
         <h4 ref={directionHeading} tabIndex={-1} style={{ fontSize: 20, margin: 0, scrollMarginTop: 120 }}>{info.direction.next ? `${info.selected?.name} · ${info.direction.next.name} 방면` : '진행 방향 확인 필요'}</h4>
         <p style={copyStyle}>{info.direction.reason || '아래는 이 정류장 이후의 노선 순서입니다.'} · 노선 조회 {stamp(info.routeCheckedAt)}</p>
         {info.direction.stops.length > 0 && <details className="place-evidence"><summary>이후 정류장 {info.direction.stops.length}곳</summary><ol style={{ paddingInlineStart: 24 }}>{info.direction.stops.map(stop => <li key={stop.order} style={{ paddingBlock: 8 }}>{stop.name}</li>)}</ol></details>}
-        {!!targets.length && <><label style={labelStyle}>다음 이동 장소와 비교<select style={selectStyle} value={targetId} onChange={event => setTargetId(event.target.value)}><option value="">일정에서 장소 고르기</option>{targets.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>{target && (nearby.length ? <ul>{nearby.map(stop => <li key={stop.order}>{stop.name} · {target.name}까지 직선거리 약 {stop.distance}m</li>)}</ul> : <p style={copyStyle}>이 방향에서 선택한 장소의 800m 이내 정류장을 확인하지 못했어요.</p>)}</>}
+        {!!targets.length && <><label style={labelStyle}>다음 이동 장소와 비교<WaveSelect style={selectStyle} value={targetId} onChange={event => setTargetId(event.target.value)}><option value="">일정에서 장소 고르기</option>{targets.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</WaveSelect></label>{target && (nearby.length ? <ul>{nearby.map(stop => <li key={stop.order}>{stop.name} · {target.name}까지 직선거리 약 {stop.distance}m</li>)}</ul> : <p style={copyStyle}>이 방향에서 선택한 장소의 800m 이내 정류장을 확인하지 못했어요.</p>)}</>}
         {info.times && <p style={copyStyle}>노선 기점 {info.times.origin || '미확인'} · 종점 {info.times.destination || '미확인'}<br />기점 출발 첫차 {info.times.first || '미확인'} · 막차 {info.times.last || '미확인'}<br />이 정류장의 막차 도착 시각은 별도 확인이 필요합니다. 시간표 조회 {stamp(info.timesCheckedAt)}</p>}
       </section>}
     </>}
@@ -86,6 +89,6 @@ export default function ReturnTransport({ trip }: { trip: ReturnType<typeof useT
   const place = places.find(item => item.id === chosen) || places.at(-1);
   return <section aria-label="돌아가는 교통 확인" style={{ display: 'grid', gap: 14, padding: '16px 0' }}>
     <h3 style={{ fontSize: 22, margin: 0 }}>풍경을 만난 뒤, 다음 이동도 편하게</h3><p style={copyStyle}>일정에 담은 장소 주변의 정류장을 고르고 버스 도착과 진행 방향을 확인하세요.</p>
-    {place ? <><label style={labelStyle}>어디에서 이동하나요?<select style={selectStyle} value={place.id} onChange={event => setChosen(event.target.value)}>{places.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><PlaceReturnTransport key={place.id} place={place} targets={places.filter(item => item.id !== place.id)} /></> : <p style={copyStyle}>일정에 장소를 담으면 돌아가는 교통을 확인할 수 있어요.</p>}
+    {place ? <><label style={labelStyle}>어디에서 이동하나요?<WaveSelect style={selectStyle} value={place.id} onChange={event => setChosen(event.target.value)}>{places.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</WaveSelect></label><PlaceReturnTransport key={place.id} place={place} targets={places.filter(item => item.id !== place.id)} /></> : <p style={copyStyle}>일정에 장소를 담으면 돌아가는 교통을 확인할 수 있어요.</p>}
   </section>;
 }

@@ -36,7 +36,7 @@ function fixture({ account = false, afterRead } = {}) {
   const conflict = () => { const current = JSON.parse(values.get(storageApi.CURRENT_TRIP_KEY)); current.values[storageApi.REGION_KEY] = '하동'; values.set(storageApi.CURRENT_TRIP_KEY, JSON.stringify(current)); };
   const dependencies = {
     react: hooks, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }, 'next/link': {},
-    '../../components/LoadingState': {}, '../auth/hooks/useHydratedSession': { useHydratedSession: () => ({ data: account ? { user: { id: 'owner' } } : null, isPending: false }) },
+    '../../components/NightIcon': {}, '../../components/LoadingState': {}, '../auth/hooks/useHydratedSession': { useHydratedSession: () => ({ data: account ? { user: { id: 'owner' } } : null, isPending: false }) },
     '../../lib/account-travel/model.js': accountModel, '../../lib/trip-identity.js': identities,
     '../../lib/travel-book.js': books, '../../lib/current-trip-storage.js': storageApi,
     '../account-travel/client': { AccountTravelError: class extends Error {}, travelRequest: async (path, payload) => {
@@ -54,7 +54,7 @@ function fixture({ account = false, afterRead } = {}) {
     './services/visit-info': { cachedVisitInfo: () => null },
   });
   dependencies['../planner/components/TripTimingConfirmation'] = loadTs('../features/planner/components/TripTimingConfirmation.tsx', {
-    react: hooks, 'react/jsx-runtime': dependencies['react/jsx-runtime'],
+    react: hooks, 'react/jsx-runtime': dependencies['react/jsx-runtime'], '../../../components/NightIcon': {},
     '../hooks/usePlaceDialogFocus': { usePlaceDialogFocus: () => ({ current: null }) },
     '../services/visit-info': { subscribeVisitInfo: () => () => {}, visitInfoVersion: () => 0, serverVisitInfoVersion: () => 0 },
   });

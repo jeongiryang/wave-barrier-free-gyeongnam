@@ -1,4 +1,6 @@
 "use client";
+import NightIcon from '../../../components/NightIcon';
+
 import { useEffect, useState } from "react";
 import { FACILITIES } from "../../../lib/facility-selection.js";
 import { samePublicPlace } from "../../../lib/place-identity";
@@ -36,7 +38,7 @@ export default function PlaceComparisonDialog({ places, requiredKeys, saved, cur
   const rows = facilityComparison(compared, keys);
   const labels = en ? { confirmed: "Reported available", negative: "Does not meet this need", unknown: "Not reported" } : { confirmed: "확인됨", negative: "조건과 맞지 않음", unknown: "미확인" };
   return <dialog ref={dialog} className="region-change-dialog place-comparison-dialog" aria-labelledby="place-comparison-title">
-    <header><div><p className="section-kicker">{en ? "YOUR CHOICE" : "나에게 맞는 여행지"}</p><h2 id="place-comparison-title" tabIndex={-1}>{en ? "Compare facilities" : "편의를 나란히 살펴보세요."}</h2></div><button type="button" onClick={onClose} aria-label={en ? "Close comparison" : "편의 비교 닫기"}>×</button></header>
+    <header><div><p className="section-kicker">{en ? "YOUR CHOICE" : "나에게 맞는 여행지"}</p><h2 id="place-comparison-title" tabIndex={-1}>{en ? "Compare facilities" : "편의를 나란히 살펴보세요."}</h2></div><button type="button" onClick={onClose} aria-label={en ? "Close comparison" : "편의 비교 닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button></header>
     <p>{en ? "Compare the official records for your needs. Unreported information does not mean a facility is absent." : "나에게 필요한 편의부터 공식 기록을 살펴보세요. 미확인은 시설이 없다는 뜻이 아니에요."}</p>
     <fieldset className="comparison-facilities"><legend>{en ? 'Compare up to six facilities' : '비교할 편의 선택 · 최대 6개'}</legend>{FACILITIES.map(item => <label key={item.key}><input type="checkbox" checked={keys.includes(item.key)} disabled={!keys.includes(item.key) && keys.length >= 6} onChange={() => { setFresh([]); setKeys(previous => previous.includes(item.key) ? previous.filter(key => key !== item.key) : [...previous, item.key]); }} />{en ? item.en : item.label}</label>)}</fieldset>
     <p className="modal-note">{en ? 'Comparison choices do not change your trip requirements.' : '여기에서 고른 비교 항목은 여행의 필수 편의 조건을 바꾸지 않아요.'}</p>

@@ -13,10 +13,6 @@
 .naru-guidance-settings button { min-width:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px; }
 .naru-guidance-settings footer { flex-wrap:wrap; }
 .naru-guidance-summary { display:grid;gap:8px; }
-body .naru-discovery .naru-hint { box-sizing:border-box;width:min(260px,calc(100vw - 108px));max-width:none;height:88px;flex:none;padding:10px;background:#fff;color:#233b55;border:1px solid #bfcdea;border-radius:18px;box-shadow:0 8px 32px #0004; }
-body .naru-discovery .naru-hint>button:first-child { flex:1;min-width:0;height:66px;font-size:14px;line-height:1.6;overflow-wrap:anywhere; }
-body .naru-discovery .naru-hint>button:last-child { flex:none;width:44px;height:44px;font-size:22px; }
-body .naru-discovery .naru-hint button:focus-visible { outline:2px solid #c4a9ff;outline-offset:2px;border-radius:8px; }
 body .naru-panel.naru-workspace {
   --ink:#233b55;--ink-soft:#405a75;--muted:#526782;--paper:#fff;--surface:#f4f7fc;--surface-deep:#e8f1ff;--white:#fff;--line:#c5d5e7;--accent:#3659ba;--blue:#3659ba;--blue-dark:#294593;--on-blue:#fff;--on-accent:#fff;
   background:var(--paper);color:var(--ink);color-scheme:light;box-shadow:0 24px 100px #0009;
@@ -33,7 +29,6 @@ body .naru-panel.naru-workspace .naru-heading small { font-size:15px; }
   body .naru-workspace[data-dragging] .naru-heading { cursor:grabbing; }
   body .naru-workspace .naru-heading :is(button,summary,a) { cursor:pointer; }
 }
-body .naru-panel.naru-workspace .naru-avatar { width:48px;height:48px;flex-shrink:0; }
 body .naru-panel.naru-workspace :is(button,input,textarea,summary) { color:var(--ink);background:var(--surface);border-color:var(--line); }
 body .naru-panel.naru-workspace :is(button,summary) { min-height:44px; }
 body .naru-panel.naru-workspace :is(button,a,summary,input,textarea):focus-visible { outline:2px solid var(--accent);outline-offset:3px; }
@@ -89,6 +84,7 @@ body .naru-panel.naru-workspace .naru-context-suggestions>* { flex:0 1 auto;max-
 body .naru-panel.naru-workspace .naru-context-suggestions>.naru-trip-context { flex-basis:100%; }
 body .naru-panel.naru-workspace .naru-input { width:auto;flex-shrink:0;margin:14px 24px 20px;padding:10px;border-radius:18px;background:var(--surface);border-color:#a8bedb; }
 body .naru-panel.naru-workspace .naru-input textarea { background:transparent;color:var(--ink);min-height:max(44px,calc(1lh + 16px)); }
+body .naru-panel.naru-workspace #naru-message{background:transparent;color:var(--ink);border:0;outline:0;box-shadow:none;caret-color:var(--ink)}
 body .naru-panel.naru-workspace .naru-input textarea::placeholder { color:var(--muted);opacity:1; }
 body .naru-panel.naru-workspace .naru-input button { border-radius:12px; }
 body .naru-panel.naru-workspace .naru-note { width:auto;margin:0;padding:0 24px 8px;background:transparent;color:var(--muted); }

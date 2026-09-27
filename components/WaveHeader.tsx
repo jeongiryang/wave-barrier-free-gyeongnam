@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useSitePreferences } from "./SitePreferences";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { navigationScroll } from "../lib/header-scroll.js";
+import { useSyncExternalStore } from "react";
 import { readTripValue } from "../lib/current-trip-storage.js";
 import WaveHeaderTools from "./WaveHeaderTools";
 import NavIcon from "./NavIcons";
@@ -33,28 +32,10 @@ export default function WaveHeader({ current, savedCount, savedReady = true, onS
 }) {
   const en = useSitePreferences().locale === "en";
   const night = true;
-  const header = useRef<HTMLElement>(null);
-  const [hidden, setHidden] = useState(false);
-  useEffect(() => {
-    let state = { y: window.scrollY, direction: 0, distance: 0, hidden: false };
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const locked = Boolean(header.current?.contains(document.activeElement) || header.current?.querySelector('[aria-expanded="true"], details[open]'));
-      state = navigationScroll(state, window.scrollY, locked);
-      setHidden(state.hidden);
-    };
-    const scroll = () => { if (!frame) frame = requestAnimationFrame(update); };
-    const focus = () => { state = { ...state, hidden: false, distance: 0 }; setHidden(false); };
-    const node = header.current;
-    window.addEventListener("scroll", scroll, { passive: true });
-    node?.addEventListener("focusin", focus);
-    return () => { cancelAnimationFrame(frame); window.removeEventListener("scroll", scroll); node?.removeEventListener("focusin", focus); };
-  }, []);
   const storedCount = useSyncExternalStore(subscribe, savedSnapshot, () => 0);
   const count = savedCount ?? storedCount;
   const bookmark = <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M6 20V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v15l-6-4-6 4Z" /></svg><span className="wave-trip-count" aria-hidden="true">{count}</span></>;
-  return <header ref={header} className={`wave-header ${className}`} data-hidden={hidden}>
+  return <header className={`wave-header ${className}`}>
     <Link className="wave-wordmark" href={current === "intro" ? "#top" : "/"} aria-label={en ? "WAVE home" : "WAVE 홈"}>{night && <svg className="night-wave-mark" viewBox="0 0 64 40" aria-hidden="true"><path fill="#17d6ff" d="M1 21C18 27 22-7 46 10L61 20C42 8 29 40 1 21Z"/><path fill="#1199ff" d="M6 28C28 37 36 10 62 23C42 19 37 50 6 28Z"/><path fill="#85eaff" d="M13 14C27 13 30-2 46 7C33 4 26 23 13 14Z"/></svg>}<span>WAVE</span>{night && <small>모두가 떠나는,<br/>더 넓은 경남</small>}</Link>
     <nav aria-label={en ? "Main menu" : "주요 메뉴"}>
       <Link href="/" aria-current={current === "intro" ? "page" : undefined}><NavIcon name="intro" /><span>{en ? "About WAVE" : "서비스 소개"}</span></Link>
