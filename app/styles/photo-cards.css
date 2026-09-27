@@ -117,8 +117,7 @@ html:root body .wave-night .community-list[data-layout=compact] :is(.community-c
 html:root body .wave-night .community-list .community-skeleton-card{padding:20px;gap:20px;background:linear-gradient(110deg,#1d455b 20%,#28566b 42%,#1d455b 64%);background-size:220% 100%;animation:region-photo-loading 2.8s ease-in-out infinite;pointer-events:none}
 .community-skeleton-card i{display:block;height:12px;border-radius:8px;background:#85eaff20}
 .skeleton-meta,.skeleton-footer{display:flex;justify-content:space-between;gap:24px}.skeleton-meta i{width:24%;height:24px}.skeleton-copy{display:grid;gap:14px;margin-top:auto}.skeleton-copy i:first-child{height:22px;width:72%}.skeleton-copy i:last-child{width:58%}.skeleton-footer i{width:24%;height:28px}
-html:root body .wave-night .community-skeletons[data-layout=compact] .community-skeleton-card{min-height:160px}
-@media(prefers-reduced-motion:reduce){html:root body .wave-night .community-list .community-skeleton-card{animation:none}}html:root[data-motion=calm] body .wave-night .community-list .community-skeleton-card{animation:none}
+html:root body .wave-night .community-skeletons[data-layout=compact] .community-skeleton-card{min-height:160px}html:root[data-motion=calm] body .wave-night .community-list .community-skeleton-card{animation:none}
 
 html:root body .wave-night .festival-card-main{position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:380px;width:100%;border-radius:inherit}
 html:root body .wave-night .festival-card-main>:not(.festival-card-photo){position:relative;z-index:1}
@@ -387,14 +386,5 @@ html:root body .wave-night .simple-place-row>.place-card-actions :is(.place-card
   }
   html:root body .wave-night .community-list[data-layout=cards] .community-bookmark [role=alert]{
     overflow-wrap:anywhere;
-  }
-}
-@media (prefers-reduced-motion:reduce){
-  html:root body .wave-night .community-list[data-layout=cards] article::after,
-  html:root body .wave-night .community-list[data-layout=cards] .community-story-cover :is(.smart-spot-image,img),
-  html:root body .wave-night .community-list[data-layout=cards] .community-card-copy>p,
-  html:root body .wave-night .community-list[data-layout=cards] .community-report-tag,
-  html:root body .wave-night .community-list[data-layout=cards] .community-card-footer{
-    transition:none;
   }
 }

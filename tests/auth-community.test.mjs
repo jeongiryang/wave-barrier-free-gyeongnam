@@ -245,7 +245,7 @@ test("preserved product preview sources remain Korean and non-interactive; curre
   assert.match(css, /\.product-story,.landing-community \{ min-height: 0; padding-block: clamp\(/);
   for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
     assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));
-    assert.match(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
+    assert.doesNotMatch(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
   }
 });
 

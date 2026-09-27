@@ -16,10 +16,9 @@ export default function usePreviewPlayback(frames: number, delay = 4000, scrollP
   const [visible, setVisible] = useState(false);
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
     const canObserve = typeof IntersectionObserver === 'function';
-    const update = () => setReduced(!canObserve || media.matches || document.documentElement.dataset.motion === 'calm');
-    update(); media.addEventListener('change', update);
+    const update = () => setReduced(!canObserve || document.documentElement.dataset.motion === 'calm');
+    update();
     const settings = new MutationObserver(update);
     settings.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
     const node = ref.current;
@@ -28,7 +27,7 @@ export default function usePreviewPlayback(frames: number, delay = 4000, scrollP
     const observer = canObserve ? new IntersectionObserver(entries => { inView = entries[0].isIntersecting; visibility(); }, { threshold: .2 }) : null;
     if (node) observer?.observe(node);
     document.addEventListener('visibilitychange', visibility);
-    return () => { observer?.disconnect(); settings.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', visibility); };
+    return () => { observer?.disconnect(); settings.disconnect(); document.removeEventListener('visibilitychange', visibility); };
   }, []);
   useEffect(() => {
     if (!visible || paused || reduced || !scrollPlayback) return;

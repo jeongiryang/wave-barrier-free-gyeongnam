@@ -13,5 +13,4 @@
   .story-expansion-source { position: relative; inset: auto; margin: 0 0 16px; }
   .story-expansion-frame { clip-path: none; }
 }
-@media (prefers-reduced-motion: reduce) { .story-expansion-frame { clip-path: none; } }
 html[data-motion="calm"] .story-expansion-frame { clip-path: none; }

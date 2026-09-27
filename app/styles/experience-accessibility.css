@@ -49,9 +49,6 @@ html[data-theme="dark"] .help-tour-actions button.primary { color: #032331; bord
   .help-tour-dialog h2 { margin-right: 42px; }
   .help-tour-spotlight { border-width: 3px; border-radius: 18px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .help-tour-spotlight, .help-tour-progress i { transition: none; }
-}
 
 /* --- 추천 여행지 캐러셀 폭 -----------------------------------------------
    카드 안쪽 여백만큼만 좌우로 확장하며 100vw를 사용하지 않는다. */

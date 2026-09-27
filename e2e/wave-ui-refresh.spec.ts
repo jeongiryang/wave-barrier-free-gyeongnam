@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 import { mockPublicShellApi, mockPlannerApi } from './fixtures';
 
-test('Naru greeting stays legible in the compact hero and respects reduced motion', async ({ page }) => {
+test('Naru greeting stays legible in the compact hero with OS reduced motion enabled', async ({ page }) => {
   await mockPublicShellApi(page); await mockPlannerApi(page);
   await page.goto('/planner');
   const story = page.locator('.naru-header-scene');
@@ -11,6 +11,7 @@ test('Naru greeting stays legible in the compact hero and respects reduced motio
   await expect(story.locator('.naru-welcome-dialogue p:not([hidden])')).toHaveCount(2);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(story).toHaveAttribute('data-frame', '4');
+  await expect(story).toHaveAttribute('data-frame', '1');
   expect((await new AxeBuilder({ page }).include('.naru-header-scene').analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

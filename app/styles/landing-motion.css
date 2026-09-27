@@ -7,10 +7,6 @@
 /* Entry animations are transient: the photograph and copy stay visible by default. */
 
 /* 키커의 짧은 파란 선이 텍스트 등장 후 따라 그려진다. */
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-cta > * { opacity: 1; transform: none; transition: none; }
-}
 html[data-motion="calm"] .landing-hero-copy { translate: none !important; transform: none !important; scale: 1 !important; transition: none !important; }
 html[data-motion="calm"] [data-land-reveal],
 html[data-motion="calm"] .landing-cta > * { opacity: 1 !important; transform: none !important; translate: none !important; clip-path: none !important; transition: none !important; }

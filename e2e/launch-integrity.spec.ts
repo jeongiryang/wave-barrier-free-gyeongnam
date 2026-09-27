@@ -167,7 +167,7 @@ test("landing: intro exposes its message and an immediate keyboard dismissal", a
   await planning.focus(); await expect(planning).toBeFocused();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.clock.runFor(32);
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
   await expect(planning).toBeFocused();
   for (const element of await page.locator(".landing-hero-copy, .landing-hero h1, .night-hero-search button[type=submit]").all()) {
     const box = (await element.boundingBox())!;

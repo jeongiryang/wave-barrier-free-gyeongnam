@@ -71,9 +71,8 @@ test('community cards reveal through real focus and hover, while touch keeps det
     await expect(link).toBeFocused();
     await expect(footer).toHaveCSS('visibility', 'visible');
     await expect(card.locator('.community-report-tag').last()).toContainText('공식 점수 미반영');
-    // The global reduced-motion policy uses a nonzero micro-duration so
-    // transition completion hooks still fire; no perceptible animation remains.
-    expect(await footer.evaluate(node => Math.max(...getComputedStyle(node).transitionDuration.split(',').map(value => parseFloat(value) * (value.trim().endsWith('ms') ? 1 : 1000))))).toBeLessThanOrEqual(0.001);
+    // Desktop reveal transitions remain animated even under OS reduced motion.
+    expect(await footer.evaluate(node => Math.max(...getComputedStyle(node).transitionDuration.split(',').map(value => parseFloat(value) * (value.trim().endsWith('ms') ? 1 : 1000))))).toBe(hover ? 240 : 0);
     const save = card.getByRole('button', { name: '이 기기에 저장', exact: true });
     await link.press('Tab');
     await expect(save).toBeFocused();

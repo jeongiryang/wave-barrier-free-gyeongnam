@@ -63,7 +63,7 @@ test("모바일 두 화면 전환과 선택은 44px 탐색과 수평 안전 영�
   }
   await expect(page.locator(".simple-region-entry .simple-region")).toHaveCount(6);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
 });
 
 test("검색과 내 일정 전환은 같은 장소·필수 편의·날짜 미정 상태를 유지한다", async ({ page }) => {

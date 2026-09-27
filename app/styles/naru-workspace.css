@@ -90,9 +90,6 @@ body .naru-panel.naru-workspace .naru-input button { border-radius:12px; }
 body .naru-panel.naru-workspace .naru-note { width:auto;margin:0;padding:0 24px 8px;background:transparent;color:var(--muted); }
 body .naru-panel.naru-workspace.naru-compact .naru-workspace-body { grid-template-columns:minmax(0,1fr); }
 body .naru-panel.naru-workspace.naru-compact .naru-workspace-sidebar { display:none; }
-@media (prefers-reduced-motion:reduce) {
-  body .naru-panel.naru-workspace,body .naru-panel.naru-workspace * { animation:none;transition:none;scroll-behavior:auto; }
-}
 
 body .naru-panel.naru-workspace .naru-workspace-icon{width:24px;height:24px;flex-shrink:0;vertical-align:middle}
 body .naru-panel.naru-workspace .naru-workspace-tabs>button{display:flex;align-items:center;justify-content:center;gap:12px}

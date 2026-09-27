@@ -79,4 +79,3 @@ html body .night-secondary.policy-page{padding:0 max(32px,calc((100% - 1200px)/2
 .night-secondary.route-state-page{display:grid;align-content:center;justify-items:center;padding:64px 32px;text-align:center}
 .night-secondary.route-state-page h1{font-size:36px}.night-secondary.route-state-page>span{color:var(--muted)}
 .night-secondary.route-state-page a{display:inline-flex;margin:24px 6px 0;padding:12px 20px;background:#143553;color:#d7efff;border:1px solid #315b79;border-radius:10px}
-@media(prefers-reduced-motion:reduce){.night-secondary *{scroll-behavior:auto}}

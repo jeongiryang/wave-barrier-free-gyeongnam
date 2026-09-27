@@ -544,7 +544,7 @@ export function WaveIntro({ onComplete, onExitStart, className = "", paused = fa
   controls.current = { paused, onTime, onReady };
   const [stageState, setStageState] = useState({ stage: 0, progress: 0, timeMs: 0 });
   const [isComplete, setIsComplete] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = false;
   onCompleteRef.current = onComplete;
   onExitStartRef.current = onExitStart;
 
@@ -559,14 +559,6 @@ export function WaveIntro({ onComplete, onExitStart, className = "", paused = fa
     completedRef.current = true;
     setIsComplete(true);
     onCompleteRef.current?.();
-  }, []);
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {

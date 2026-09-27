@@ -84,10 +84,6 @@ html[data-theme="dark"] .place-community-stories { border-color: #31596a; backgr
 html[data-theme="dark"] .place-community-story-list > a { color: #eaf5f9; background: #0e3748; }
 html[data-theme="dark"] .place-community-empty { background: #0e3748; }html[data-theme="dark"] .place-field-report-link { color: #eaf5f9; border-color: #376d5d; background: #123e35; }html[data-theme="dark"] .place-field-report-link i { color: #8ee5c8; }
 
-@media (prefers-reduced-motion: reduce) {
-  .route-mode-sections button,.place-community-story-list > a { transition: none; }
-}
-
 /* 시간을 확인하지 못한 이동수단. 값처럼 강조하지 않는다 — 파란 글자로 두면
    숫자나 링크처럼 읽혀 "카카오 확인"이 예상 시간인 줄 알게 된다. */
 .route-mode-sections button .route-mode-unknown {

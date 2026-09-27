@@ -218,7 +218,7 @@ test("shared styles keep stable cascade boundaries", async () => {
   assert.match(oceanResponsive, /뷰포트: 창 절반 폭까지 무너지지 않게/);
   assert.match(designSystem, /--shadow-3:/);
   assert.match(designSystem, /:focus-visible/);
-  assert.match(experience, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
+  assert.doesNotMatch(experience, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
   assert.match(experience, /포인터 종류와 화면 폭에 관계없이/);
 });
 
@@ -402,7 +402,7 @@ test("saved preferences survive a reload", async () => {
   assert.match(storage, /try\s*\{[\s\S]*localStorage\.setItem\("wave-theme"[\s\S]*\}\s*catch/);
 });
 
-test("motion follows the OS, retires legacy storage and has no app preference control", async () => {
+test("motion stays full independently of the OS, retires legacy storage and has no app preference control", async () => {
   const [storage, controls, catalog, regions, layout] = await Promise.all([
     source("features/preferences/storage.ts"),
     source("features/preferences/PreferenceControls.tsx"),
@@ -422,13 +422,13 @@ test("motion follows the OS, retires legacy storage and has no app preference co
   assert.match(controls, /\{open && <div className="preference-panel" id=\{panelId\}/);
   assert.match(controls, /event\.key !== "Escape"[\s\S]*setOpen\(false\);\s*trigger\.current\?\.focus\(\)/);
   assert.doesNotMatch(catalog, /motionCopy/);
-  assert.match(regions, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
-  assert.match(regions, /if \(!entry\.isIntersecting \|\| media\.matches \|\| revealed\.current\.has\(entry\.target\)\) return/);
-  assert.match(regions, /if \(media\.matches\) \{ animations\.forEach\(animation => animation\.cancel\(\)\); animations\.clear\(\)/);
-  assert.match(regions, /media\.addEventListener\('change', configure\)/);
-  assert.match(regions, /observer\.disconnect\(\); media\.removeEventListener\('change', configure\)/);
-  assert.match(layout, /prefers-reduced-motion: reduce/);
-  assert.match(layout, /d\.dataset\.motion=r\?'calm':'full'/);
+  assert.doesNotMatch(regions, /matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(regions, /if \(!entry\.isIntersecting \|\| revealed\.current\.has\(entry\.target\)\) return/);
+  assert.doesNotMatch(regions, /media\.matches|media\.addEventListener/);
+  assert.match(regions, /nodes\.forEach\(node => \{ if \(!revealed\.current\.has\(node\)\) observer\.observe\(node\)/);
+  assert.match(regions, /observer\.disconnect\(\); animations\.forEach/);
+  assert.doesNotMatch(layout, /prefers-reduced-motion: reduce/);
+  assert.match(layout, /d\.dataset\.motion='full'/);
   assert.doesNotMatch(layout, /LandingIntro|wave-intro-seen/);
 });
 
@@ -785,7 +785,7 @@ test("arrival motion belongs to an isolated component and cleans up lifecycle li
   assert.match(renderer, /document\.removeEventListener\("visibilitychange", resetClock\)/);
   assert.match(renderer, /cancelAnimationFrame\(frame\)/);
   assert.match(renderer, /document\.hidden \|\| controls\.current\.paused \? 0/);
-  assert.match(renderer, /media\.removeEventListener\("change", update\)/);
+  assert.doesNotMatch(renderer, /matchMedia/);
   assert.match(intro, /node\.close\(\)/);
   assert.doesNotMatch(intro, /requestAnimationFrame|putImageData|createIntroMasks/);
 });

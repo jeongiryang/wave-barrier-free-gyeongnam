@@ -59,15 +59,6 @@ html[data-motion="calm"] *::after {
   animation-iteration-count: 1 !important;
   transition-duration: .001ms !important;
 }
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
-  }
-}
 
 /* 좁은 공개 화면에서 데스크톱 nav가 사라질 때 제공되는 키보드 메뉴. */
 

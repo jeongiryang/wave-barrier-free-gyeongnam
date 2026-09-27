@@ -7,13 +7,12 @@ export function useStoryPlayback(steps: number, interval: number, settleAtStart 
   const [index, setIndex] = useState(0);
   const [context, setContext] = useState({ inView: false, visible: false, still: true, intro: true });
   useEffect(() => {
-    const media = matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     const canObserve = typeof IntersectionObserver === "function";
     const sync = () => {
       const intro = document.documentElement.classList.contains("arrival-open");
       if (settleAtStart && intro) setIndex(0);
-      setContext(current => ({ ...current, still: !canObserve || media.matches || connection?.saveData === true, visible: !document.hidden, intro }));
+      setContext(current => ({ ...current, still: !canObserve || connection?.saveData === true, visible: !document.hidden, intro }));
     };
     let entered = false;
     const observer = canObserve ? new IntersectionObserver(([entry]) => {
@@ -26,8 +25,8 @@ export function useStoryPlayback(steps: number, interval: number, settleAtStart 
     const introObserver = new MutationObserver(sync);
     introObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     const frame = requestAnimationFrame(sync);
-    media.addEventListener("change", sync); connection?.addEventListener("change", sync); document.addEventListener("visibilitychange", sync);
-    return () => { cancelAnimationFrame(frame); observer?.disconnect(); introObserver.disconnect(); media.removeEventListener("change", sync); connection?.removeEventListener("change", sync); document.removeEventListener("visibilitychange", sync); };
+    connection?.addEventListener("change", sync); document.addEventListener("visibilitychange", sync);
+    return () => { cancelAnimationFrame(frame); observer?.disconnect(); introObserver.disconnect(); connection?.removeEventListener("change", sync); document.removeEventListener("visibilitychange", sync); };
   }, [settleAtStart]);
   const completed = index === steps - 1;
   const running = context.inView && context.visible && !context.still && !context.intro && !completed;

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { mockPublicShellApi } from './fixtures';
 
-test('landing photographs rotate promptly without consecutive repeats and respect reduced motion', async ({ page }) => {
+test('landing photographs rotate promptly without consecutive repeats even when OS reduced motion is enabled', async ({ page }) => {
   await mockPublicShellApi(page);
   const image = await readFile('public/media/wave-story/hero-coast-small.webp');
   await page.route('https://tong.visitkorea.or.kr/**', route => route.fulfill({ contentType: 'image/webp', body: image }));
@@ -27,10 +27,10 @@ test('landing photographs rotate promptly without consecutive repeats and respec
   await expect(page.locator('.night-feature-content #naru')).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const current = page.locator('.scenic-background-home img.is-current');
-  await expect(page.locator('.scenic-background-home .award-panorama')).toHaveAttribute('data-paused', 'true');
+  await expect(page.locator('.scenic-background-home .award-panorama')).toHaveAttribute('data-paused', 'false');
   const still = await current.getAttribute('src');
   // The approved fixed scenery rotates every six seconds. Advance past an
-  // entire interval to prove reduced motion stopped its timer.
+  // entire interval to prove OS reduced motion no longer stops its timer.
   await page.clock.fastForward(7000);
-  await expect(current).toHaveAttribute('src', still!);
+  await expect(current).not.toHaveAttribute('src', still!);
 });

@@ -59,14 +59,6 @@ html[data-motion="calm"] .product-story .route-demo-path,html[data-motion="calm"
 html[data-motion="calm"] .product-story .route-demo-vehicle { transform: translate(327px,129px) rotate(-24deg); opacity: 1; }
 html[data-motion="calm"] .product-story [class*="motion-"],html[data-motion="calm"] .product-story .route-person,html[data-motion="calm"] .product-story .map-pin { opacity: 1; }
 
-@media (prefers-reduced-motion: reduce) {
-  .product-story *,.product-story *::before,.product-story *::after { animation: none !important; transition-duration: .01ms !important; }
-  .product-story .route-demo-path { stroke-dashoffset: 0; opacity: 1; }
-  .product-story .route-demo-path,.product-story .route-demo-vehicle { animation: none !important; }
-  .product-story .route-demo-vehicle { transform: translate(327px,129px) rotate(-24deg); opacity: 1; }
-  .product-story [class*="motion-"],.product-story .route-person,.product-story .map-pin { opacity: 1; }
-}
-
 @media (max-width: 680px) {
   @keyframes featureVehicle { 0%,8%,100%{transform:translate(72px,294px) rotate(-12deg);opacity:0} 14%{transform:translate(72px,294px) rotate(-12deg);opacity:1} 42%{transform:translate(210px,218px) rotate(-22deg);opacity:1} 70%{transform:translate(430px,128px) rotate(8deg);opacity:1} 90%{transform:translate(664px,82px) rotate(-28deg);opacity:0} }
 }

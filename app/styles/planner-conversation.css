@@ -42,7 +42,6 @@
   .planner-reference .planner-journey-workspace { margin-inline: 12px; }
   .planner-reference .journey-workspace-block { padding: 20px 12px; border-radius: 18px; }
 }
-@media (prefers-reduced-motion: reduce) { .wave-spinner,.wave-loading-inline::before,.planner-page button[aria-busy=true]::before,.wave-skeleton-lines i,.smart-spot-image.loading { animation: none; } }
 html[data-motion=calm] .wave-header { transition: none; }
 html[data-motion=calm] .wave-spinner,html[data-motion=calm] .wave-loading-inline::before,html[data-motion=calm] .planner-page button[aria-busy=true]::before,html[data-motion=calm] .wave-skeleton-lines i { animation: none; }
 
@@ -108,12 +107,10 @@ dialog.naru-panel:not([open]) { display: none; }
 .naru-journey-proposal .naru-unconfirmed { color: #775016; background: #fff7e8; padding: 8px; border-radius: 8px; font-size: .8rem; }
 @keyframes naru-think { 50% { transform: translateY(-4px) rotate(-3deg); } }
 @keyframes naru-look { 33% { transform: rotate(-5deg); } 66% { transform: rotate(5deg); } }
-@media (prefers-reduced-motion: reduce) { .naru-character[data-state] img { animation: none; } }
 html[data-motion=calm] .naru-character[data-state] img { animation: none; }
 
 .naru-note,.naru-message > small,.naru-heading small,.naru-evidence small { font-size: .75rem; }
 html[data-theme=dark] :is(.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual) { background-image: linear-gradient(90deg,#143a49 25%,#28505c 50%,#143a49 75%); }
-@media (prefers-reduced-motion: reduce) { .naru-typing > span:last-child { animation: none; } }
 html[data-motion=calm] .naru-typing > span:last-child { animation: none; }
 
 .planner-reference :is(button,a,input,select,textarea,summary):focus-visible { scroll-margin-block: 140px; }

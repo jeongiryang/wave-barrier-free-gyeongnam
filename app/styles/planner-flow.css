@@ -89,7 +89,6 @@ html[data-theme="dark"] .journey-editorial { --paper: #082e3c; --white: #092c38;
   .planner-reference > .planner-journey-workspace { width: calc(100% - 32px); }
   .planner-reference .journey-workspace-block > h2 { max-width: none; font-size: 24px; }
 }
-@media (prefers-reduced-motion: reduce) { .planner-reference *, .planner-reference *::before, .planner-reference *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 :root .planner-reference .simple-footer { margin: 36px auto 0; width: min(1240px,calc(100% - 56px)); padding: 22px 0; color: var(--muted); background: transparent; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 18px; }
 :root .planner-reference .simple-footer :is(a,p,span) { color: var(--muted); }
 .planner-reference .simple-footer .footer-notes { flex: 1; }

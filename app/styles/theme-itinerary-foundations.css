@@ -40,7 +40,3 @@ html[data-theme="dark"] .rich-card p { color: #a8c3cf; }
 @media (max-width: 520px) {
   .landing-actions { align-items: stretch; flex-direction: column; }.landing-actions a { justify-content: space-between; }.map-toolbar strong { max-width: 110px; }.route-option dl { grid-template-columns: 1fr 1fr; }.route-option { padding: 11px; }.place-decision-summary { grid-template-columns: 1fr; }.visitor-insight > strong { font-size: 3.5rem; }.visitor-bars > div { grid-template-columns: 62px 1fr 62px; }.rich-card { flex-basis: 84vw; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  [data-land-reveal],[data-land-reveal].is-visible { opacity: 1; transform: none; }
-}

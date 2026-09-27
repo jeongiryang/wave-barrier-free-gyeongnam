@@ -19,9 +19,8 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
   const [colorAssist, setColorAssistState] = useState<ColorAssist>("off");
   const [haptics, setHaptics] = useState<Haptics>("off");
   const [textScale, setTextScale] = useState<TextScale>("standard");
-  const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const motion: Motion = systemReducedMotion ? "calm" : "full";
+  const motion: Motion = "full";
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -35,21 +34,10 @@ export function SitePreferencesProvider({ children }: { children: ReactNode }) {
         setHaptics(stored.haptics);
         setTextScale(stored.textScale);
         setColorAssistState(stored.colorAssist);
-        setSystemReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
         setHydrated(true);
       });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, []);
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncSystemMotion = () => {
-      startTransition(() => setSystemReducedMotion(query.matches));
-    };
-    syncSystemMotion();
-    query.addEventListener("change", syncSystemMotion);
-    return () => query.removeEventListener("change", syncSystemMotion);
   }, []);
 
   useEffect(() => {

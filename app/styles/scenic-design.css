@@ -133,7 +133,6 @@ html:root body .scenic-page .wave-written-line,html:root body .scenic-page .wave
 .wave-written-character{opacity:0;white-space:pre;animation:wave-hand-write .15s linear forwards;animation-delay:var(--write-delay);animation-play-state:paused}
 .wave-written-line[data-writing=true] .wave-written-character{animation-play-state:running}
 @keyframes wave-hand-write{to{opacity:1}}
-@media(prefers-reduced-motion:reduce){.wave-written-character{opacity:1;animation:none}.naru-header-scene .scenic-background img{transition:none}}
 html:root body .scenic-page .night-discover-photos>a>img{position:relative;inset:auto;width:100%;height:180px;min-height:180px;z-index:auto;object-fit:cover;border-radius:14px}
 html:root body .scenic-page .night-discover-photos>a{height:auto;min-height:0;overflow:visible;display:flex;flex-direction:column;align-items:stretch}
 
@@ -205,11 +204,11 @@ html:root body .scenic-page .simple-region-discovery .simple-region-link[aria-pr
 /* Familiar actions share a compact, accessible icon target. */
 html:root body button[data-icon-action]{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:44px;min-height:44px;width:44px;height:44px;padding:10px;gap:0;border-radius:50%;vertical-align:middle}html:root body button[data-icon-action]>svg{display:block;flex-shrink:0;width:20px;height:20px}html:root body button[data-icon-action]:focus-visible{outline:2px solid #74ddec;outline-offset:3px}html:root body .wave-select:has([data-icon-action]){width:44px;min-width:44px}html:root body .wave-select-trigger[data-icon-action]::after{display:none}
 
-.naru-welcome-bubble{position:absolute;right:0;bottom:calc(100% + 12px);display:flex;align-items:flex-start;width:min(272px,calc(100vw - 32px));border-radius:18px 18px 6px 18px;background:#e0f1ef;color:#214659;box-shadow:0 5px 20px #061c3030}.naru-welcome-bubble button{background:none;border:0;color:inherit;font:inherit;min-height:44px}.naru-welcome-message{padding:16px 4px 16px 16px;text-align:left;line-height:1.6;font-size:14px!important}.naru-welcome-message span{display:block;animation:naru-welcome-in .4s ease both}.naru-welcome-close{display:grid;place-items:center;width:44px;flex:0 0 44px}.naru-welcome-bubble button:focus-visible{outline:2px solid #26728a;outline-offset:-3px}@keyframes naru-welcome-in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.naru-welcome-message span{animation:none}}html[data-motion=calm] .naru-welcome-message span{animation:none}
+.naru-welcome-bubble{position:absolute;right:0;bottom:calc(100% + 12px);display:flex;align-items:flex-start;width:min(272px,calc(100vw - 32px));border-radius:18px 18px 6px 18px;background:#e0f1ef;color:#214659;box-shadow:0 5px 20px #061c3030}.naru-welcome-bubble button{background:none;border:0;color:inherit;font:inherit;min-height:44px}.naru-welcome-message{padding:16px 4px 16px 16px;text-align:left;line-height:1.6;font-size:14px!important}.naru-welcome-message span{display:block;animation:naru-welcome-in .4s ease both}.naru-welcome-close{display:grid;place-items:center;width:44px;flex:0 0 44px}.naru-welcome-bubble button:focus-visible{outline:2px solid #26728a;outline-offset:-3px}@keyframes naru-welcome-in{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}html[data-motion=calm] .naru-welcome-message span{animation:none}
 
 html:root body .wave-night>.wave-header,html:root body .landing-page.horizon-edition.night-landing>.wave-header{position:relative;inset:auto;transform:none!important;box-shadow:none}html:root body .landing-page{padding-top:0}
 
-.naru-welcome-dialogue p:not([hidden]){animation:naru-dialogue-appear .45s cubic-bezier(.2,.7,.3,1) both}@keyframes naru-dialogue-appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.naru-welcome-dialogue p:not([hidden]){animation:none}}html[data-motion=calm] .naru-welcome-dialogue p:not([hidden]){animation:none}
+.naru-welcome-dialogue p:not([hidden]){animation:naru-dialogue-appear .45s cubic-bezier(.2,.7,.3,1) both}@keyframes naru-dialogue-appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}html[data-motion=calm] .naru-welcome-dialogue p:not([hidden]){animation:none}
 
 /* Keep the planner introduction in the same compact band as community/festivals. */
 html:root body .scenic-page .naru-header-scene{position:relative;width:min(1360px,100%);margin-inline:auto;min-height:max(348px,calc(50svh - 90px),calc(33.334vw - 90px));padding:90px 32px 24px;justify-items:start;text-align:left}
@@ -233,6 +232,4 @@ html:root body .scenic-page .night-planner-region-map svg{height:380px}
 @media(max-width:700px){html:root body .scenic-page .night-planner-hero{padding-block:8px 20px;gap:20px}html:root body .scenic-page .night-planner-region-map svg{height:320px}}
 
 
-html:root body .scenic-page .landing-naru-usecases{gap:12px;margin-bottom:20px}html:root body .scenic-page .landing-naru-usecases+.simple-text-link{margin-top:0}
-
-@media(prefers-reduced-motion:reduce){html:root body .scenic-page .naru-header-scene h2{transition:none}}html[data-motion=calm] .naru-header-scene h2{transition:none}
+html:root body .scenic-page .landing-naru-usecases{gap:12px;margin-bottom:20px}html:root body .scenic-page .landing-naru-usecases+.simple-text-link{margin-top:0}html[data-motion=calm] .naru-header-scene h2{transition:none}

@@ -67,9 +67,6 @@ html[data-theme="dark"] .travel-book-empty { border-color: #386273; background: 
   .travel-book-hero { margin-top: 8px; padding: 26px 12px 0; gap: 28px; }.travel-book-hero h1 { font-size: clamp(2.3rem,9vw,3.6rem); }.travel-book-hero dl div { min-height: 64px; padding: 8px 4px; gap: 8px; }.travel-book-hero dt { font-size: 0.75rem; }.travel-book-card { border-radius: 22px; }.travel-book-cover { min-height: 220px; }.travel-book-card-body { padding: 20px 14px; }.travel-book-days li { grid-template-columns: 30px 1fr; }.travel-book-days li em { grid-column: 2; white-space: normal; }.travel-book-days section > header { align-items: flex-start; flex-direction: column; }
   .travel-book-actions { grid-template-columns: 1fr; }.travel-book-delete { align-items: stretch; flex-wrap: wrap; }.travel-book-delete-confirm { width: 100%; align-items: stretch; flex-wrap: wrap; }.travel-book-delete span { width: 100%; }.travel-book-footer { flex-direction: column; align-items: center; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .travel-book-card,.travel-book-actions a,.travel-book-actions button,.travel-book-status button { scroll-behavior: auto; transition: none; }
-}
 
 /* The account editor shares the same calm cards and readable controls. */
 #account-travel .account-settings { min-width: 0; padding: clamp(20px,3vw,36px); gap: 20px; border: 1px solid var(--line); border-radius: 24px; background: var(--paper); }

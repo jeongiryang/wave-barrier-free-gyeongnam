@@ -23,12 +23,9 @@
 @keyframes preview-message-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes preview-dot{50%{opacity:.35;transform:translateY(-2px)}}@keyframes preview-map-point{50%{stroke-width:7}}
 @media(max-width:1000px){.wave-chat-demo-body{grid-template-columns:1fr;height:480px;grid-template-rows:minmax(0,1fr) auto}.wave-chat-demo aside{padding:12px 16px}.wave-chat-demo aside>strong,.wave-chat-demo aside>.preview-status{display:none}.wave-chat-demo dl{display:flex;flex-wrap:wrap;gap:4px 10px;margin:0}.wave-chat-demo dt{margin:0}.wave-chat-demo dd{margin:0 8px 0 0}}
 @media(max-width:700px){.journey-demo-grid{grid-template-columns:1fr}.wave-journey-demo>header{align-items:flex-start}.wave-journey-demo>header button{font-size:11px}.journey-demo-steps{gap:5px}.journey-demo-steps>span{padding:7px 10px;font-size:12px}.wave-chat-demo header{padding:14px}.wave-chat-demo-body{height:420px}.preview-messages{padding:16px}.journey-photo-link{min-height:260px}.journey-art{height:auto}.journey-place-copy{padding:16px}.journey-place-copy h3{font-size:17px}.wave-chat-demo footer{padding:10px 14px}.wave-chat-demo footer a{font-size:12px}.wave-chat-demo footer button{width:44px}.wave-journey-demo{margin-top:20px}}
-@media(prefers-reduced-motion:reduce){.preview-exchange p,.journey-place-photo,.journey-marker-lift{animation:none}}
 html[data-motion=calm] :is(.preview-exchange p,.journey-place-photo,.journey-marker-lift){animation:none}
 
 .simple-naru-example .example-duration{display:flex;align-items:center;gap:12px;margin:18px 0;color:#d7edf5}html:root body .landing-page.night-landing .simple-naru-example button.example-undo{display:inline-flex;align-items:center;min-height:44px;padding:10px 18px;border:0;border-radius:24px;background:#bde7ee;color:#173e51;font:inherit;cursor:pointer}
-
-@media(prefers-reduced-motion:reduce){.journey-artboard,.journey-paper-map path[data-featured]{transition:none}}
 html[data-motion=calm] :is(.journey-artboard,.journey-paper-map path){transition:none}
 
 .wave-chat-demo header{background:transparent;flex-wrap:wrap}.wave-chat-demo .preview-trip-link{display:inline-flex;align-items:center;justify-content:flex-end;gap:6px;min-height:44px;color:#21485a;font-size:13px;font-weight:700}.wave-chat-demo-body{height:360px}.preview-naru-mark{overflow:visible}.wave-chat-demo aside{background:transparent;border-left:1px solid #21485a12}

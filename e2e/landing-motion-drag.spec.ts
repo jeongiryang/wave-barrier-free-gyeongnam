@@ -38,10 +38,10 @@ test('headline stays readable and stable without playback controls across motion
     await expectNoOverflow(page);
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(page.locator('html')).toHaveAttribute('data-motion', 'calm');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full');
   await page.clock.runFor(12_000);
   await expect(phrase).toHaveText('더 넓은 세상을함께, WAVE');
-  expect(await phrase.evaluate(node => getComputedStyle(node).animationName)).toBe('none');
+  expect(await phrase.evaluate(node => getComputedStyle(node).animationName)).not.toBe('none');
   await expect(title).toHaveCount(1);
 });
 
