@@ -27,7 +27,7 @@ async function expectKoreanHeadings(page: Page) {
 
 test("검색과 여행 설정의 필드 라벨이 중복 단계 번호로 시작하지 않는다", async ({ page }) => {
   await openPlanner(page);
-  const labels = await page.locator(".simple-search-bar label > span").allInnerTexts();
+  const labels = await page.locator(".simple-search-bar label > span:first-child").allInnerTexts();
   await collectMuseum(page);
   await page.locator(".wave-header").locator(".wave-my-trips").click();
   await expect(page.locator(".simple-initial-setup")).toBeVisible();

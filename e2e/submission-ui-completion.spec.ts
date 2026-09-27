@@ -1,4 +1,4 @@
-import { waveSelectNative } from './wave-select-fixture';
+import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, mockPublicShellApi, openItinerary, plan } from './fixtures';
@@ -12,7 +12,7 @@ async function prepare(page: Page) {
   await mockPlannerApi(page); await mockPublicShellApi(page);
   await page.route('**/api/assistant', route => route.fulfill({ json: { available: false } }));
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).click();await page.getByRole('option',{name:'창원',exact:true}).click();
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await expect(page.locator('.simple-place-list .simple-place-row')).toHaveCount(2);
 }
 async function tool(page: Page, label: string) {
@@ -77,7 +77,7 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   expect((await new AxeBuilder({ page }).include('.landing-page').analyze()).violations).toEqual([]);
 });
 
-test('공식 탐색 후보 버튼이 이름을 채워 직접 검색을 실행한다', async ({ page }) => {
+test('공식 탐색 후보가 정확한 이름으로 조회되고 기존 직접 검색 초안을 보존한다', async ({ page }) => {
   await mockPlannerApi(page); await mockPublicShellApi(page);
   await page.route('**/api/wave?**', route => {
     if (new URL(route.request().url()).searchParams.get('action') !== 'plan') return route.fallback();
@@ -89,11 +89,20 @@ test('공식 탐색 후보 버튼이 이름을 채워 직접 검색을 실행한
     return route.fulfill({ json: { places: [], officialPlaces: [], officialState: 'empty' } });
   });
   await page.goto('/planner');
-  await page.getByRole('combobox', { name: '여행 지역', exact: true }).click();await page.getByRole('option',{name:'창원',exact:true}).click();
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await expect(page.locator('.official-exploration')).toBeVisible();
-  await page.getByRole('button', { name: '이 관광지 검색', exact: true }).click();
-  await expect(waveSelectNative(page.getByRole('combobox', { name: '여행지 검색', exact: true }))).toHaveValue('창원 경남도립미술관');
+  const searchInput = page.getByRole('combobox', { name: '여행지 검색', exact: true });
+  await searchInput.fill('사용자가 입력한 검색 초안');
+  const details = page.locator('.official-exploration').getByRole('button', { name: '경남도립미술관 상세정보', exact: true });
+  await details.click();
+  const dialog = page.getByRole('dialog', { name: '경남도립미술관', exact: true });
+  await expect(dialog.getByRole('heading', { name: '경남도립미술관', exact: true })).toBeFocused();
   await expect.poll(() => query).toBe('창원 경남도립미술관');
+  await expect(dialog).toContainText('연결된 장소 정보가 아직 없어요.');
+  await dialog.getByRole('button', { name: '상세정보 닫기', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(details).toBeFocused();
+  await expect(searchInput).toHaveValue('사용자가 입력한 검색 초안');
 });
 
 test('관광 수요는 기준월과 미제공 상태를 분리해 표시한다', async ({ page }) => {

@@ -17,17 +17,18 @@ export default function usePreviewPlayback(frames: number, delay = 4000, scrollP
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(media.matches || document.documentElement.dataset.motion === 'calm');
+    const canObserve = typeof IntersectionObserver === 'function';
+    const update = () => setReduced(!canObserve || media.matches || document.documentElement.dataset.motion === 'calm');
     update(); media.addEventListener('change', update);
     const settings = new MutationObserver(update);
     settings.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
     const node = ref.current;
     let inView = false;
     const visibility = () => setVisible(inView && !document.hidden);
-    const observer = new IntersectionObserver(entries => { inView = entries[0].isIntersecting; visibility(); }, { threshold: .2 });
-    if (node) observer.observe(node);
+    const observer = canObserve ? new IntersectionObserver(entries => { inView = entries[0].isIntersecting; visibility(); }, { threshold: .2 }) : null;
+    if (node) observer?.observe(node);
     document.addEventListener('visibilitychange', visibility);
-    return () => { observer.disconnect(); settings.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', visibility); };
+    return () => { observer?.disconnect(); settings.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', visibility); };
   }, []);
   useEffect(() => {
     if (!visible || paused || reduced || !scrollPlayback) return;

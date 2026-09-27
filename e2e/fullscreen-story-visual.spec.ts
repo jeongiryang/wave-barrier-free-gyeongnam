@@ -31,10 +31,10 @@ test("the nonblocking arrival leads through a complete restored-section service 
   await expect(page.locator(".simple-region")).toHaveCount(5);
   await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
   await expect(page.locator(".horizon-checks li")).toHaveCount(4);
-  await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
-  // Capture the fixed navigation at the top, not at the previous scroll offset.
+  await expect(page.locator(".simple-naru-example")).toHaveAccessibleName("대화 예시");
+  // The approved navigation stays in document flow; capture it at the top.
   await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
-  await expect(page.locator(".wave-header")).toHaveAttribute("data-hidden", "false");
+  await expect(page.locator(".wave-header")).toBeInViewport();
   await page.screenshot({ fullPage: true, scale: "css", path: test.info().outputPath("whole-page-static.png") });
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   expect(errors).toEqual([]);

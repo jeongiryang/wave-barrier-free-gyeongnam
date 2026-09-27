@@ -1,15 +1,10 @@
 import { arrivalPlaybackReady } from "./landing-contract";
+import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 import { freshArrival, prepareLandingMedia, storyReady, expectUsableTarget } from "./landing-contract";
-
-async function chooseSelect(page: import("@playwright/test").Page, field: import("@playwright/test").Locator, value: string) {
-  const text = await field.locator('..').locator('select').evaluate((node: HTMLSelectElement, value) => Array.from(node.options).find(option => option.value === value)?.text || '', value);
-  await field.click();
-  await page.getByRole('listbox').getByRole('option', { name: text, exact: true }).click();
-}
 
 const pageErrors = new WeakMap<import("@playwright/test").Page, string[]>();
 
@@ -83,7 +78,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
-    await chooseSelect(page, region, "창원");
+    await chooseWaveOption(region, "창원");
     const museumCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
     const parkCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
     await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
@@ -114,7 +109,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
     await setup.getByLabel("마지막 날", { exact: true }).fill("2026-09-20");
     await setup.getByLabel("하루 시작", { exact: true }).fill("10:00");
-    await chooseSelect(page, setup.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
+    await chooseWaveOption(setup.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
     await setup.getByRole("button", { name: "시간표 만들기", exact: true }).click();
     // Mobile hides the same timetable while the map is selected; inspect its
     // shared schedule now and require it to be visible when returning below.
@@ -179,7 +174,7 @@ test("planner exposes honest recovery when the official plan request fails", asy
   await mockPlannerApi(page, { failPlan: true });
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toBeEnabled(); await chooseSelect(page, region, "창원");
+  await expect(region).toBeEnabled(); await chooseWaveOption(region, "창원");
   await expect(page.locator("#places").getByRole("alert")).toContainText("서버가 요청을 처리하지 못했어요.");
   await expect(page.getByRole("button", { name: "같은 조건으로 다시 시도", exact: true })).toBeVisible();
   await expect(region).toHaveText("창원");
@@ -189,7 +184,7 @@ test("planner announces a delayed request and replaces its skeleton with officia
   await mockPlannerApi(page, { slowPlan: true });
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
-  await expect(region).toBeEnabled(); await chooseSelect(page, region, "창원");
+  await expect(region).toBeEnabled(); await chooseWaveOption(region, "창원");
   await expect(page.getByRole("status").filter({ hasText: "여행지를 찾고 있어요." })).toBeAttached();
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "true");
   await expect(page.locator(".simple-place-skeleton")).toHaveCount(3);
@@ -286,8 +281,8 @@ test("authenticated travelers can publish, like and comment without losing sessi
 
   await page.goto("/community/new");
   await expect(page.getByRole("heading", { name: "경남 여행 후기와 질문을 남겨 주세요" })).toBeVisible();
-  await chooseSelect(page, page.getByRole("combobox", { name: "게시판", exact: true }), "review");
-  await chooseSelect(page, page.getByRole("combobox", { name: "지역", exact: true }), "창원");
+  await chooseWaveOption(page.getByRole("combobox", { name: "게시판", exact: true }), "review");
+  await chooseWaveOption(page.getByRole("combobox", { name: "지역", exact: true }), "창원");
   await page.getByLabel("제목").fill("휠체어로 둘러본 미술관 동선");
   await page.getByLabel("내용").fill("입구에서 전시장까지 직접 이동해 본 경험을 공유합니다.");
   await page.getByRole("button", { name: "후기 등록" }).click();

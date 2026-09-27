@@ -18,7 +18,7 @@ test("WAVE starter stories open their full articles and leave member search inta
   await expect(page.getByText('아직 등록된 후기나 질문이 없습니다.', { exact: true })).toBeVisible();
   await expect(page.locator('.night-story-card')).toHaveCount(0);
   // Retained guide articles still preserve their original attribution.
-  await page.locator("details.community-guides > summary").click();
+  await expect(page.locator(".community-guides .community-travel-stories")).toBeVisible();
   const links = await page.locator(".community-travel-stories h3 a").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")!));
   expect(links).toHaveLength(3);
   const creditsLink = page.locator('.wave-balanced-footer a[href="/policies#content-credits"]');
@@ -42,8 +42,8 @@ test("WAVE starter stories open their full articles and leave member search inta
     await expect(credit.locator(`a[href="${photo.licenseUrl}"]`)).toHaveText(photo.license);
   }
   await page.goto("/community?placeId=1001&placeName=미술관&region=창원");
-  await expect(page.locator("details.community-guides")).not.toHaveAttribute("open", "");
-  await expect(page.locator(".community-travel-stories")).toBeHidden();
+  await expect(page.locator(".community-guides > summary")).toHaveCount(0);
+  await expect(page.locator(".community-travel-stories")).toBeVisible();
   await expect(page.locator(".community-place-filter")).toContainText("미술관");
   expect(writes).toEqual([]);
 });

@@ -7,7 +7,8 @@ test('real posts preserve list view, search and server-side sort without fixture
   await page.goto('/community');
   await expect(page.getByRole('link',{name:'직접 다녀온 여행 게시글 읽기'})).toHaveAttribute('href','/community/real-post');
   await expect(page.locator('.night-story-card')).toHaveCount(0);
-  await expect(page.locator('.community-list')).toContainText('좋아요 1 · 댓글 2');
+  await expect(page.locator('.community-list [aria-label="좋아요 1"]')).toHaveText('1');
+  await expect(page.locator('.community-list [aria-label="댓글 2"]')).toHaveText('2');
   await page.getByRole('button',{name:'목록형',exact:true}).click();
   await expect(page.locator('.community-list')).toHaveAttribute('data-layout','list');
   const search=page.waitForRequest(req=>req.url().includes('/api/community/posts')&&new URL(req.url()).searchParams.get('search')==='직접');

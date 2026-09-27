@@ -12,7 +12,7 @@ test("the restored-section registry matches actual reading order without replaci
   expect(await sections.evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
   // Chapter labels are navigation shorthand. Check the actual reading headings
   // and their section associations independently of that shorthand.
-  const headings = [/더 넓은 세상을/, "경남, 모두의 여행지", /당신만의\s*여행을 설계하세요/, /여행이\s*사람을 연결합니다/, /여행을 더 편하게/, "나루에게 말해보세요", "WAVE로 할 수 있는 일", /다음 풍경에서\s*만나요/];
+  const headings = [/더 넓은 세상을/, "경남, 모두의 여행지", /당신만의\s*여행을 설계하세요/, /여행을 더 편하게/, /여행이\s*사람을 연결합니다/, "나루에게 말해보세요", "WAVE로 할 수 있는 일", /다음 풍경에서\s*만나요/];
   await openLandingTools(page);
   for (const [index, id] of chapterIds.entries()) {
     const section = page.locator(`#${id}`);
@@ -49,10 +49,14 @@ test("the travel narrative and labelled Naru example remain free of trip request
   await openLandingTools(page);
   await conversation.scrollIntoViewIfNeeded();
   await expect(conversation).toHaveAttribute("aria-label", "대화 예시");
-  await expect(conversation).toContainText("대화 예시");
+  await expect(conversation).toHaveAccessibleName("대화 예시");
   await expect(conversation).toContainText("90분");
-  await expect(conversation).toContainText("되돌리기");
-  await expect(conversation.locator("input,textarea,button,form,[contenteditable=true]")).toHaveCount(0);
+  await expect(conversation.locator("input,textarea,form,[contenteditable=true]")).toHaveCount(0);
+  await expect(conversation.locator(".example-duration strong")).toHaveText("60분");
+  await conversation.getByRole("button", { name: "예시 일정에 적용", exact: true }).click();
+  await expect(conversation.locator(".example-duration strong")).toHaveText("90분");
+  await conversation.getByRole("button", { name: "되돌리기", exact: true }).click();
+  await expect(conversation.locator(".example-duration strong")).toHaveText("60분");
   await expect(page.locator(".landing-naru-usecases button")).toHaveCount(6);
   await expect(page.locator(".night-journey-input > .night-primary")).toHaveAttribute("href", /^\/planner\?region=/);
   await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");

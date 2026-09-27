@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { chooseTripConditions, mockPlannerApi, mockPublicShellApi, openItinerary, plan } from './fixtures';
-import { openNaruTool } from './naru-tool-fixtures';
+import { closeNaruTool, openNaruTool } from './naru-tool-fixtures';
 
 for (const mode of ['pet', 'wellness'] as const) {
   test(`${mode} candidate keeps its description and opens same-place visitor information on demand`, async ({ page }, testInfo) => {
@@ -53,7 +53,7 @@ for (const mode of ['pet', 'wellness'] as const) {
     await expect(card).toContainText(spot.address);
     if (spot.summary) await expect(card).toContainText(spot.summary);
     else await expect(card).toContainText('장소 설명이 제공되지 않았어요.');
-    await expect(card).toContainText(mode === 'pet' ? '안내견 동반·무장애 편의와는 별도 정보' : '치료 효과나 모든 이용자의 이용 가능성을 보장하지 않아요');
+    await expect(card).toContainText(spot.source);
     expect(calls).toEqual([]);
     const hours = card.locator('.visit-hours');
     const disclosure = hours.locator('summary');
@@ -90,5 +90,12 @@ for (const mode of ['pet', 'wellness'] as const) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     }
     expect(await page.evaluate(() => localStorage.getItem('wave-saved-places'))).toBe(savedBefore);
+    // Shared information limits moved to the service policy in the approved UI.
+    await closeNaruTool(page);
+    await page.getByRole('navigation', { name: '서비스 정책', exact: true }).getByRole('link', { name: '운영정책', exact: true }).click();
+    await expect(page).toHaveURL(/\/policies$/);
+    const policy = page.locator('#travel-information-policy');
+    await expect(policy).toContainText(mode === 'pet' ? '안내견 동반이나 무장애 편의를 확인한 결과가 아닙니다' : '치료 효과나 모든 이용자의 적합성을 보장하지 않습니다');
+    await expect(policy).toContainText('프로그램·예약·동반 조건은 운영기관에 확인해 주세요.');
   });
 }

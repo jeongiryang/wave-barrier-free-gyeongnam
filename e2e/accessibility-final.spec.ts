@@ -174,10 +174,34 @@ test("플래너 헤더는 스크롤 뒤에도 키보드로 돌아갈 수 있다"
   await page.getByRole("heading", { name: "경남도립미술관" }).first().waitFor();
 
   const header = page.locator(".wave-header");
+  const home = header.getByRole("link", { name: "WAVE 홈" });
+  // A flow-positioned header can scroll away while its link retains focus.
+  // Test a real new keyboard focus transition, not focus() on the same link.
+  const nextLink = header.getByRole("navigation").getByRole("link").first();
+  await nextLink.focus();
+  await expect(nextLink).toBeFocused();
   await page.evaluate(() => window.scrollTo(0, 1_500));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
-  const home = header.getByRole("link", { name: "WAVE 홈" });
-  await home.focus();
+  await page.keyboard.press("Shift+Tab");
   await expect(home).toBeFocused();
   await expect(home).toBeInViewport();
+});
+
+test("지역 미리보기는 화면 아래에서 페이지를 강제 스크롤하지 않고 위에 열린다", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPlannerApi(page);
+  await page.goto("/planner");
+  const region = page.locator('.night-planner-region-map [data-region-photo="거제"]');
+  await expect(region).toBeVisible();
+  await region.evaluate(node => window.scrollBy({ top: node.getBoundingClientRect().bottom - innerHeight + 60, behavior: 'instant' }));
+  const before = await page.evaluate(() => scrollY);
+  await region.hover();
+  const preview = page.locator('.night-planner-region-map [role="tooltip"]');
+  await expect(preview).toBeVisible();
+  await expect(preview).toHaveAttribute('data-below', 'false');
+  expect(await page.evaluate(() => scrollY)).toBe(before);
+  const bounds = (await preview.boundingBox())!;
+  expect(bounds.y).toBeGreaterThanOrEqual(0);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(960);
 });

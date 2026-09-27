@@ -18,14 +18,15 @@ export default function NaruHeaderScene() {
     const images = Array.from(root.current?.querySelectorAll('img') || []);
     if (images.length && images.every(image => image.complete && image.naturalWidth > 0)) setReady(true);
     const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(media.matches || document.documentElement.dataset.motion === 'calm');
+    const canObserve = typeof IntersectionObserver === 'function';
+    const update = () => setReduced(!canObserve || media.matches || document.documentElement.dataset.motion === 'calm');
     const focus = () => setForeground(!document.hidden);
     update(); focus(); media.addEventListener('change', update); document.addEventListener('visibilitychange', focus);
     const settings = new MutationObserver(update);
     settings.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .4 });
-    if (root.current) observer.observe(root.current);
-    return () => { observer.disconnect(); settings.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', focus); };
+    const observer = canObserve ? new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .4 }) : null;
+    if (root.current) observer?.observe(root.current);
+    return () => { observer?.disconnect(); settings.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', focus); };
   }, []);
   useEffect(() => {
     if (!visible || !foreground || reduced || !ready) return;

@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, plan, showItineraryMap } from './fixtures';
 
@@ -254,13 +255,13 @@ for (const change of ['region', 'date'] as const) test(`축제 ${change === 'reg
   try {
     await setup(page, handler); const before = await records(page);
     const filters = page.getByRole('region', { name: '축제 찾기', exact: true });
-    if (change === 'region') { await filters.getByRole('combobox', { name: '지역 선택', exact: true }).click(); await page.getByRole('option', { name: '통영', exact: true }).click(); }
+    if (change === 'region') await chooseWaveOption(filters.getByRole('combobox', { name: '지역 선택', exact: true }), '통영');
     else await filters.getByLabel('언제부터', { exact: true }).fill('2026-09-25');
     await expect(page.locator('#festival-results')).toHaveAttribute('aria-busy', 'true');
     await expect(page.getByRole('heading', { name: event.name, exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '내 일정에 담기', exact: true })).toHaveCount(0);
     await expect.poll(() => delayed).toBe(1);
-    if (change === 'region') { await filters.getByRole('combobox', { name: '지역 선택', exact: true }).click(); await page.getByRole('option', { name: '거제', exact: true }).click(); }
+    if (change === 'region') await chooseWaveOption(filters.getByRole('combobox', { name: '지역 선택', exact: true }), '거제');
     else await filters.getByLabel('언제부터', { exact: true }).fill('2026-09-26');
     await expect(page.getByRole('heading', { name: nextEvent.name, exact: true })).toBeVisible();
     gate.release(); await expect.poll(() => completed).toBe(true);

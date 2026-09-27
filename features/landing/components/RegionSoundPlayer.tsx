@@ -27,7 +27,7 @@ function AvailableRegionSoundPlayer({ sound }: { sound: RegionSound }) {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: Connection }).connection;
     const sync = () => {
-      const next = !media.matches
+      const next = typeof IntersectionObserver === "function" && !media.matches
         && document.documentElement.dataset.motion !== "calm"
         && connection?.saveData !== true;
       setAllowed(next);

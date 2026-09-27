@@ -51,7 +51,9 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   await expect(chat.locator('.naru-suggestions')).not.toHaveAttribute('open', '');
   await chat.locator('.naru-suggestions > summary').click();
   await expect(chat.getByLabel('현재 여행에서 이어가기').getByRole('button')).toHaveCount(3);
-  await expect(chat.locator('.naru-extra-help')).not.toHaveAttribute('open','');
+  await expect(chat.locator('.naru-extra-help')).toHaveCount(0);
+  await expect(chat.getByRole('tab', { name: '대화', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(chat.locator('#naru-panel-tools')).toBeHidden();
   await expect(chat.getByText('지금 안내 방식:',{exact:false})).not.toBeVisible();
   for (const width of info.project.name.startsWith('desktop') ? [1440,960] : [390]) {
     await page.setViewportSize({width,height:960});

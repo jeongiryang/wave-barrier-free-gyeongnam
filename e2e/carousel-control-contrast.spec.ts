@@ -49,11 +49,11 @@ for (const locale of ["ko", "en"] as const) for (const theme of ["light", "dark"
     }
     const initialContrast = await contrast(add);
     expect(initialContrast).toBeGreaterThanOrEqual(4.5);
-    await photo.focus();
-    await photo.press("Tab");
-    await expect(title).toBeFocused();
-    await title.press("Tab");
-    await expect(add).toBeFocused();
+    const information = row.getByRole("button", { name: en ? "경남도립미술관 place information" : "경남도립미술관 상세정보", exact: true });
+    await title.focus();
+    await title.press("Tab"); await expect(photo).toBeFocused();
+    await photo.press("Tab"); await expect(information).toBeFocused();
+    await information.press("Tab"); await expect(add).toBeFocused();
     expect(await add.evaluate(element => getComputedStyle(element).outlineStyle)).not.toBe("none");
     const beforeUrl = page.url();
     await add.press("Enter");

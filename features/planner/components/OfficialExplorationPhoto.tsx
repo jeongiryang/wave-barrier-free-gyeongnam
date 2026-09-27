@@ -42,13 +42,17 @@ function PhotoFrame({ title, region }: { title: string; region: string }) {
   const [status, setStatus] = useState<'loading' | 'empty' | 'error' | 'ready'>('loading');
   useEffect(() => {
     let mounted = true;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      observer.disconnect();
+    const load = () => {
       void loadPhoto(title, region).then(value => { if (mounted) { setPhoto(value); if (value) rememberPhotoCredits([{ ...value, title, location: region }]); else setStatus('empty'); } }).catch(() => { if (mounted) setStatus('error'); });
-    }, { rootMargin: '100px' });
-    if (root.current) observer.observe(root.current);
-    return () => { mounted = false; observer.disconnect(); };
+    };
+    const observer = typeof IntersectionObserver === 'function' ? new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer?.disconnect();
+      load();
+    }, { rootMargin: '100px' }) : null;
+    if (!observer) load();
+    else if (root.current) observer.observe(root.current);
+    return () => { mounted = false; observer?.disconnect(); };
   }, [title, region]);
   return <span ref={root} className="official-exploration-photo" data-loaded={loaded} data-status={status}>
     {/* eslint-disable-next-line @next/next/no-img-element */}

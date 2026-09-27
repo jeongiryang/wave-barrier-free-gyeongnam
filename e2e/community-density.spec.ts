@@ -80,7 +80,15 @@ test('community server controls wait for hydration before layout, filter and sea
     await expect(controls).toHaveAttribute('aria-busy', 'true');
     await expect(sortbar).toHaveAttribute('aria-busy', 'true');
     await expect(savedPosts).toBeDisabled();
-    for (const control of await sortbar.getByRole('button').all()) await expect(control).toBeDisabled();
+    for (const control of await sortbar.getByRole('group', { name: '게시글 정렬', exact: true }).getByRole('button').all()) await expect(control).toBeDisabled();
+    for (const control of await view.getByRole('button').all()) await expect(control).toBeDisabled();
+    // Native popover disclosure works before React; actions which mutate the
+    // search must still wait for their handlers to be ready.
+    await page.getByRole('button', { name: '지역별 이야기 찾기', exact: true }).click();
+    const regionPopover = page.locator('.community-tools-popover:popover-open');
+    await expect(regionPopover.getByRole('heading', { name: '지역별 이야기 찾기', exact: true })).toBeVisible();
+    for (const control of await regionPopover.locator('.community-region-shortcuts button').all()) await expect(control).toBeDisabled();
+    await regionPopover.getByRole('button', { name: '지역별 이야기 닫기', exact: true }).click();
     await expect(view.getByRole('button')).toHaveCount(2);
     for (const control of await controls.locator('button, input').all()) await expect(control).toBeDisabled();
     await expect(clearPlace).toBeDisabled();
@@ -121,6 +129,15 @@ test('community server controls wait for hydration before layout, filter and sea
   expect(requests.at(-1)?.searchParams.get('placeId')).toBeNull();
   await expect(list.locator('h3')).toHaveText(posts.map(post => post.title));
   await expect(list).toHaveAttribute('data-layout', 'list');
+  await page.getByRole('button', { name: '지역별 이야기 찾기', exact: true }).click();
+  const readyRegions = page.locator('.community-tools-popover:popover-open');
+  for (const control of await readyRegions.locator('.community-region-shortcuts button').all()) await expect(control).toBeEnabled();
+  await readyRegions.getByRole('button', { name: '통영', exact: true }).click();
+  await expect(readyRegions).toHaveCount(0);
+  await expect.poll(() => requests.at(-1)?.searchParams.get('search')).toBe('통영');
+  expect(requests.at(-1)?.searchParams.get('category')).toBeNull();
+  expect(requests.at(-1)?.searchParams.get('placeId')).toBeNull();
+  await expect(search).toHaveValue('통영');
   expect(errors).toEqual([]);
 });
 

@@ -2,6 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
+// Portalled children retain the dialog containing their actual opener. Do not
+// infer ownership from every open dialog elsewhere in the document.
+const owners = new Map<HTMLDialogElement, HTMLDialogElement | null>();
+function ownedChildren(parent: HTMLDialogElement): HTMLDialogElement[] {
+  return [...owners].filter(([child, owner]) => owner === parent && child.open)
+    .flatMap(([child]) => [child, ...ownedChildren(child)]);
+}
+
 /** Native modal mode makes the rest of the document inert, including maps. */
 export function usePlaceDialogFocus(open: boolean, onClose: () => void, sidePanel = false) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -9,15 +17,24 @@ export function usePlaceDialogFocus(open: boolean, onClose: () => void, sidePane
     const dialog = dialogRef.current;
     if (!open || !dialog) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const owner = previousFocus?.closest<HTMLDialogElement>("dialog");
+    owners.set(dialog, owner && owner !== dialog ? owner : null);
     const previousOverflow = document.body.style.overflow;
     const media = matchMedia('(min-width:1024px)');
     const present = () => {
-      const focus = dialog.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
+      const children = ownedChildren(dialog).map(node => ({ node, modal: node.matches(':modal'), scroll: node.scrollTop }));
+      const active = document.activeElement;
+      const focus = active instanceof HTMLElement && (dialog.contains(active) || children.some(child => child.node.contains(active))) ? active : null;
       const scroll = dialog.scrollTop;
+      for (const child of [...children].reverse()) child.node.close();
       if (dialog.open) dialog.close();
       if (sidePanel && media.matches) { dialog.show(); document.body.style.overflow = previousOverflow; }
       else { dialog.showModal(); document.body.style.overflow = 'hidden'; }
-      dialog.scrollTop = scroll; focus?.focus({ preventScroll: true });
+      for (const child of children) { if (child.modal) child.node.showModal(); else child.node.show(); }
+      if (children.some(child => child.modal)) document.body.style.overflow = 'hidden';
+      focus?.focus({ preventScroll: true });
+      dialog.scrollTop = scroll;
+      for (const child of children) child.node.scrollTop = child.scroll;
     };
     present(); if (sidePanel) media.addEventListener('change', present);
     dialog.querySelector<HTMLElement>("h2")?.focus();
@@ -39,6 +56,7 @@ export function usePlaceDialogFocus(open: boolean, onClose: () => void, sidePane
     };
     dialog.addEventListener("keydown", containTab);
     return () => {
+      owners.delete(dialog);
       if (sidePanel) media.removeEventListener("change", present);
       dialog.removeEventListener("cancel", cancel);
       dialog.removeEventListener("keydown", containTab);

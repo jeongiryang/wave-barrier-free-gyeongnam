@@ -34,7 +34,7 @@ export default function HelpCenter({ iconOnly = false }: { iconOnly?: boolean })
     <button className="help-tour-shield" type="button" onClick={closeTour} aria-label={en ? "Close help tour" : "도움말 투어 닫기"} />
     {highlight && <div className="help-tour-spotlight" style={spotlightStyle} aria-hidden="true" />}
     <div className="help-tour-dialog" role="dialog" aria-modal="true" aria-labelledby="help-tour-title" aria-describedby="help-tour-copy" ref={dialogRef}>
-      <button className="help-tour-close" type="button" onClick={closeTour} aria-label={en ? "Close help" : "도움말 닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
+      <button className="help-tour-close" type="button" onClick={closeTour} aria-label={en ? "Close help" : "도움말 닫기"} data-icon-action="" title={en ? "Close" : "닫기"}><NightIcon name="close" size={20}/><span className="sr-only">{en ? "Close" : "닫기"}</span></button>
       <div className="help-tour-progress" role="img" aria-label={en ? `Step ${stepIndex + 1} of ${steps.length}` : `${steps.length}단계 중 ${stepIndex + 1}단계`}>
         {steps.map((item, index) => <i className={index <= stepIndex ? "active" : ""} key={item.selector} />)}
       </div>

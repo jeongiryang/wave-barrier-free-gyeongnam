@@ -74,8 +74,13 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   await expect(page.locator(".night-journey-preview")).toContainText("순서 바꾸기");
   await openLandingTools(page);
   await page.locator("#naru").scrollIntoViewIfNeeded();
-  await expect(page.locator(".simple-naru-example")).toContainText("대화 예시");
-  await expect(page.locator(".simple-naru-example").locator("input,button,form,textarea,[contenteditable=true]")).toHaveCount(0);
+  const example = page.locator(".simple-naru-example");
+  await expect(example).toHaveAttribute("aria-label", "대화 예시");
+  await expect(example.locator("input,form,textarea,[contenteditable=true]")).toHaveCount(0);
+  await example.getByRole("button", { name: "예시 일정에 적용", exact: true }).click();
+  await expect(example.locator(".example-duration strong")).toHaveText("90분");
+  await example.getByRole("button", { name: "되돌리기", exact: true }).click();
+  await expect(example.locator(".example-duration strong")).toHaveText("60분");
   expect(writes).toEqual([]); expectOnlyLandingReads(requests);
 });
 

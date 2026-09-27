@@ -19,11 +19,12 @@ async function open(page: Page) {
   await launcher.click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   await expect(chat).toBeVisible();
-  await chat.locator('.naru-extra-help > summary').click();
+  await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
+  await expect(chat.getByRole('tabpanel', { name: '여행 도구', exact: true })).toBeVisible();
   return { chat, launcher };
 }
 
-test('나루를 열면 도움 모음이 대화 입력 위에 보이고 조건을 만족하는 항목만 나타난다', async ({ page }) => {
+test('나루의 여행 도구에서 도움 모음이 보이고 조건을 만족하는 항목만 나타난다', async ({ page }) => {
   await prepare(page);
   await page.goto('/planner');
   const { chat } = await open(page);

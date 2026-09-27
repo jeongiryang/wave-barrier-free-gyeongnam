@@ -4,12 +4,17 @@ import test from "node:test";
 import ts from "typescript";
 import { createRequire } from "node:module";
 
-function load(path) {
+function load(path, base = import.meta.url) {
+  const url = new URL(path, base);
+  const require = createRequire(url);
   const mod = { exports: {} };
-  const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {
+  const code = ts.transpileModule(readFileSync(url, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
-  new Function("module", "exports", "require", code)(mod, mod.exports, createRequire(import.meta.url));
+  new Function("module", "exports", "require", code)(mod, mod.exports, specifier => {
+    if (specifier.startsWith('.') && !/\.(?:mjs|cjs|js)$/.test(specifier)) return load(specifier.endsWith('.ts') ? specifier : `${specifier}.ts`, url);
+    return require(specifier);
+  });
   return mod.exports;
 }
 const { planResponse } = load("../features/planner/services/plan-response.ts");

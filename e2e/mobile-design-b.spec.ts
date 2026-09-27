@@ -53,13 +53,10 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     expect(lastRegion.y).toBeGreaterThanOrEqual(0);
     expect(lastRegion.y + lastRegion.height).toBeLessThanOrEqual(844);
     expect(lastRegion.height).toBeGreaterThanOrEqual(44);
-    const metadata = page.locator('.simple-region-metadata').first();
-    await expect(metadata.locator('.declining-region-notice')).toBeHidden();
-    const metadataToggle = metadata.getByRole('button');
-    await metadataToggle.focus(); await page.keyboard.press('Enter');
-    await expect(metadata.locator('.declining-region-notice')).toBeVisible();
-    await expect(metadata.locator('.declining-region-notice')).toContainText('인구감소지역');
-    await metadataToggle.click();
+    // Region cards now lead directly into selection; the removed disclosure
+    // is not a prerequisite for the visible map and region controls.
+    await expect(regionCards.first()).toHaveAccessibleName('통영 지역 선택');
+    await regionCards.first().focus(); await expect(regionCards.first()).toBeFocused();
     await expect(page.locator('.night-planner-region-map')).toBeHidden();
     await page.getByRole('button', { name: '지도에서 지역 고르기', exact: false }).click();
     await expect(page.locator('.night-planner-region-map')).toBeVisible();
@@ -70,8 +67,8 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     const card = page.locator('.community-list article');
     const cover = page.locator('.community-story-cover');
     await expect(cover).toHaveCSS('position', 'absolute');
-    // The local-save action is outside the photographic story link.
-    const cardBounds = (await card.locator(':scope > a').boundingBox())!, coverBounds = (await cover.boundingBox())!;
+    // The photograph fills the full card; reaction actions remain outside its story link.
+    const cardBounds = (await card.boundingBox())!, coverBounds = (await cover.boundingBox())!;
     expect(Math.abs(coverBounds.height - cardBounds.height)).toBeLessThanOrEqual(2);
     expect(Math.abs(coverBounds.width - cardBounds.width)).toBeLessThanOrEqual(2);
     expect(cardBounds.height).toBeGreaterThanOrEqual(340);

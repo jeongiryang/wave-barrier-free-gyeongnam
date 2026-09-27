@@ -25,7 +25,7 @@ for (const motion of ["no-preference", "reduce"] as const) {
     await expect.poll(() => copy.evaluate(node => getComputedStyle(node).opacity)).toBe("1");
     await expect(page.locator("#closing h2")).toHaveCSS("color", "rgb(236, 244, 255)");
     await expect(page.locator("#closing img,#closing a,#closing button")).toHaveCount(0);
-    await expect(page.locator("#closing h2")).toHaveText("다음 풍경에서만나요");
+    await expect(page.locator("#closing h2")).toHaveText("다음 풍경에서 만나요");
     await expect.poll(() => page.evaluate(() => (window as Window & { landingRevealStarts?: string[] }).landingRevealStarts?.filter(name => name === "landing-closing-copy").length)).toBe(motion === "reduce" ? 0 : 1);
     await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
     await copy.evaluate(node => node.scrollIntoView({ block: "center", behavior: "instant" }));
@@ -37,7 +37,14 @@ for (const motion of ["no-preference", "reduce"] as const) {
 
 test("missing IntersectionObserver never hides the closing content", async ({ page }) => {
   const errors: string[] = [];
+  const photoRegions = new Set<string>();
   page.on('pageerror', error => errors.push(error.message));
+  page.on('response', response => {
+    const url = new URL(response.url());
+    if (url.pathname === '/api/wave' && url.searchParams.get('action') === 'photo' && response.ok()) {
+      void response.finished().then(error => { if (!error) photoRegions.add(url.searchParams.get('region') || ''); });
+    }
+  });
   await prepareStory(page);
   await mockPlannerApi(page, { preserveView: true });
   await page.addInitScript(() => { Object.defineProperty(window, "IntersectionObserver", { value: undefined, configurable: true }); });
@@ -49,11 +56,18 @@ test("missing IntersectionObserver never hides the closing content", async ({ pa
   await expect(closing.locator(".landing-closing-copy")).toHaveCSS("opacity", "1");
   await expect(closing.getByRole("heading")).toBeVisible();
   await expect(page.locator('#story [data-region-photo]')).toHaveCount(18);
+  // All fallback map reads settle before a full document navigation. Otherwise
+  // WebKit reports deliberately aborted old-document fetches as access errors.
+  await expect.poll(() => photoRegions.size).toBe(18);
+  expect(errors).toEqual([]);
   await page.goto('/planner');
-  const footer = page.locator('.naru-conversation-footer');
-  await footer.scrollIntoViewIfNeeded();
-  await expect(footer).toHaveAttribute('data-step', '4');
-  await expect(footer.getByRole('heading', { name: '나루와 함께해요', exact: true })).toBeVisible();
+  const welcome = page.locator('.naru-header-scene');
+  await welcome.scrollIntoViewIfNeeded();
+  await expect(welcome).toHaveAttribute('data-frame', '4');
+  await expect(welcome.getByRole('heading', { name: '나루와 함께해요', exact: true })).toBeVisible();
+  await expect(welcome.locator('.wave-written-character')).toHaveCount(Array.from('나루와 함께해요').length);
+  for (const glyph of await welcome.locator('.wave-written-character').all()) await expect(glyph).toHaveCSS('opacity', '1');
+  await expect(welcome.getByRole('group', { name: '여행 대화 예시', exact: true })).toBeVisible();
   await expectNoOverflow(page);
   expect(errors).toEqual([]);
 });

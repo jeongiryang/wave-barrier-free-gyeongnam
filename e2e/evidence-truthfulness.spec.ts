@@ -16,8 +16,9 @@ test("명시적 편의 부재와 미확인은 분리하고 부재 장소는 일�
   await expect(page.locator('.simple-results > .simple-place-list article')).toHaveCount(0);
   const exploration=page.getByRole('region',{name:'편의정보가 부족한 장소',exact:true});
   await expect(exploration).toHaveCount(0);
-  await page.getByRole('checkbox',{name:/필요한 편의가 미확인인 장소 포함/}).check();
-  await page.getByRole('button',{name:'선택한 조건 적용',exact:true}).click();
+  const adjustment = page.getByRole('region', { name: '조건 바꾸기', exact: true });
+  await adjustment.getByRole('checkbox',{name:/편의정보 없는 곳도 보기/}).check();
+  await adjustment.getByRole('button',{name:'적용하기',exact:true}).click();
   await expect(exploration.getByRole('article')).toHaveCount(1);await expect(exploration).toContainText(unknown.name);await expect(exploration).not.toContainText(negative.name);
   const excluded=page.locator('.simple-excluded');await expect(excluded.locator('summary')).toHaveText('선택한 시설이 없어 제외된 장소 1곳');await excluded.locator('summary').click();
   await expect(excluded).toContainText('접근로 없음');await excluded.getByRole('button',{name:negative.name,exact:true}).click();

@@ -139,7 +139,12 @@ test("keyboard region selection updates results without stealing input focus or 
   const region = await prepare(page, en);
   const before = { url: page.url(), history: await page.evaluate(() => history.length) };
   await region.focus();
-  await region.press("Home"); await region.press("ArrowDown"); await region.press("Enter");
+  await region.press('ArrowDown');
+  const menu = page.getByRole('listbox', { name: '여행 지역', exact: true });
+  await expect(menu).toBeFocused();
+  await menu.press('Home'); await menu.press('ArrowDown');
+  await expect(menu.getByRole('option', { name: '창원', exact: true })).toHaveAttribute('data-active', 'true');
+  await menu.press('Enter');
   await expect(waveSelectNative(region)).toHaveValue("창원");
   await expect(page.locator("#places")).toBeVisible();
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
@@ -205,7 +210,12 @@ test("a pending automatic search keeps keyboard input usable and does not duplic
     await route.fallback();
   });
   await region.focus();
-  await region.press("Home"); await region.press("ArrowDown"); await region.press("Enter");
+  await region.press('ArrowDown');
+  const menu = page.getByRole('listbox', { name: '여행 지역', exact: true });
+  await expect(menu).toBeFocused();
+  await menu.press('Home'); await menu.press('ArrowDown');
+  await expect(menu.getByRole('option', { name: '창원', exact: true })).toHaveAttribute('data-active', 'true');
+  await menu.press('Enter');
   await expect(waveSelectNative(region)).toHaveValue("창원");
   try {
     await expect.poll(() => requests).toBe(1);
@@ -213,6 +223,9 @@ test("a pending automatic search keeps keyboard input usable and does not duplic
     await expect(region).toBeEnabled();
     await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "true");
     await region.press("Enter");
+    await expect(menu).toBeFocused();
+    await menu.press('Enter');
+    await expect(region).toBeFocused();
     expect(requests).toBe(1);
   } finally { release(); }
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");

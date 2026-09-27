@@ -9,24 +9,25 @@ export function useStoryPlayback(steps: number, interval: number, settleAtStart 
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
+    const canObserve = typeof IntersectionObserver === "function";
     const sync = () => {
       const intro = document.documentElement.classList.contains("arrival-open");
       if (settleAtStart && intro) setIndex(0);
-      setContext(current => ({ ...current, still: media.matches || connection?.saveData === true, visible: !document.hidden, intro }));
+      setContext(current => ({ ...current, still: !canObserve || media.matches || connection?.saveData === true, visible: !document.hidden, intro }));
     };
     let entered = false;
-    const observer = new IntersectionObserver(([entry]) => {
+    const observer = canObserve ? new IntersectionObserver(([entry]) => {
       const shown = entry.isIntersecting && entry.intersectionRatio >= .3;
       if (shown && !entered && !settleAtStart) setIndex(0);
       entered = shown;
       setContext(current => ({ ...current, inView: shown }));
-    }, { threshold: [0, .3] });
-    if (root.current) observer.observe(root.current);
+    }, { threshold: [0, .3] }) : null;
+    if (root.current) observer?.observe(root.current);
     const introObserver = new MutationObserver(sync);
     introObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     const frame = requestAnimationFrame(sync);
     media.addEventListener("change", sync); connection?.addEventListener("change", sync); document.addEventListener("visibilitychange", sync);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); introObserver.disconnect(); media.removeEventListener("change", sync); connection?.removeEventListener("change", sync); document.removeEventListener("visibilitychange", sync); };
+    return () => { cancelAnimationFrame(frame); observer?.disconnect(); introObserver.disconnect(); media.removeEventListener("change", sync); connection?.removeEventListener("change", sync); document.removeEventListener("visibilitychange", sync); };
   }, [settleAtStart]);
   const completed = index === steps - 1;
   const running = context.inView && context.visible && !context.still && !context.intro && !completed;

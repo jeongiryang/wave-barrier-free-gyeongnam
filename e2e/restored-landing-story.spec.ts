@@ -23,7 +23,7 @@ for (const motion of ['no-preference', 'reduce'] as const) test(`restored scener
   }
   const closing = page.locator('#closing');
   await expect(closing.locator('img,a,button')).toHaveCount(0);
-  await expect(closing.getByRole('heading')).toHaveText('다음 풍경에서만나요');
+  await expect(closing.getByRole('heading')).toHaveText('다음 풍경에서 만나요');
   await expectUsableTarget(page.locator('.night-journey-input > .night-primary'));
   await expectUsableTarget(page.locator('#departure a[href="/guide"]'));
   await expect(page.locator('#departure .horizon-checks li')).toHaveText(['운영시간', '날씨', '이동수단', '편의시설']);

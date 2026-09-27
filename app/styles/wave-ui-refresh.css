@@ -89,7 +89,7 @@ html:root body .simple-place-pane details[open]>summary{background:#1b3c56;color
 html:root body .inquiry-dialog{--blue:#3659ba;--accent:#3659ba;--ink:#233b55;--muted:#526782;--line:#c5d5e7;--paper:#fff;--surface:#f4f7fc;color:#233b55;accent-color:#3659ba}
 html:root body .inquiry-dialog button{border-radius:999px;min-height:44px;border:1px solid #b8cde5;padding:10px 16px;color:#233b55;background:#e8f1ff}
 html:root body .wave-night .simple-saved-preferences>div>button{margin:4px 8px 8px 0}
-html:root body .naru-panel.naru-workspace details[open]:not(.account-menu)>summary{color:#354f94;background:#e8f1ff}
+html:root body .naru-panel.naru-workspace details[open]:not(.account-menu)>summary{color:#25406f;background:#e8f1ff}
 html:root body .naru-panel.naru-workspace .naru-add-menu[open]>div>button{width:100%;height:auto;display:flex;align-items:center;justify-content:flex-start;white-space:nowrap;gap:10px}
 html:root body .naru-panel.naru-workspace .naru-workspace-content>button{margin-right:8px}
 html:root body .wave-support-panel .preference-panel{--ink:#edf6ff;--ink-soft:#d1e2f2;--muted:#b9cee1;color:#edf6ff;background:#16334b;border:1px solid #537590;border-radius:16px}

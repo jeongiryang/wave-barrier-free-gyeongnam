@@ -5,27 +5,25 @@ import { openLandingTools, prepareStory, storyReady, chapterIds, expectNoOverflo
 
 test.beforeEach(async ({ page }) => { await prepareStory(page); });
 
-test("navigation hides downward, waits for deliberate upward scrolling and remains available on keyboard focus", async ({ page }) => {
+test("navigation scrolls in document flow and remains available on keyboard focus", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/"); await storyReady(page);
   const nav = page.locator(".wave-header");
-  await expect(nav).toHaveAttribute("data-hidden", "false");
+  await expect(nav).toHaveCSS("position", "relative");
   const top = (await nav.boundingBox())!;
   expect(top.x).toBe(0);
   expect(top.width).toBe(page.viewportSize()!.width);
   const hero = (await page.locator(".landing-hero-split").boundingBox())!;
   expect(hero.y).toBeGreaterThanOrEqual(top.y + top.height);
-  await page.evaluate(() => scrollTo({ top: 500, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "true");
-  await page.evaluate(() => scrollTo({ top: 460, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "true");
-  await page.evaluate(() => scrollTo({ top: 350, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "false");
-  await expect(nav).toBeInViewport();
+  for (const offset of [500, 460, 350, 900]) {
+    await page.evaluate(top => scrollTo({ top, behavior: "instant" }), offset);
+    const box = (await nav.boundingBox())!;
+    expect(Math.abs(box.y + offset - top.y)).toBeLessThanOrEqual(1);
+    await expect(nav).toHaveCSS("transform", "none");
+  }
   const home = nav.locator(".wave-wordmark");
   await home.focus(); await expect(home).toBeFocused();
-  await page.evaluate(() => scrollTo({ top: 900, behavior: "instant" }));
-  await expect(nav).toHaveAttribute("data-hidden", "false");
+  await expect(nav).toBeInViewport();
   await expect(nav.getByRole("navigation").getByRole("link")).toHaveText(page.viewportSize()!.width <= 600 ? ["여행 설계", "축제", "커뮤니티"] : ["서비스 소개", "여행 설계", "축제", "커뮤니티"]);
   await expectUsableTarget(home);
   if (page.viewportSize()!.width <= 600) { await openSupportMenu(page); await expectUsableTarget(nav.locator(".mobile-menu-link[href='/travel-book']")); }

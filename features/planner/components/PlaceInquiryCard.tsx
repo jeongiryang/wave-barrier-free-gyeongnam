@@ -28,8 +28,8 @@ export default function PlaceInquiryCard({ place, en, suggestedOption, onsiteLab
   }
   return <section className="place-inquiry-entry">
     <div><h3>{en ? "Ask before you visit" : "방문 전에 물어보세요."}</h3><p>{en ? "Choose a question and show a Korean card, or keep it for your trip." : "필요한 질문을 골라 큰 글씨로 보여주거나 여행에 챙겨두세요."}</p></div>
-    <button type="button" onClick={() => openInquiry()}>{en ? "Make an inquiry card" : "문의 카드 만들기"}</button>
-    {onsiteLabel && <button type="button" onClick={() => openInquiry(true)}>{onsiteLabel}</button>}
+    <button type="button" onClick={event => { event.currentTarget.focus({ preventScroll: true }); openInquiry(); }}>{en ? "Make an inquiry card" : "문의 카드 만들기"}</button>
+    {onsiteLabel && <button type="button" onClick={event => { event.currentTarget.focus({ preventScroll: true }); openInquiry(true); }}>{onsiteLabel}</button>}
     {open && <Suspense fallback={<LoadingState>{en ? "Preparing your card…" : "문의 카드를 준비하고 있어요…"}</LoadingState>}><InquiryDialog place={place} en={en} selected={selected} extra={extra} onSelection={setSelected} onExtra={setExtra} onClose={close} onHelpRequest={openHelp} startCommunicating={startCommunicating} /></Suspense>}
     {helpOpen && <HelpRequestDialog placeName={place.name} placeAddress={place.address ?? null} placeRegion={place.city ?? null} onClose={closeHelp} />}
   </section>;

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseWaveOption } from './wave-select-fixture';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, mockPublicShellApi } from './fixtures';
 
@@ -10,7 +11,7 @@ test('place view preserves selection, survives reload and remains readable', asy
   await page.goto('/planner');
   const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
   await expect(region).toBeEnabled();
-  await region.click();await page.getByRole('option',{name:'창원',exact:true}).click();
+  await chooseWaveOption(region, '창원');
   await expect(page.locator('.simple-results .simple-place-row')).toHaveCount(2);
   const views = page.getByRole('group', { name: '여행지 보기 형식' });
   await expect(views.getByRole('button', { name: '목록형' })).toHaveAttribute('aria-pressed', 'true');
@@ -65,7 +66,7 @@ test('grid also covers direct search when preference writes are blocked', async 
   await page.goto('/planner');
   const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
   await expect(region).toBeEnabled();
-  await region.click();await page.getByRole('option',{name:'창원',exact:true}).click();
+  await chooseWaveOption(region, '창원');
   const views = page.getByRole('group', { name: '여행지 보기 형식' });
   await views.getByRole('button', { name: '격자형' }).click();
   await expect(views.getByRole('button', { name: '격자형' })).toHaveAttribute('aria-pressed', 'true');

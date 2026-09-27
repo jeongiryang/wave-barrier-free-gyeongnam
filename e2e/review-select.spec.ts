@@ -7,6 +7,7 @@ for (const width of [390,960,1440]) test(`review select keyboard form and placem
   await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});
   await page.goto('/');
   const select=page.getByRole('combobox',{name:'어디로 떠나고 싶으세요?',exact:true});
+  await expect(select).toHaveJSProperty('tagName', 'BUTTON');
   await select.focus();await select.press('ArrowDown');
   const menu=page.getByRole('listbox',{name:'어디로 떠나고 싶으세요?',exact:true});
   await expect(menu).toBeVisible();
