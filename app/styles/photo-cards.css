@@ -154,3 +154,154 @@ html:root body .wave-night .simple-itinerary-heading-actions{display:flex;align-
 html:root body .wave-night .simple-itinerary-heading-actions>button{min-height:44px;padding:10px 14px;border:1px solid #315c7d;border-radius:8px;background:#0e2639;color:#dff1ff}
 html:root body .wave-night .simple-itinerary-heading-actions>.simple-start-over{padding-inline:18px}
 @media(max-width:600px){html:root body .wave-night .simple-stop{grid-template-columns:58px minmax(0,1fr)}html:root body .wave-night .simple-stop>time{padding-inline:5px;font-size:13px}html:root body .wave-night .simple-stop-card>.night-stop-photo{aspect-ratio:4/3}html:root body .wave-night .simple-itinerary-heading{align-items:flex-start;flex-direction:column}html:root body .wave-night .simple-itinerary-heading-actions{width:100%;flex-wrap:wrap}}
+
+
+/* Planner browse cards: full-bleed photo layout matching the approved reference. */
+html:root body .wave-night .simple-place-row,
+html:root body .wave-night [data-place-view=grid] .simple-place-row{
+  position:relative;
+  isolation:isolate;
+  min-height:360px;
+  padding:0;
+  overflow:hidden;
+  border-radius:20px;
+  background:#18394c;
+}
+html:root body .wave-night .simple-place-row::after,
+html:root body .wave-night [data-place-view=grid] .simple-place-row::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,23,38,.08) 38%,rgba(4,23,38,.24) 62%,rgba(4,23,38,.82) 100%);
+}
+html:root body .wave-night .simple-place-row>.simple-place-photo,
+html:root body .wave-night [data-place-view=grid] .simple-place-row>.simple-place-photo{
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  width:100%;
+  height:100%;
+  aspect-ratio:auto;
+  border-radius:inherit;
+}
+html:root body .wave-night .simple-place-row>.simple-place-heading{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  width:auto;
+  max-width:none;
+  margin:0;
+  padding:0;
+  border:0;
+  background:none!important;
+  backdrop-filter:none;
+  pointer-events:none;
+}
+html:root body .wave-night .simple-place-row>.simple-place-heading .simple-place-city{
+  position:absolute;
+  top:16px;
+  left:16px;
+  display:inline-flex;
+  align-items:center;
+  min-height:32px;
+  padding:6px 12px;
+  border-radius:999px;
+  background:#0c4264d9!important;
+  color:#fff;
+  font-size:13px;
+  font-weight:750;
+  text-shadow:none;
+  backdrop-filter:blur(5px);
+}
+html:root body .wave-night .simple-place-row>.simple-place-heading h3{
+  position:absolute;
+  left:18px;
+  right:116px;
+  bottom:46px;
+  margin:0;
+  padding:0;
+  pointer-events:auto;
+}
+html:root body .wave-night .simple-place-row>.simple-place-heading h3 button{
+  padding:0;
+  border:0;
+  background:none!important;
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+  line-height:1.35;
+  text-align:left;
+  text-shadow:0 2px 6px #031827;
+}
+html:root body .wave-night .simple-place-row>.simple-place-copy{
+  position:absolute;
+  left:18px;
+  right:116px;
+  bottom:14px;
+  z-index:1;
+  width:auto;
+  max-width:none;
+  margin:0;
+  padding:0;
+  border:0;
+  background:none!important;
+  color:#fff;
+  text-shadow:0 1px 3px #031827;
+  pointer-events:none;
+}
+html:root body .wave-night .simple-place-row>.simple-place-copy>.simple-place-address{
+  display:block;
+  width:fit-content;
+  max-width:100%;
+  margin:0;
+  padding:4px 8px;
+  overflow:hidden;
+  border-radius:8px;
+  background:#123b53cc!important;
+  color:#fff;
+  font-size:12px;
+  line-height:1.45;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  backdrop-filter:blur(4px);
+}
+html:root body .wave-night .simple-place-row>.simple-place-copy>:not(.simple-place-address,.simple-compare-check){
+  display:none;
+}
+html:root body .wave-night .simple-place-row>.simple-place-copy>.simple-compare-check{
+  pointer-events:auto;
+}
+html:root body .wave-night .simple-place-row>.place-card-actions{
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:0;
+}
+html:root body .wave-night .simple-place-row>.place-card-actions .place-save-feedback{
+  position:absolute;
+  right:0;
+  bottom:52px;
+  width:max-content;
+}
+html:root body .wave-night .simple-place-row>.place-card-actions :is(.place-card-info,.simple-place-add){
+  width:44px;
+  height:44px;
+  min-width:44px;
+  min-height:44px;
+  padding:0;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+}
+@media(max-width:700px){
+  html:root body .wave-night .simple-place-row,
+  html:root body .wave-night [data-place-view=grid] .simple-place-row{min-height:330px}
+  html:root body .wave-night .simple-place-row>.simple-place-heading h3{right:108px}
+  html:root body .wave-night .simple-place-row>.simple-place-copy{right:108px}
+}
