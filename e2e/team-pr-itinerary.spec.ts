@@ -88,7 +88,7 @@ for (const width of [1440, 1280, 1024, 960, 390]) {
       await expect(page.getByRole('dialog', { name: '용지호수공원', exact: true })).toHaveCount(0);
       await expect(center.locator('.simple-focus-overlay time')).toHaveText(await lake.locator('.simple-stop > time').innerText());
       await expect(center.locator('.simple-focus-copy > p')).toHaveText(await lake.locator('.simple-stop-copy > p').innerText());
-      await expect(center.locator('.simple-facility-summary')).toContainText('장애인 화장실 정보 없음');
+      await expect(center.locator('.simple-facility-summary')).toContainText('장애인 화장실 정보 미확인');
       const columns = await page.locator('.simple-itinerary-board').evaluate(board => ['.simple-timeboard', '.simple-focus-stop', '.simple-itinerary-map'].map(selector => {
         const box = board.querySelector(selector)!.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width };
       }));
@@ -113,7 +113,7 @@ for (const width of [1440, 1280, 1024, 960, 390]) {
     await expect(page.locator('#itinerary-stop-1001')).toHaveAttribute('data-selected', 'true');
     if (width >= 1280) {
       await expect(center).toHaveAttribute('aria-label', '경남도립미술관 선택 일정 상세');
-      await expect(center.locator('.simple-facility-summary')).not.toContainText('정보 없음');
+      await expect(center.locator('.simple-facility-summary')).not.toContainText('정보 미확인');
     } else await timeboard(page);
     expect(await currentTrip(page)).toEqual(before);
     await page.screenshot({ path: info.outputPath(`team-itinerary-${width}.png`) });

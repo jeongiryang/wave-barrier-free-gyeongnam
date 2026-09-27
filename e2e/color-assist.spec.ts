@@ -33,7 +33,7 @@ test("색 구분 보조를 켜면 편의 상태에 글자와 모양이 함께 �
   const card = page.locator(".simple-place-row").first();
   // 끈 상태에서도 색 없이 이해할 수 있어야 한다: 상태마다 글자가 이미 붙어 있다.
   await expect(card.locator(".facility-missing")).toHaveText("승강기 없음");
-  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 없음");
+  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 미확인");
   await expect(page.locator("html")).toHaveAttribute("data-color-assist", "off");
   await expect(card.locator(".facility-missing .status-shape")).toBeHidden();
 
@@ -43,7 +43,7 @@ test("색 구분 보조를 켜면 편의 상태에 글자와 모양이 함께 �
   await expect(card.locator(".facility-unknown .status-shape")).toBeVisible();
   await expect(card.locator(".facility-confirmed .status-shape")).toBeVisible();
   await expect(card.locator(".facility-missing")).toHaveText("승강기 없음");
-  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 없음");
+  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 미확인");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 

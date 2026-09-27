@@ -257,3 +257,6 @@ html:root body .wave-night .comment-form textarea::placeholder{color:#c1d4e4}
 html:root body .wave-night .travel-book-empty h2{font-size:clamp(20px,2.4vw,26px);line-height:1.5;margin:12px 0}
 html:root body .wave-night .travel-book-empty>a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;width:auto;padding:8px 16px;border:0;border-radius:999px;background:linear-gradient(110deg,#078cdf,#5751e8);color:#fff;font-size:14px}
 @media(max-width:600px){html:root body .wave-night .community-detail .detail-actions{flex-direction:row;flex-wrap:wrap;align-items:center}html:root body .wave-night .comments-heading{grid-template-columns:1fr;gap:4px}html:root body .wave-night .comment-form>div{align-items:flex-start}html:root body .wave-night .comment-form>div>span{align-self:flex-end;flex-wrap:wrap}html:root body .wave-night .comment-form button{width:auto}}
+html:root[data-color-assist=on] body .status-shape{display:inline-block}
+@media(max-width:600px){html:root body .planner-simple .naru-discovery{left:8px;right:auto;flex-direction:row-reverse}}
+@media(prefers-reduced-motion:reduce){html:root body :is(.simple-region,.simple-region *,.community-list .community-skeleton-card){animation:none!important;transition:none!important}}

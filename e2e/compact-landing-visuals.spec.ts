@@ -33,9 +33,9 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator(".simple-naru-example")).toHaveAttribute("aria-label", "대화 예시");
       await expect(page.locator(".simple-naru-example .example-undo")).toHaveAccessibleName("예시 일정에 적용");
       await page.locator(".simple-naru-example .example-undo").click();
-      await expect(page.locator(".simple-naru-example .example-duration strong")).toHaveText("90분");
+      await expect(page.locator(".simple-naru-example .example-duration strong:not(.example-proposed)")).toHaveText("90분");
       await page.getByRole("button", { name: "되돌리기", exact: true }).click();
-      await expect(page.locator(".simple-naru-example .example-duration strong")).toHaveText("60분");
+      await expect(page.locator(".simple-naru-example .example-duration strong:not(.example-proposed)")).toHaveText("60분");
       for (const selector of ['.night-hero-search > button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
         await expectUsableTarget(page.locator(selector));
       }
