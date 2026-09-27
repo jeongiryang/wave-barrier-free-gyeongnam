@@ -70,7 +70,7 @@ test("검색 화면과 모바일 시간표는 지도를 지연하고 지역 사�
   assert.match(regionStory, /src=\{photo\.image\}/);
   assert.match(regionStory, /loading="lazy" decoding="async" width="640" height="480"/);
   assert.doesNotMatch(regionStory, /fetch\(|setInterval|setTimeout|requestAnimationFrame/);
-  assert.match(regionStory, /media\.matches \|\| revealed\.current\.has\(entry\.target\)/);
+  assert.match(regionStory, /revealed\.current\.has\(entry\.target\)/);
   assert.match(regionStory, /animations\.forEach\(animation => animation\.cancel\(\)\)/);
   const boundary = await source("features/landing/components/LandingBoundaryMap.tsx");
   assert.match(boundary, /new IntersectionObserver/);

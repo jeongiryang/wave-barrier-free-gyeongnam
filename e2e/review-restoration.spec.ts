@@ -67,7 +67,7 @@ test('Naru cycles through the two approved scenes and repeats its four dialogue 
  expect([...seen].sort()).toEqual([1, 2, 3, 4]);
  await page.screenshot({ path: info.outputPath('restoration-naru-cycle.png') });
 });
-test('reduced motion retains complete writing and stable final scene', async ({ page }) => {
+test('OS reduced motion retains animated writing and cycling scenes', async ({ page }) => {
  await page.emulateMedia({ reducedMotion: 'reduce' });
  await mockPlannerApi(page);
  await page.goto('/planner');
@@ -76,6 +76,7 @@ test('reduced motion retains complete writing and stable final scene', async ({ 
  await expect(scene.locator('img.is-current')).toHaveAttribute('src', '/naru/planner-harbor-map-desktop-v1.webp');
  const chars = scene.locator('.wave-written-character');
  await expect(chars.first()).toBeVisible();
- expect(await chars.evaluateAll(els => els.every(el => getComputedStyle(el).opacity === '1' && getComputedStyle(el).animationName === 'none'))).toBe(true);
+ expect(await chars.evaluateAll(els => els.every(el => getComputedStyle(el).animationName !== 'none'))).toBe(true);
+ await expect(scene).toHaveAttribute('data-frame', '1');
  await expect(scene.locator('.naru-dialogue-profile:visible')).toHaveCount(2);
 });

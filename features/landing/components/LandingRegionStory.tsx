@@ -26,19 +26,17 @@ export default function LandingRegionStory() {
   useEffect(() => {
     const nodes = grid.current?.querySelectorAll<HTMLElement>(".simple-region");
     if (!nodes || !window.IntersectionObserver || !Element.prototype.animate) return;
-    const media = matchMedia("(prefers-reduced-motion: reduce)");
     const animations = new Set<Animation>();
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-      if (!entry.isIntersecting || media.matches || revealed.current.has(entry.target)) return;
+      if (!entry.isIntersecting || revealed.current.has(entry.target)) return;
       revealed.current.add(entry.target);
       const animation = entry.target.animate([{ opacity: .25, transform: "translateY(18px)" }, { opacity: 1, transform: "none" }], { duration: 420, easing: "cubic-bezier(.22,1,.36,1)" });
       animations.add(animation);
       animation.onfinish = () => animations.delete(animation);
       observer.unobserve(entry.target);
     }), { threshold: .12 });
-    const configure = () => { observer.disconnect(); if (media.matches) { animations.forEach(animation => animation.cancel()); animations.clear(); } else nodes.forEach(node => { if (!revealed.current.has(node)) observer.observe(node); }); };
-    configure(); media.addEventListener('change', configure);
-    return () => { observer.disconnect(); media.removeEventListener('change', configure); animations.forEach(animation => animation.cancel()); };
+    nodes.forEach(node => { if (!revealed.current.has(node)) observer.observe(node); });
+    return () => { observer.disconnect(); animations.forEach(animation => animation.cancel()); };
   }, [expanded]);
   return <section id="regions" className="simple-regions simple-section" aria-labelledby="regions-title" tabIndex={-1}>
     <header className="simple-section-heading" data-land-reveal><h2 id="regions-title">{en ? "Explore Gyeongnam" : "경남, 모두의 여행지"}</h2><p>{en ? "Choose a region to see its places." : "아름다운 자연과 따뜻한 사람이 있는, 누구나 즐길 수 있는 여행"}</p></header>

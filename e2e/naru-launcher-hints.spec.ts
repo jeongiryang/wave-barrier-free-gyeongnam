@@ -35,15 +35,15 @@ test('discovery hints cycle every five seconds without moving controls or announ
   expect(await hint.boundingBox()).toEqual(box);
 });
 
-test('reduced motion keeps one usable hint and dismissal survives reload and navigation', async ({ page }) => {
+test('OS reduced motion keeps rotating hints usable and dismissal survives reload and navigation', async ({ page }) => {
   await mockPlannerApi(page);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.clock.install();
   await page.goto('/guide');
   const hint = page.locator('.naru-welcome-bubble');
   await expect(hint.locator('button').first()).toHaveText(messages[0]);
-  await page.clock.fastForward(12000);
-  await expect(hint.locator('button').first()).toHaveText(messages[0]);
+  await page.clock.fastForward(6000);
+  await expect(hint.locator('button').first()).toHaveText(messages[1]);
   await page.getByRole('button', { name: '나루 안내 잠시 닫기' }).click();
   await expect(hint).toHaveCount(0);
   await page.reload();

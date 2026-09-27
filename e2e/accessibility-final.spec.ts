@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
 });
 
-test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중 문서 언어는 한국어를 유지한다", async ({ page }) => {
+test("OS 동작 줄이기와 관계없이 full을 유지하고 부분 번역 중 문서 언어는 한국어를 유지한다", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
     window.localStorage.setItem("wave-motion", "full");
@@ -15,13 +15,13 @@ test("OS 동작 줄이기는 저장된 full보다 우선하고 부분 번역 중
   await mockPublicShellApi(page);
   await page.goto("/");
 
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
   await openSupportMenu(page);
   await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
   await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   await expect(page.locator(".motion-toggle")).toHaveCount(0);
-  await expect(page.locator(".preference-panel > p")).toContainText("운영체제의 동작 줄이기 설정");
+  await expect(page.locator(".preference-panel > p")).toContainText("기기 설정과 관계없이 애니메이션을 재생합니다.");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
 });
 

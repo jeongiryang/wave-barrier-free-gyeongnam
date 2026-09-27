@@ -40,7 +40,6 @@
   .arrival-bottom { flex-direction: column-reverse; align-items: stretch; }
 }
 @media (max-height: 500px) { .arrival-brand > p:first-child { top: 25%; } .arrival-brand > p:last-child { bottom: 20%; font-size: .85rem; } .arrival-brand h2 { font-size: min(16vw,24vh); } }
-@media (prefers-reduced-motion: reduce) { .arrival-brand,.arrival-film { animation: none !important; } }
 html[data-motion="calm"] .arrival-brand,html[data-motion="calm"] .arrival-film { animation: none; }
 
 /* One editorial rhythm: open coast, quiet needs, a shared planning stage, regions, horizon. */

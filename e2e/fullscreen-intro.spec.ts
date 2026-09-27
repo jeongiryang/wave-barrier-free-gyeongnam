@@ -23,7 +23,7 @@ for (const width of [390, 960, 1440]) test(`${width}px reduced motion plays the 
   await prepareLandingMedia(page);
   await page.clock.install();
   await page.goto('/'); await storyReady(page);
-  await expect(page.locator('html')).toHaveAttribute('data-motion', 'calm');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full');
   await pauseCurrentClock(page);
   const scene = page.locator('.arrival-scene');
   await expect(scene).toBeVisible();
@@ -34,7 +34,7 @@ for (const width of [390, 960, 1440]) test(`${width}px reduced motion plays the 
   const caption = intro.locator('[data-boundary-caption]');
   await expect(caption).toHaveText('경상남도에서 시작되는, 모두를 위한 여행');
   await expect(caption).toHaveCSS('opacity', '1');
-  await expect(caption).toHaveCSS('transform', 'none');
+  await expect(caption).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)');
   await expect(scene.getByRole('button', { name: '건너뛰기', exact: true })).toBeFocused();
   const now = Number(await intro.getAttribute('data-time-ms'));
   await page.clock.fastForward(INTRO_DURATION_MS - now - 100);
@@ -59,7 +59,7 @@ test('changing motion preferences keeps playback open and reduced motion permits
   await arrivalPlaybackReady(page);
   const scene = page.locator('.arrival-scene');
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(page.locator('html')).toHaveAttribute('data-motion', 'calm');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full');
   await expect(scene).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(scene).toBeHidden();

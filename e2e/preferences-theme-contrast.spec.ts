@@ -66,7 +66,7 @@ for (const theme of ["light", "dark"] as const) {
     await openSupportMenu(page);
     await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
     await expect(page.locator(".motion-toggle")).toHaveCount(0);
-    await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+    await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
     expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
 
     for (const [selector, name] of TARGETS) await assertContrast(page, selector, name);

@@ -17,16 +17,15 @@ export default function NaruHeaderScene() {
   useEffect(() => {
     const images = Array.from(root.current?.querySelectorAll('img') || []);
     if (images.length && images.every(image => image.complete && image.naturalWidth > 0)) setReady(true);
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
     const canObserve = typeof IntersectionObserver === 'function';
-    const update = () => setReduced(!canObserve || media.matches || document.documentElement.dataset.motion === 'calm');
+    const update = () => setReduced(!canObserve || document.documentElement.dataset.motion === 'calm');
     const focus = () => setForeground(!document.hidden);
-    update(); focus(); media.addEventListener('change', update); document.addEventListener('visibilitychange', focus);
+    update(); focus(); document.addEventListener('visibilitychange', focus);
     const settings = new MutationObserver(update);
     settings.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
     const observer = canObserve ? new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .4 }) : null;
     if (root.current) observer?.observe(root.current);
-    return () => { observer?.disconnect(); settings.disconnect(); media.removeEventListener('change', update); document.removeEventListener('visibilitychange', focus); };
+    return () => { observer?.disconnect(); settings.disconnect(); document.removeEventListener('visibilitychange', focus); };
   }, []);
   useEffect(() => {
     if (!visible || !foreground || reduced || !ready) return;

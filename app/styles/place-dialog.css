@@ -96,10 +96,6 @@ html[data-theme="dark"] .place-modal .place-external-review small, html[data-the
   .modal-body { padding: 34px 22px 25px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal], [data-reveal].is-visible { opacity: 1; transform: none; }
-}
-
 /* 한 손 조작: 위 닫기는 습관대로 두고, 엄지가 닿는 내용 맨 아래에도 같은 동작의
    닫기를 하나 더 둔다. 768px 이상에서는 보이지 않으므로 배치가 바뀌지 않는다. */
 .modal-body>.modal-close-end{display:none}

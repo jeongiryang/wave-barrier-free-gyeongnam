@@ -116,15 +116,6 @@ html[data-motion="calm"] .region-photo-preview .loading-copy > * {
   animation: none !important;
   transition: none !important;
 }
-@media (prefers-reduced-motion: reduce) {
-  .region-photo-preview,
-  .region-photo-preview.loading > div,
-  .region-photo-preview .loading-copy > * {
-    animation: none !important;
-    transition: none !important;
-  }
-  ::view-transition-old(selected-region-card),::view-transition-new(selected-region-card) { animation: none; }
-}
 
 /* Real boundaries and a text alternative share one selected region. */
 .landing-boundary-map { width: 100%; aspect-ratio: 800/814; max-height: 570px; display: grid; place-items: center; }

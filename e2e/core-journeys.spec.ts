@@ -58,6 +58,17 @@ test("landing: reduced motion shows a dismissible intro and preserves the real p
   await scene.getByRole("button", { name: "건너뛰기", exact: true }).press("Enter");
   await expect(scene).toBeHidden();
   await expect(page.locator(":modal, [inert]:not(.horizon-chapter-backdrops > [aria-hidden=true]):not(.arrival-picture)")).toHaveCount(0);
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  const phrase = page.locator(".night-hero-phrase");
+  expect(await phrase.evaluate(node => getComputedStyle(node).animationName)).not.toBe("none");
+  expect(await phrase.evaluate(node => parseFloat(getComputedStyle(node).animationDuration))).toBeGreaterThan(0.1);
+  await expect(page.locator(".landing-feature-grid")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(page.locator(".landing-feature-card")).toHaveCount(8);
+  await expect(page.locator(".landing-feature-card").first()).toHaveCSS("background-color", "rgb(16, 37, 59)");
+  // An OS preference change must not put the page back into calm mode.
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
   const planning = page.locator(".night-hero-search button[type=submit]");
   await expectUsableTarget(planning);
   await expect(planning).toHaveAccessibleName("여행지 검색");

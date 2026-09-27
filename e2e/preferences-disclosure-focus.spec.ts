@@ -35,7 +35,7 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 1366]) {
     await expect(details.getByRole("button", { name: locale === "ko" ? "라이트모드" : "Light mode", exact: true })).toBeFocused();
     const appearance = details.getByRole("button", { name: locale === "ko" ? "라이트모드" : "Light mode", exact: true });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+    await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
     await expect(details.locator(".motion-toggle")).toHaveCount(0);
     await expect(appearance).toBeFocused();
     // Count the current Tab stops after presentation updates. CI captured a

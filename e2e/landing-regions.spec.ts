@@ -92,7 +92,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   const planning = page.locator(".night-hero-search button[type=submit]");
   await planning.focus();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
   for (const id of [...chapterIds, ...chapterIds.toReversed()]) {
     const section = page.locator(`#${id}`);
     await section.scrollIntoViewIfNeeded();
@@ -102,7 +102,7 @@ test("landing: reduced motion keeps every section readable through forward scrol
   await expect(planning).toBeFocused();
   expect(await page.locator(".simple-region-grid").evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
   await page.reload(); await storyReady(page);
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
   await expect(page.locator(".arrival-scene")).toBeHidden();
   await expect(page.locator(".simple-region")).toHaveCount(firstRegions.length);
   await expectUsableTarget(planning);

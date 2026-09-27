@@ -42,7 +42,6 @@ export function PhotoPanorama({ photos, closing = false, credit = true, shuffle 
   const root = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(closing ? 2 : 0);
   const [visible, setVisible] = useState(false);
-  const [reduced, setReduced] = useState(true);
   const [ready, setReady] = useState<string[]>([]);
   const [failed, setFailed] = useState<string[]>([]);
   const available = useMemo(() => photos.filter(photo => !failed.includes(photo.image)), [photos, failed]);
@@ -54,19 +53,16 @@ export function PhotoPanorama({ photos, closing = false, credit = true, shuffle 
     setReady(previous => [...new Set([...previous, ...loaded])]);
   }, [photos]);
   useEffect(() => {
-    const query = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(query.matches);
-    update(); query.addEventListener('change', update);
     if (!window.IntersectionObserver) {
       // A static, readable photograph is preferable to a crashed page.
-      return () => query.removeEventListener('change', update);
+      return;
     }
     const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
     if (root.current) observer.observe(root.current);
-    return () => { query.removeEventListener('change', update); observer.disconnect(); };
+    return () => { observer.disconnect(); };
   }, []);
   useEffect(() => {
-    if (reduced || !visible || available.length < 2) return;
+    if (!visible || available.length < 2) return;
     const timer = setInterval(() => {
       if (document.hidden) return;
       if (shuffle) {
@@ -75,8 +71,8 @@ export function PhotoPanorama({ photos, closing = false, credit = true, shuffle 
       } else if (ready.includes(available[(active + 1) % available.length].image)) setIndex(active + 1);
     }, intervalMs);
     return () => clearInterval(timer);
-  }, [reduced, visible, available, active, ready, shuffle, intervalMs]);
-  return <div ref={root} className="award-panorama" data-paused={reduced || !visible}>
+  }, [visible, available, active, ready, shuffle, intervalMs]);
+  return <div ref={root} className="award-panorama" data-paused={!visible}>
     <div className="award-panorama-images" aria-hidden="true">
       {available.map((photo, i) => <img key={photo.image} src={photo.image} alt="" decoding="async"
         loading={closing ? 'lazy' : 'eager'} className={i === active && ready.includes(photo.image) ? 'is-current' : ''}

@@ -157,7 +157,6 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
   .simple-facility-grid { gap: 4px 8px; }
   .simple-facility-grid label { font-size: .875rem; gap: 8px; }
 }
-@media(prefers-reduced-motion:reduce) { .simple-place-skeleton :is(i,b,span) { animation: none; } }
 .simple-initial-setup { max-width: 720px; margin: 0 auto; padding: 24px 0; }
 .simple-initial-setup h2 { font-size: 1.5rem; }
 .simple-settings-form > p { color: var(--muted); font-size: .9375rem; line-height: 1.7; }

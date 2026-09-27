@@ -16,7 +16,6 @@
 .simple-landing .night-hero-signature{display:none}
 @keyframes award-drift{from{transform:translateX(-2%)}to{transform:translateX(2%)}}
 @media(max-width:600px){.award-panorama-credit{bottom:18px;left:20px;right:20px;font-size:11px}.award-panorama-credit span{max-width:260px}.award-panorama:after{background:none}}
-@media(prefers-reduced-motion:reduce){.award-panorama-images img{animation:none;transition:none}}
 html body .landing-page.night-landing .landing-opening .landing-hero-split{background:transparent;padding-bottom:110px;isolation:auto}
 html:root body .wave-night .landing-opening .wave-header{background:transparent;border-bottom-color:#ffffff26;backdrop-filter:none}
 .award-panorama-credit{justify-content:flex-start;text-align:left;padding-right:60px}
@@ -32,7 +31,6 @@ html:root body .wave-night .night-photo-opening .night-banner-note{display:block
 .banner-written-character{opacity:0;animation:banner-write .12s linear forwards;animation-delay:var(--letter-delay);white-space:pre}
 @keyframes banner-write{from{opacity:0}to{opacity:1}}
 @media(max-width:1100px){html:root body .wave-night .night-photo-opening .night-banner-note{position:relative;right:auto;top:auto;margin:32px 24px 10px auto;width:max-content;max-width:90%;font-size:27px}}
-@media(prefers-reduced-motion:reduce){.banner-written-character{animation:none;opacity:1}}
 
 
 .night-banner-note [aria-hidden=true],.night-banner-note .banner-written-character{font-family:inherit;font-weight:inherit;font-style:inherit}

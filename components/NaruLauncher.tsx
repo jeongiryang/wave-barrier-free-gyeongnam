@@ -21,8 +21,7 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
   const dismissHint = () => { hintDismissed = true; try { sessionStorage.setItem(hintKey, 'yes'); } catch { /* Keep closed in this document if tab storage is unavailable. */ } window.dispatchEvent(new Event(hintKey)); };
   useEffect(() => {
     if (!showHint || reading) return;
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const timer = setInterval(() => { if (!document.hidden && !media.matches && document.documentElement.dataset.motion !== 'calm') setHint(value => (value + 1) % hints.length); }, 5000);
+    const timer = setInterval(() => { if (!document.hidden && document.documentElement.dataset.motion !== 'calm') setHint(value => (value + 1) % hints.length); }, 5000);
     return () => clearInterval(timer);
   }, [showHint, reading]);
   const discovery = useRef<HTMLElement>(null);

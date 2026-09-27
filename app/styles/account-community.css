@@ -36,9 +36,3 @@ html[data-theme="dark"] .community-state,html[data-theme="dark"] .comment-form,h
   .editor-place { grid-template-columns: auto 1fr; }
   .editor-place button { grid-column: 1/-1; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .community-skeletons i,.community-detail-state i { animation: none; }
-  .community-list article { transition: none; }
-  .community-list article:hover { transform: none; }
-}

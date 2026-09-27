@@ -22,7 +22,6 @@ html:root body .wave-night .simple-direct-search-form input::placeholder{color:#
 html:root body .wave-night .simple-direct-search-submit{flex:0 0 auto;width:auto;min-width:84px}
 /* The invitation, story and legal footer share one uninterrupted white canvas. */
 @media(max-width:700px){.places-results-heading{align-items:flex-start;flex-direction:column;padding-inline:16px;gap:16px}html:root body .wave-night .simple-direct-search-form{gap:2px}html:root body .wave-night .simple-direct-search-submit{padding-inline:16px}html:root body .wave-night .region-picker-list button{padding:8px 12px}}
-@media(prefers-reduced-motion:reduce){html:root body .wave-night :is(#landing-title em,.night-banner h1 em){animation:none}}
 /* Compact, shared white canvas for the planner's two navigation rows. */
 /* Keep native select keyboard navigation and operating-system picker semantics. */
 html:root body :is(.wave-night,.wave-support-panel) :is(.account-popover,.simple-share-menu,.preference-panel){border:1px solid #587b9a;border-radius:18px;background:#132e45;color:#edf6ff;box-shadow:0 12px 36px #0004;padding:12px}
@@ -145,7 +144,6 @@ html:root body .wave-night .official-exploration-card{position:relative;isolatio
 .official-exploration-photo[data-loaded=true] img{opacity:1}
 .official-exploration-photo[data-loaded=true]::after{content:'';position:absolute;inset:0;background:none}
 .official-photo-status{display:flex;height:100%;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#d5e8ed;font-size:13px}.official-exploration-photo img{position:absolute;inset:0}
-@media(prefers-reduced-motion:reduce){.official-exploration-photo img{transition:none}}
 /* Profile portraits and names stay together beside each speech bubble. */
 html:root body .wave-night .official-exploration{width:94%;box-sizing:border-box;margin:24px auto;border:1px solid #365872;border-radius:16px;padding:0;overflow:hidden}
 html:root body .wave-night .official-exploration>:not(h2){margin:16px 0}

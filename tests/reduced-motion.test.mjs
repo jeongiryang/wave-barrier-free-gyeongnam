@@ -12,7 +12,7 @@ test("설정을 읽을 수 없는 환경에서는 기본 동작을 유지한다"
   assert.equal(scrollToSection("route"), false);
 });
 
-test("앱에서 calm을 고르면 OS 설정과 같은 즉시 이동 계약을 쓴다", () => {
+test("명시적 calm 상태는 즉시 이동 계약을 유지한다", () => {
   globalThis.window = { matchMedia: () => ({ matches: false }) };
   globalThis.document = { documentElement: { dataset: { motion: "calm" } } };
   try {
@@ -41,7 +41,7 @@ test("구역 이동은 설정을 그대로 scrollIntoView에 넘긴다", () => {
   }
 });
 
-test("설정은 코드가 읽는다. CSS scroll-behavior는 명시한 behavior를 이기지 못한다", () => {
+test("OS 동작 줄이기는 사이트 애니메이션을 끄지 않는다", () => {
   const seen = [];
   globalThis.window = {
     matchMedia: (query) => {
@@ -50,9 +50,9 @@ test("설정은 코드가 읽는다. CSS scroll-behavior는 명시한 behavior�
     },
   };
   try {
-    assert.equal(prefersReducedMotion(), true);
-    assert.equal(scrollBehavior(), "auto");
-    assert.deepEqual(seen, ["(prefers-reduced-motion: reduce)", "(prefers-reduced-motion: reduce)"]);
+    assert.equal(prefersReducedMotion(), false);
+    assert.equal(scrollBehavior(), "smooth");
+    assert.deepEqual(seen, []);
   } finally {
     delete globalThis.window;
   }

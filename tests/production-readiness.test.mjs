@@ -359,7 +359,7 @@ test("landing offers five fixed full-photo links then all eighteen and preserves
   assert.match(surface, /data-region-boundary=\{region\.name\} data-selected=\{region\.name === selected\}/);
   assert.match(css, /\.simple-region-link > img \{ width: 100%; height: 100%; object-fit: cover/);
   assert.match(css, /\.simple-show-regions \{[^}]*min-height: 48px/);
-  assert.match(landing, /prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(landing, /prefers-reduced-motion: reduce/);
 });
 
 test("preserved feature previews retain their order and motion safety; current community invitation never writes", async () => {
@@ -392,7 +392,7 @@ test("preserved feature previews retain their order and motion safety; current c
   assert.doesNotMatch(community, /useCommunityPreview|posts\.map|post\.(?:title|content)|aria-live/);
   for (const selector of ["route-demo-path", "route-demo-vehicle"]) {
     assert.match(css, new RegExp(`html\\[data-motion="calm"\\][\\s\\S]{0,400}\\.${selector}[\\s\\S]{0,300}animation: none`));
-    assert.match(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
+    assert.doesNotMatch(css, new RegExp(`@media \\(prefers-reduced-motion: reduce\\)[\\s\\S]*\\.${selector}[\\s\\S]{0,300}animation: none`));
   }
 });
 
@@ -469,7 +469,7 @@ test("interactive help follows real sections on every public journey and remains
   assert.match(help, /event\.key === "Escape"/);
   assert.match(help, /previousFocus\?\.focus\(\)/);
   assert.match(await source("components/WaveFooterTools.tsx"), /<HelpCenter \/>/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
+  assert.doesNotMatch(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.help-tour-spotlight/);
 });
 
 test("mobile screens keep controls touchable and content inside safe areas", async () => {

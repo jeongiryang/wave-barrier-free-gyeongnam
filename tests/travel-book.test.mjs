@@ -130,5 +130,5 @@ test("여행집 UI는 로컬 저장·키보드·모바일·다크 테마 계약�
   assert.match(css, /min-height: 48px/);
   assert.match(css, /@media \(max-width: 620px\)/);
   assert.match(css, /html\[data-theme="dark"\] \.travel-book-page/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
