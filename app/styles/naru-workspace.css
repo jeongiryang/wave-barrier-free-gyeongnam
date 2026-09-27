@@ -14,8 +14,8 @@
 .naru-guidance-settings footer { flex-wrap:wrap; }
 .naru-guidance-summary { display:grid;gap:8px; }
 body .naru-panel.naru-workspace {
-  /* PlannerAssistant always supplies naru-friendly, which owns this palette. */
-  color-scheme:light;box-shadow:0 24px 100px #0009;
+  --ink:#233b55;--ink-soft:#405a75;--muted:#526782;--paper:#fff;--surface:#f4f7fc;--surface-deep:#e8f1ff;--white:#fff;--line:#c5d5e7;--accent:#3659ba;--blue:#3659ba;--blue-dark:#294593;--on-blue:#fff;--on-accent:#fff;
+  background:var(--paper);color:var(--ink);color-scheme:light;box-shadow:0 24px 100px #0009;
 }
 body .naru-panel.naru-workspace:is(.naru-large,.naru-compact) { inset:0;margin:auto;transform:none;width:min(1220px,96vw);height:calc(100dvh - 48px);max-height:none;max-width:none;padding:0;border:1px solid var(--line);border-radius:24px;overflow:hidden; }
 body .naru-panel.naru-workspace.naru-compact { width:min(480px,96vw);height:min(780px,calc(100dvh - 48px)); }
@@ -77,6 +77,7 @@ body .naru-panel.naru-workspace .naru-workspace-progress { color:var(--ink-soft)
 body .naru-panel.naru-workspace .naru-workspace-progress progress { width:100%;accent-color:var(--accent); }
 body .naru-panel.naru-workspace :is(.naru-message,.naru-starter,.naru-prompt-starters,.naru-proposal,.naru-guided-choices,.naru-tool-card,.naru-tool-result,.naru-more>div,.naru-extra-help,.naru-extra-help>div,.access-badge,.naru-note) { background:var(--surface);color:var(--ink);border-color:var(--line); }
 body .naru-panel.naru-workspace .naru-message { padding:16px;border-radius:16px;margin-bottom:16px;overflow-wrap:anywhere; }
+body .naru-panel.naru-workspace .naru-message.user { background:#e8f1ff;color:#233b55; }
 body .naru-panel.naru-workspace :is(.naru-tool-card strong,.naru-tool-card b,.naru-more>div>a) { color:var(--ink); }
 body .naru-panel.naru-workspace .naru-context-suggestions { width:auto;min-width:0;flex-shrink:0;flex-wrap:wrap;margin:0;padding:8px 20px;background:var(--paper);max-height:none;overflow:visible; }
 body .naru-panel.naru-workspace .naru-context-suggestions>* { flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere; }

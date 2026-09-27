@@ -1,18 +1,18 @@
 /* A quiet cyan conversation surface; preserve the workspace's viewport handling. */
 html:root body .naru-panel.naru-workspace.naru-friendly {
-  --ink:#122c45;--ink-soft:#39566e;--muted:#546d83;--paper:#f5faff;--surface:#fff;--surface-deep:#e6f1fa;--white:#fff;--line:#b9d2e5;--accent:#0766b5;--blue:#0766b5;--blue-dark:#08558f;--on-blue:#fff;--on-accent:#fff;--onaccent:#fff;
+  --ink:#122c45;--ink-soft:#39566e;--muted:#546d83;--paper:#f5faff;--surface:#fff;--surface-deep:#e6f1fa;--white:#fff;--line:#b9d2e5;--accent:#0766b5;--blue:#0766b5;--blue-dark:#08558f;--on-blue:#fff;--on-accent:#fff;
   background:var(--paper);color:var(--ink);
 }
 html:root body .naru-panel.naru-friendly :is(.naru-heading,.naru-workspace-tabs,.naru-log) { background:var(--paper); }
-html:root body .naru-panel.naru-friendly .naru-heading { min-height:72px; }
+html:root body .naru-panel.naru-friendly .naru-heading { min-height:72px;padding-block:10px; }
 html:root body .naru-panel.naru-friendly .naru-heading strong { font-size:22px; }
-html:root body .naru-panel.naru-friendly .naru-workspace-tabs { border-bottom-color:#cce3e5; }
+html:root body .naru-panel.naru-friendly .naru-heading-actions>button { background:transparent; }
+html:root body .naru-panel.naru-friendly .naru-workspace-tabs { border-bottom-color:#cce3e5;padding-bottom:8px; }
 html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button { min-height:44px;background:transparent; }
 html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button[aria-selected=true] { color:#12465d;background:#ccebee;border-color:#8ebfc9; }
 html:root body .naru-panel.naru-friendly .naru-message.assistant { background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none; }
 html:root body .naru-panel.naru-friendly .naru-message.user { background:#e0efff;color:#173e50;border:1px solid #a9c8e3;box-shadow:none; }
 html:root body .naru-panel.naru-friendly :is(.naru-workspace-sidebar,.naru-workspace-content) { background:#eaf3fb; }
-html:root body .naru-panel.naru-friendly .account-settings { background:var(--paper);color:var(--ink);border-color:var(--line); }
 html:root body .naru-panel.naru-friendly .naru-workspace-sidebar { padding:18px;border-left-color:#c6dfe2; }
 html:root body .naru-panel.naru-friendly .naru-workspace-summary>div { padding:10px 0;border:0;border-bottom:1px solid #cce2e4;border-radius:0;background:transparent; }
 html:root body .naru-panel.naru-friendly .naru-next-actions { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px; }

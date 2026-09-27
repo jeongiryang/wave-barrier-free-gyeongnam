@@ -38,7 +38,11 @@ export default function LandingIntro() {
       document.documentElement.style.overflow = previousOverflow;
       document.documentElement.dataset.introSeen = "1";
       try { sessionStorage.setItem("wave-arrival-session-v1", "done"); } catch { /* Session-only fallback. */ }
-      const target = returnFocus?.isConnected && returnFocus.getClientRects().length ? returnFocus : document.querySelector<HTMLElement>("#top");
+      // Hydration can enhance the previously focused native select while the
+      // intro is open. Return to its visible control without discarding its value.
+      const enhanced = returnFocus instanceof HTMLSelectElement ? returnFocus.closest(".wave-select")?.querySelector<HTMLElement>('button[role="combobox"]') : null;
+      const previous = enhanced || returnFocus;
+      const target = previous?.isConnected && previous.getClientRects().length && !previous.matches(":disabled") ? previous : document.querySelector<HTMLElement>("#top");
       target?.focus({preventScroll:true});
     };
     finishRef.current = finish;
@@ -47,15 +51,12 @@ export default function LandingIntro() {
       let seen = document.documentElement.dataset.introSeen === "1";
       try { seen ||= sessionStorage.getItem("wave-arrival-session-v1") === "done"; } catch { /* Do not block entry. */ }
       const booting = document.documentElement.hasAttribute("data-intro-pending");
-      // A visitor may already be using the server-rendered page while scripts
-      // load. Automatic playback must not take that control's keyboard focus.
-      const focused = document.activeElement;
-      const interacting = focused instanceof HTMLElement && focused !== document.body && focused !== document.documentElement && !node.contains(focused);
-      if (media.matches || document.documentElement.dataset.motion === "calm" || (!replay && (seen || interacting || window.location.hash || (!booting && window.scrollY > 24)))) { reveal(); return; }
+      if (media.matches || document.documentElement.dataset.motion === "calm" || (!replay && (seen || window.location.hash || (!booting && window.scrollY > 24)))) { reveal(); return; }
       playing = true; ready.current = false;
       setLeaving(false);
       setGeneration(value=>value+1); setActive(true);
-      returnFocus = replay && document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const focused = document.activeElement;
+      returnFocus = focused instanceof HTMLElement && focused !== document.body && focused !== document.documentElement && !node.contains(focused) ? focused : null;
       previousOverflow = document.documentElement.style.overflow;
       document.documentElement.style.overflow = "hidden";
       document.documentElement.classList.add("arrival-open");

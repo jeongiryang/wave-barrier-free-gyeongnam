@@ -77,7 +77,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`ima
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     const box = await button.boundingBox();
     const drawer = await panel.boundingBox();
-    if (drawer!.width < Math.min(width - 70, 260)) await testInfo.attach('map-drawer-width-ancestors', { contentType: 'application/json', body: JSON.stringify(await panel.evaluate(element => {
+    if (await panel.evaluate(element => element.scrollWidth > element.clientWidth + 1)) await testInfo.attach('map-drawer-width-ancestors', { contentType: 'application/json', body: JSON.stringify(await panel.evaluate(element => {
       const layers = [];
       for (let node: Element | null = element; node; node = node.parentElement) {
         const style = getComputedStyle(node), rect = node.getBoundingClientRect();
@@ -85,8 +85,18 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`ima
       }
       return layers;
     }), null, 2) });
-    expect(drawer!.width, `readable image drawer at ${width}px`).toBeGreaterThanOrEqual(Math.min(width - 70, 260));
+    // Approved panels may be narrower than 250px. Require reflow and usable
+    // controls at every width instead of prescribing a different layout.
+    expect(drawer!.x).toBeGreaterThanOrEqual(0);
+    expect(drawer!.x + drawer!.width).toBeLessThanOrEqual(width + 1);
     expect(await panel.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    for (const control of await panel.getByRole('button').all()) {
+      expect(await control.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+      const controlBounds = (await control.boundingBox())!;
+      expect(controlBounds.width).toBeGreaterThanOrEqual(44);
+      expect(controlBounds.height).toBeGreaterThanOrEqual(44);
+    }
+    await button.click({ trial: true });
     const coveredByMapControls = await panel.evaluate((element) => {
       const drawer = element.getBoundingClientRect();
       return [...document.querySelectorAll(".leaflet-control-zoom a")].some((control) => {

@@ -48,7 +48,9 @@ for (const theme of ["light", "dark"] as const) test(`English preference with Ko
   await expect(itinerary.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
   await tools(page);
   const coverage = page.locator(".itinerary-route-coverage");
-  await expect(coverage).toContainText("Route availability does not confirm wheelchair access");
+  await expect(coverage.locator('p > strong')).toContainText("Daily starting point:");
+  expect(await language(coverage.locator('p > strong > span'))).toBe("ko");
+  await expect(coverage.getByRole('status')).toHaveText(/\d+ of \d+ journeys found for this transport/);
   expect(await language(coverage.getByRole("heading", { name: "Check every journey", exact: true }))).toBe("en");
   await page.locator(".simple-audio-journal > summary").click();
   const audio = page.getByRole("complementary", { name: "Place audio guide", exact: true });
@@ -84,10 +86,15 @@ test("changing locale updates translated journey evidence while preserving Korea
   const preferences = page.locator(".preference-controls:visible");
   await preferences.getByLabel("Open preferences", { exact: true }).click();
   await chooseWaveOption(preferences.getByRole('combobox', { name: "Language", ...{ exact: true } }), "ko");
-  await expect(page.locator(".itinerary-route-coverage")).toContainText("경로가 있어도 휠체어 통행");
+  const coverage = page.locator('.itinerary-route-coverage');
+  await expect(coverage.locator('#route-coverage-title')).toHaveText('일정의 모든 이동 구간 확인');
+  await expect(coverage.locator('p[role=status]')).toHaveText(/선택한 이동수단: 전체 \d+구간 중 \d+구간 확인/);
+  expect(await language(coverage)).toBe('ko');
   await expect(receipt).toHaveText(notice, { useInnerText: true }); expect(await records(page)).toEqual(before);
   await chooseWaveOption(preferences.getByRole('combobox', { name: "언어", ...{ exact: true } }), "en");
-  await expect(page.locator(".itinerary-route-coverage")).toContainText("Route availability does not confirm wheelchair access");
+  await expect(coverage.locator('#route-coverage-title')).toHaveText('Check every journey');
+  await expect(coverage.locator('p[role=status]')).toHaveText(/\d+ of \d+ journeys found for this transport/);
+  expect(await language(coverage)).toBe('en');
   await expect(receipt).toHaveText(notice, { useInnerText: true }); expect(await records(page)).toEqual(before);
   await preferences.getByRole('combobox', { name: "Language", ...{ exact: true } }).focus(); await expect(preferences.getByRole('combobox', { name: "Language", ...{ exact: true } })).toBeFocused();
 });

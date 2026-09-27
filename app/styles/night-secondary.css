@@ -50,7 +50,7 @@ html body .night-secondary.policy-page{padding:0 max(32px,calc((100% - 1200px)/2
 .night-secondary .policy-article>section>h2{font-size:28px;line-height:1.35}
 .night-secondary .policy-detail-grid{margin-top:24px}.night-secondary .policy-detail-grid>section{padding:24px;min-height:0}
 .night-secondary .policy-toc{padding:14px 0;margin-bottom:36px}.night-secondary .policy-table-wrap thead th{background:#12344b;color:#a2eaff}
-.night-secondary :is(.policy-section-kicker,.policy-article a,.policy-toc a,.policy-link-grid span,.policy-summary>div>p){color:#6edfff}
+.night-secondary :is(.policy-section-kicker,.policy-article a,.policy-toc a){color:#6edfff}
 .night-secondary :is(.travel-book-hero,.travel-book-task-heading,.photo-course-page-intro){width:min(1240px,calc(100% - 80px));margin:36px auto 32px;padding:32px;display:block;border:1px solid var(--line);border-radius:16px;background:url('/media/night/coast.webp') center 45%/cover}
 .night-secondary :is(.travel-book-hero h1,.travel-book-task-heading h1,.photo-course-page-intro h1){font-size:40px;line-height:1.25;font-weight:700}
 .night-secondary .travel-book-hero p{margin-bottom:12px;color:#69d9ff}.night-secondary .travel-book-list{width:min(1240px,calc(100% - 80px));gap:20px}

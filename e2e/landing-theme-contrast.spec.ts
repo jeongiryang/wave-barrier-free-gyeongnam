@@ -33,6 +33,27 @@ async function samples(page: Page, selector: string) {
   });
 }
 
+async function textContrastRequirement(page: Page, selector: string) {
+  const fonts = await page.locator(selector).evaluateAll(nodes => nodes.flatMap(node => {
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+    const result: { size: number; weight: number; minimum: number }[] = [];
+    while (walker.nextNode()) {
+      const text = walker.currentNode;
+      if (!text.textContent?.trim() || !text.parentElement) continue;
+      const range = document.createRange(); range.selectNodeContents(text);
+      const style = getComputedStyle(text.parentElement);
+      if (!range.getClientRects().length || style.visibility !== 'visible') continue;
+      const size = parseFloat(style.fontSize), weight = parseFloat(style.fontWeight);
+      result.push({ size, weight, minimum: size >= 24 || (weight >= 700 && size >= 18.6667) ? 3 : 4.5 });
+    }
+    return result;
+  }));
+  expect(fonts, `${selector} visible text font evidence`).not.toEqual([]);
+  // A combined glyph capture must meet the stricter requirement if any visible
+  // descendant is smaller. A large container cannot exempt small mixed text.
+  return { fonts, minimum: Math.max(...fonts.map(font => font.minimum)) };
+}
+
 const CASES = [
   ".night-hero-search [role=combobox]",
   ".simple-section-heading h2", ".simple-section-heading p", ".simple-show-regions",
@@ -60,9 +81,11 @@ for (const theme of ["dark", "light"] as const) {
       await expect(page.locator("#landing-title em")).toHaveCSS("background-clip", "text");
       for (const selector of [".landing-hero-copy h1", ".landing-hero-description"]) {
         const measured = await paintedContrast(page, selector);
+        const requirement = await textContrastRequirement(page, selector);
+        await info.attach(`contrast-threshold-${width}-${selector}`, { body: JSON.stringify({ theme, width, selector, requirement, measured }), contentType: 'application/json' });
         expect(measured.pixels, `${width}px ${selector} glyphs`).toBeGreaterThan(0);
-        expect(measured.minimum, `${width}px ${selector}`).toBeGreaterThanOrEqual(4.5);
-        console.log(JSON.stringify({ theme, width, selector, ...measured }));
+        expect(measured.minimum, `${width}px ${selector}`).toBeGreaterThanOrEqual(requirement.minimum);
+        console.log(JSON.stringify({ theme, width, selector, requirement, ...measured }));
       }
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
       await page.screenshot({ path: info.outputPath(`hero-${theme}-${width}.png`), animations: "disabled" });
@@ -70,16 +93,20 @@ for (const theme of ["dark", "light"] as const) {
     await openLandingTools(page);
     for (const selector of ["#closing h2", "#closing .landing-closing-copy > p"]) {
       const measured = await paintedContrast(page, selector);
+      const requirement = await textContrastRequirement(page, selector);
+      await info.attach(`contrast-threshold-${selector}`, { body: JSON.stringify({ selector, requirement, measured }), contentType: 'application/json' });
       expect(measured.pixels).toBeGreaterThan(0);
-      expect(measured.minimum, selector).toBeGreaterThanOrEqual(4.5);
+      expect(measured.minimum, selector).toBeGreaterThanOrEqual(requirement.minimum);
     }
     for (const selector of CASES) {
       await page.locator(selector).first().scrollIntoViewIfNeeded();
       const measured = await samples(page, selector);
+      const requirement = await textContrastRequirement(page, selector);
+      await info.attach(`contrast-threshold-${selector}`, { body: JSON.stringify({ selector, requirement }), contentType: 'application/json' });
       expect(measured, `${selector}을 찾지 못했다`).not.toEqual([]);
       for (const sample of measured) {
         const ratio = contrastRatio(sample.color, sample.background);
-        expect(ratio, `${selector} · ${sample.text} 대비 ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(4.5);
+        expect(ratio, `${selector} · ${sample.text} 대비 ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(requirement.minimum);
       }
     }
   });

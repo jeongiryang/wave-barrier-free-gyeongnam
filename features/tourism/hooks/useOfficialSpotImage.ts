@@ -17,7 +17,7 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [retried, setRetried] = useState(false);
-  const settledRef = useRef(false);
+  const settledRef = useRef<string | null>(null);
   const fallbackRequest = useRef<{ key: string; controller: AbortController } | null>(null);
   const imageKey = JSON.stringify([src, contentId, region, title, tag]);
 
@@ -27,7 +27,7 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
     const controller = new AbortController();
     const request = { key: imageKey, controller };
     fallbackRequest.current = request;
-    settledRef.current = true;
+    settledRef.current = imageKey;
     const timeout = window.setTimeout(() => controller.abort(), 12000);
     try {
       const nextImage = await fetchOfficialSpotPhoto({ contentId, region, title, tag }, controller.signal);
@@ -58,17 +58,17 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
     }
     const nextImage = safeTourismImageUrl(src);
     const frame = window.requestAnimationFrame(() => {
-      // A fast decode error may have already started the fallback before this frame.
-      if (fallbackRequest.current?.key === imageKey) return;
+      // A fast load or decode error may settle this key before the initial frame.
+      if (settledRef.current === imageKey || fallbackRequest.current?.key === imageKey) return;
       setImage(nextImage);
       setFailed(false);
       setRetried(false);
       setLoading(true);
-      settledRef.current = false;
+      settledRef.current = null;
       if (!nextImage) void loadFallback(() => cancelled);
     });
     const slowImage = window.setTimeout(() => {
-      if (!cancelled && !settledRef.current && nextImage) {
+      if (!cancelled && settledRef.current !== imageKey && nextImage) {
         setImage("");
         void loadFallback(() => cancelled);
       }
@@ -84,22 +84,28 @@ export function useOfficialSpotImage({ src, title, region, tag, contentId }: Spo
     };
   }, [src, loadFallback, imageKey]);
 
+  // Props may change before the initialization frame replaces the old img.
+  const ownsDisplayedImage = () => image === safeTourismImageUrl(src)
+    || (retried && fallbackRequest.current?.key === imageKey);
+
   return {
     image,
     loading,
     failed,
     onLoad: () => {
-      settledRef.current = true;
+      if (!ownsDisplayedImage()) return;
+      settledRef.current = imageKey;
       setLoading(false);
     },
     onError: () => {
+      if (!ownsDisplayedImage()) return;
       if (!retried) {
         if (fallbackRequest.current?.key === imageKey) return;
         setImage("");
         setLoading(true);
         void loadFallback();
       } else {
-        settledRef.current = true;
+        settledRef.current = imageKey;
         setImage("");
         setFailed(true);
         setLoading(false);
