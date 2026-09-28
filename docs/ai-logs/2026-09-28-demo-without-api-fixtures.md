@@ -1,8 +1,8 @@
 # API 응답을 꾸미지 않는 시연 일정 보강
 
-- PR: 작성 후 연결
+- PR: https://github.com/jeongiryang/wave-barrier-free-gyeongnam/pull/747
 - 작성자: unknownamed 계정의 Codex 작업
-- 최종 상태: 로컬 구현·검증 완료, PR/배포 확인 대기
+- 최종 상태: 로컬 구현·검증 완료, PR CI 및 배포 확인 대기
 - AI 도구: Codex
 
 ## 목적
