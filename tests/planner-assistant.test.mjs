@@ -25,6 +25,7 @@ function compile(file, dependencies, globals = {}) {
 const http = compile('../server/shared/http.ts', { '../../lib/http-cache.js': { cacheControlHeader }, '../../lib/security/request-boundaries.js': { verifySameOriginMutation } });
 function handler(responder, configured = true, extraEnv = {}) {
   const calls = [];
+  const diagnostics = [];
   let requesters = 0;
   const { handleAssistant } = compile('../server/assistant/handler.ts', {
     '../../lib/facility-selection.js': facilities, '../shared/http': http, '../../lib/assistant-actions.js': actions,
@@ -44,8 +45,8 @@ function handler(responder, configured = true, extraEnv = {}) {
         };
       },
     },
-  }, { process: { env: configured ? { WAVE_AI_BASE_URL: 'http://127.0.0.1:18765/v1', WAVE_AI_MODEL: 'fixture-local', WAVE_AI_TOKEN: 'fixture-not-a-real-token', ...extraEnv } : {} } });
-  return { run: handleAssistant, calls };
+  }, { console: { info: (...args) => diagnostics.push(args), warn: (...args) => diagnostics.push(args) }, process: { env: configured ? { WAVE_AI_BASE_URL: 'http://127.0.0.1:18765/v1', WAVE_AI_MODEL: 'fixture-local', WAVE_AI_TOKEN: 'fixture-not-a-real-token', ...extraEnv } : {} } });
+  return { run: handleAssistant, calls, diagnostics };
 }
 const request = (body = { messages: [{ role: 'user', content: '여행지 찾아줘' }], context: { places: [] } }, origin = 'https://wave.example') => new Request('https://wave.example/api/assistant', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
@@ -258,4 +259,36 @@ test('auth failure and invalid model action are not disguised by a fallback retr
     assert.equal(response.status,503);
     assert.equal(h.calls.length,1);
   }
+});
+
+test('successful primary health can be read twice without switching or noisy health success logs', async () => {
+  const h = handler(() => ({ ready: true }), true, fallbackEnv);
+  assert.equal((await (await h.run(new Request('https://wave.example/api/assistant'))).json()).available, true);
+  assert.equal(h.calls.length, 1);
+  assert.deepEqual(h.diagnostics, []);
+});
+
+test('chat diagnostics distinguish completed fallback from failure without private data', async () => {
+  const privateMarker = 'PRIVATE_USER_OR_MODEL_TEXT';
+  const h = handler((_context, _options, url) => {
+    if (!url.includes('backup.example')) throw new ProviderRequestError({ kind: 'timeout' });
+    return { choices: [{ message: { content: JSON.stringify({ reply: privateMarker, proposal: null }) } }] };
+  }, true, fallbackEnv);
+  const response = await h.run(request({ messages: [{ role: 'user', content: privateMarker }] }));
+  assert.equal(response.status, 200);
+  assert.deepEqual(JSON.parse(JSON.stringify(h.diagnostics)), [
+    ['naru_provider_failover', { operation: 'chat', category: 'timeout' }],
+    ['naru_chat_complete', { route: 'fallback', mode: 'buffered' }],
+  ]);
+  assert.doesNotMatch(JSON.stringify(h.diagnostics), /PRIVATE_|https?:|Bearer|backup-test-token|fixture-not-a-real-token/);
+  assert.equal(h.calls.length, 2);
+});
+
+test('invalid primary model JSON is diagnosed without retrying or logging its contents', async () => {
+  const h = handler(() => ({ choices: [{ message: { content: 'PRIVATE_INVALID_MODEL_JSON' } }] }), true, fallbackEnv);
+  assert.equal((await h.run(request())).status, 503);
+  assert.equal(h.calls.length, 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(h.diagnostics)), [
+    ['naru_chat_failed', { route: 'primary', stage: 'model_json', category: 'invalid_json' }],
+  ]);
 });

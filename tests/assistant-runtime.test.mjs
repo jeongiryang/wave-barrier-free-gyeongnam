@@ -9,3 +9,10 @@ test('dedicated AI runtime waits for startup and never repeats model loading', (
     { encoding: 'utf8', timeout: 10000 });
   assert.equal(result.status, 0, result.error?.message || result.stderr);
 });
+
+test('dedicated supervisors recover safely and bound diagnostic output', () => {
+  const result = spawnSync(process.env.WAVE_TEST_PYTHON || (process.platform === 'win32' ? 'python' : 'python3'),
+    ['-I', '-B', fileURLToPath(new URL('../server/assistant/test-supervisors.py', import.meta.url))],
+    { encoding: 'utf8', timeout: 10000 });
+  assert.equal(result.status, 0, result.error?.message || result.stderr);
+});

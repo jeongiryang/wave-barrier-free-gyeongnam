@@ -94,21 +94,55 @@ function ndjson(lines) {
 const chunks = text => [...text].map(letter => JSON.stringify({ message: { content: letter } }));
 
 /** 실제 모델은 호출하지 않는다. 합성 fixture만 사용한다. */
-function load({ streamFlag, respond }) {
+function load({ streamFlag, respond, extraEnv = {} }) {
   const sent = [];
-  const fetcher = async (url, options) => { sent.push({ url, options, body: JSON.parse(options.body) }); return respond(); };
+  const diagnostics = [];
+  const fetcher = async (url, options) => { sent.push({ url, options, body: JSON.parse(options.body) }); return respond(url, options); };
   // 비스트리밍 경로는 공용 requester를 거치므로 그 쪽 fetch도 같은 합성 응답을 쓴다.
   globalThis.fetch = fetcher;
-  const environment = { WAVE_AI_BASE_URL: 'https://naru.example/v1/', WAVE_AI_MODEL: 'gemma4:26b', WAVE_AI_TOKEN: 'synthetic-token', ...(streamFlag ? { WAVE_AI_STREAM: streamFlag } : {}) };
+  const environment = { WAVE_AI_BASE_URL: 'https://naru.example/v1/', WAVE_AI_MODEL: 'gemma4:26b', WAVE_AI_TOKEN: 'synthetic-token', ...(streamFlag ? { WAVE_AI_STREAM: streamFlag } : {}), ...extraEnv };
   const exports = {};
   const context = {
     exports, require: name => { assert.ok(dependencies[name], name); return dependencies[name]; },
-    Request, Response, URL, URLSearchParams, AbortSignal, AbortController, TextEncoder, TextDecoder, ReadableStream, Date, Intl, JSON, console,
+    Request, Response, URL, URLSearchParams, AbortSignal, AbortController, TextEncoder, TextDecoder, ReadableStream, Date, Intl, JSON,
+    console: { info: (...args) => diagnostics.push(args), warn: (...args) => diagnostics.push(args) },
     setTimeout, clearTimeout, fetch: fetcher, process: { env: environment },
   };
   vm.runInNewContext(source, context);
-  return { sent, call: (body = { messages: [{ role: 'user', content: '여행지 찾아줘' }] }) => exports.handleAssistant(new Request('https://wave.example/api/assistant', { method: 'POST', body: JSON.stringify(body) })) };
+  return { sent, diagnostics, call: (body = { messages: [{ role: 'user', content: '여행지 찾아줘' }] }) => exports.handleAssistant(new Request('https://wave.example/api/assistant', { method: 'POST', body: JSON.stringify(body) })) };
 }
+
+const backupEnv = { WAVE_AI_FALLBACK_BASE_URL: 'https://backup.example/v1/', WAVE_AI_FALLBACK_MODEL: 'backup-fixture', WAVE_AI_FALLBACK_TOKEN: 'backup-synthetic-token' };
+
+test('stream failover happens once before bytes and reports only completed backup route', async () => {
+  const h = load({ streamFlag: '1', extraEnv: backupEnv, respond: url => url.includes('backup.example')
+    ? ndjson(chunks('PRIVATE_REPLY')) : Response.json({ error: 'PRIVATE_UPSTREAM_ERROR' }, { status: 503 }) });
+  const events = await frames(await h.call());
+  assert.equal(events.at(-1).type, 'done');
+  assert.equal(h.sent.length, 2);
+  assert.deepEqual(h.sent[0].body.messages, h.sent[1].body.messages);
+  assert.equal(h.sent[1].body.model, 'backup-fixture');
+  assert.equal(h.sent[1].options.headers.Authorization, 'Bearer backup-synthetic-token');
+  assert.deepEqual(JSON.parse(JSON.stringify(h.diagnostics)), [
+    ['naru_provider_failover', { operation: 'chat', category: 'upstream_error' }],
+    ['naru_chat_complete', { route: 'fallback', mode: 'stream' }],
+  ]);
+  assert.doesNotMatch(JSON.stringify(h.diagnostics), /PRIVATE_|https?:|Bearer|synthetic-token/);
+});
+
+test('a partially delivered primary stream never retries backup or logs a false success', async () => {
+  let step = 0;
+  const h = load({ streamFlag: '1', extraEnv: backupEnv, respond: () => new Response(new ReadableStream({ pull(controller) {
+    if (step++) controller.error(new Error('PRIVATE_STREAM_ERROR'));
+    else controller.enqueue(new TextEncoder().encode(`${JSON.stringify({ message: { content: '받은 글자' } })}\n`));
+  } })) });
+  const events = await frames(await h.call());
+  assert.deepEqual(events, [{ type: 'text', value: '받은 글자' }]);
+  assert.equal(h.sent.length, 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(h.diagnostics)), [
+    ['naru_chat_failed', { route: 'primary', stage: 'stream', category: 'invalid_response' }],
+  ]);
+});
 
 async function frames(response) {
   const text = await response.text();
