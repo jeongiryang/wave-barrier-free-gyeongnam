@@ -83,6 +83,12 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(add).toBeFocused();
     await expect(add).toBeInViewport();
     expect((await add.boundingBox())!.height).toBeGreaterThanOrEqual(48);
+    const overview = dialog.getByRole('tab', { name: en ? 'Overview' : '기본정보', exact: true });
+    await expect(overview).toHaveAttribute('aria-selected', 'true');
+    await expect(dialog.getByRole('tabpanel')).toHaveCount(1);
+    await overview.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(dialog.getByRole('tab', { name: en ? 'Access and facilities' : '이용과 편의', exact: true })).toBeFocused();
     await expect(dialog.locator(".evidence-counts")).toHaveText(en ? "Reported available 1Not reported 1Reported unavailable 1" : "확인됨 1미확인 1없음으로 기록 1");
     await expect(dialog.locator(".place-decision-summary h3")).toHaveText(en ? [
       "Facilities in the official record 1", "Facilities to check before visiting 1", "Facilities reported unavailable 1",
@@ -140,10 +146,27 @@ test("a failed participation module leaves the primary trip action usable", asyn
   await page.route("**/features/planner/components/PlaceParticipationActions.tsx*", route => route.abort("failed"));
   await prepare(page);
   const dialog = page.getByRole("dialog");
-  await dialog.locator('.place-visitor-records > summary').click();
+  await dialog.getByRole('tab', { name: '후기', exact: true }).click();
   await expect(dialog.getByRole("alert")).toContainText("상세 화면을 불러오지 못했어요");
   await expect(dialog.locator('.facility-evidence-list [data-state="confirmed"] dd')).toHaveText("출입구까지 턱이 없음");
   await dialog.getByRole("button", { name: "일정에 추가", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   expect(await savedIds(page)).toEqual(["1001"]);
+});
+
+test('switching detail tabs preserves correction text and arrival progress', async ({ page }) => {
+  await prepare(page);
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: '후기', exact: true }).click();
+  await dialog.getByLabel('현장 정보가 다른가요?', { exact: true }).fill('입구 정보를 방문 전에 확인해 주세요.');
+  await dialog.getByRole('tab', { name: '이용과 편의', exact: true }).click();
+  await dialog.locator('summary').filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
+  await dialog.getByRole('checkbox', { name: '주차 자료를 살펴봤어요', exact: true }).check();
+  await dialog.getByRole('tab', { name: '기본정보', exact: true }).click();
+  const inquiryEntry = dialog.locator('.place-detail-panel:not([hidden]) > .place-inquiry-entry');
+  expect((await inquiryEntry.boundingBox())!.height).toBeLessThan(220);
+  await dialog.getByRole('tab', { name: '후기', exact: true }).click();
+  await expect(dialog.getByLabel('현장 정보가 다른가요?', { exact: true })).toHaveValue('입구 정보를 방문 전에 확인해 주세요.');
+  await dialog.getByRole('tab', { name: '이용과 편의', exact: true }).click();
+  await expect(dialog.getByRole('checkbox', { name: '주차 자료를 살펴봤어요', exact: true })).toBeChecked();
 });

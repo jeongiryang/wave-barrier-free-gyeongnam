@@ -18,6 +18,7 @@ test("delayed detail content cannot move arrival controls during their first cli
     await expect(preview).toHaveCount(0);
     await expect(dialog.getByRole("button", { name: "일정에 추가", exact: true })).toBeEnabled();
     release();
+    await dialog.getByRole('tab', { name: '이용과 편의', exact: true }).click();
     await preview.click();
     const facilities = dialog.getByRole("button", { name: "3. 시설", exact: true });
     await facilities.click();

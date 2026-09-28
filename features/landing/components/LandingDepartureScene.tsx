@@ -1,4 +1,5 @@
 "use client";
+import LandingFeatureLinks from './LandingFeatureLinks';
 import LandingStoryDialogue from "./LandingStoryDialogue";
 import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
@@ -12,7 +13,7 @@ const items = [
 export default function LandingDepartureScene() {
   const en = useSitePreferences().locale === "en";
   return <section id="departure" tabIndex={-1} className="night-discover-card night-discover-info" aria-labelledby="departure-scene-title" data-land-reveal>
-    <ul className="horizon-checks" aria-label={en ? "What to recheck" : "출발 전 다시 살펴볼 정보"}>{items.map(item => <li key={item.ko}><span className="horizon-check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.path} /></svg></span><span>{en ? item.en : item.ko}</span></li>)}</ul>
+    <div className="departure-icon-directory"><LandingFeatureLinks /><ul className="horizon-checks" aria-label={en ? "What to recheck" : "출발 전 다시 살펴볼 정보"}>{items.map(item => <li key={item.ko}><span className="horizon-check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.path} /></svg></span><span>{en ? item.en : item.ko}</span></li>)}</ul></div>
     <div className="night-info-copy night-discover-copy">
       <LandingStoryDialogue speaker="naru">떠나기 전에 날씨와 이동 방법도 확인해 두자.</LandingStoryDialogue><p className="horizon-eyebrow">{en ? "BEFORE YOU GO" : "출발하기 전, 한 번 더"}</p>
       <h2 id="departure-scene-title">{en ? "A lighter heart." : "여행을 더 편하게,"}<br /><em>{en ? "One more check." : "필요한 정보를 한곳에"}</em></h2>

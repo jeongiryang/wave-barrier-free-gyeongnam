@@ -50,6 +50,7 @@ export type MeasurementMode = "POLYLINE" | "CIRCLE" | "POLYGON";
 
 export type RouteMapProps = {
   origin: RoutePoint;
+  originLabel?: string;
   places: MapPlace[];
   route: RouteAlternative | null;
   itineraryRoutes?: RouteAlternative[];

@@ -14,6 +14,7 @@ async function openParking(page: Page) {
   await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.locator('.simple-place-row h3 button').first().click();
   const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: /^(이용과 편의|Access and facilities)$/ }).click();
   await dialog.locator('summary').filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
   return dialog.getByRole('region', { name: '주변 주차장', exact: true });
 }

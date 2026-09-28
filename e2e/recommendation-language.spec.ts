@@ -38,7 +38,7 @@ async function prepare(page: Page, locale: "ko" | "en" = "en") {
   const trigger = page.locator('.simple-place-row h3 button');
   await trigger.click();
   await expect(page.getByRole("dialog").getByRole("heading", { level: 2 })).toBeFocused();
-  await page.locator(".place-visitor-records > summary").click();
+  await page.getByRole('tab', { name: locale === 'en' ? 'Visitor stories' : '후기', exact: true }).click();
   return trigger;
 }
 
@@ -53,6 +53,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const dialog = page.getByRole("dialog");
     await expect(dialog).toContainText("Visitor stories are not translated");
+    await dialog.getByRole('tab', { name: 'Access and facilities', exact: true }).click();
     await expect(dialog.getByRole("group", { name: "Official information coverage" })).toHaveText(/Reported available 1Not reported 1Reported unavailable 1/);
     await expect(dialog.locator('.facility-evidence-list [data-state="confirmed"]')).toHaveText("Access pathReported available주출입구까지 평탄한 접근로");
     await expect(dialog.locator('.facility-evidence-list [data-state="negative"]')).toHaveText("ElevatorReported unavailable승강기 없음");
@@ -62,6 +63,7 @@ for (const theme of ["light", "dark"] as const) {
     const evidence = dialog.locator("details").filter({ has: page.getByText("Source, retrieval time and method", { exact: true }) });
     await expect(evidence).toContainText(place.source);
     await expect(evidence).toContainText("Retrieval time is not the provider's facility update date");
+    await dialog.getByRole('tab', { name: 'Visitor stories', exact: true }).click();
     await expect(dialog.locator(".place-community-empty")).toContainText("There are no public visitor stories");
     await expect(dialog.getByRole("region", { name: "Visitor stories about this place", exact: true })).not.toContainText(/[가-힣]/);
     await expect(dialog.getByRole("link", { name: /Visitor reviews and photos/ })).toHaveAttribute("target", "_blank");
@@ -69,39 +71,21 @@ for (const theme of ["light", "dark"] as const) {
     await expect(dialog.getByRole("button", { name: "Report a correction" })).toBeDisabled();
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     await page.screenshot({ path: test.info().outputPath(`evidence-${theme}.png`) });
-    await dialog.getByRole("textbox").scrollIntoViewIfNeeded();
-    const arrivalSummary = dialog.locator('summary').filter({ hasText: /^주차·입구·시설 미리보기$/ });
-    await expect(arrivalSummary).toBeVisible();
-    const audioSummary = dialog.locator('.place-audio-guide > summary');
-    await expect(audioSummary).toBeVisible();
+    await dialog.getByRole('tab', { name: 'Access and facilities', exact: true }).click();
+    await expect(dialog.locator('.place-review-arrival > summary')).toBeVisible();
+    await dialog.getByRole('tab', { name: 'Overview', exact: true }).click();
+    await expect(dialog.locator('.place-audio-guide > summary')).toBeVisible();
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
-    await page.screenshot({ path: test.info().outputPath(`participation-${theme}.png`) });
     if (isMobile) {
-    await dialog.getByRole("button", { name: "Close", exact: true }).focus();
-    await page.keyboard.press("Shift+Tab");
-    await expect(dialog.getByRole("button", { name: "Close this dialog", exact: true })).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
-    await expect(audioSummary).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
-    await expect(arrivalSummary).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
-    await expect(dialog.getByRole('link', { name: 'Information guide (new tab)', exact: true })).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
-    await expect(dialog.getByRole('button', { name: /Make an inquiry card/ })).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
-    await expect(dialog.getByRole("textbox")).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(dialog.getByRole('button', { name: /Make an inquiry card/ })).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(dialog.getByRole('link', { name: 'Information guide (new tab)', exact: true })).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(arrivalSummary).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(audioSummary).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(dialog.getByRole("button", { name: "Close this dialog", exact: true })).toBeFocused();
-    await page.keyboard.press("Tab");
-    await expect(dialog.getByRole("button", { name: "Close", exact: true })).toBeFocused();
+      await dialog.getByRole('tab', { name: 'Overview', exact: true }).focus();
+      await page.keyboard.press('End');
+      await expect(dialog.getByRole('tab', { name: 'Visitor stories', exact: true })).toBeFocused();
+      await expect(dialog.getByRole('tabpanel')).toHaveCount(1);
+      await dialog.getByRole('button', { name: 'Close', exact: true }).focus();
+      await page.keyboard.press('Shift+Tab');
+      await expect(dialog.getByRole('button', { name: 'Close this dialog', exact: true })).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
     }
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();
@@ -175,6 +159,7 @@ test("a failed visitor story module leaves facility evidence and a community alt
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("status").filter({ hasText: "Visitor stories couldn't open here" })).toBeVisible();
   await expect(dialog.getByRole("link", { name: "Open community", exact: true })).toHaveAttribute("href", /placeId=3003/);
+  await dialog.getByRole('tab', { name: 'Access and facilities', exact: true }).click();
   await expect(dialog.getByRole("region", { name: "Facilities in the official record 1" })).toContainText("Access pathReported available");
   await expect(dialog.getByRole("button", { name: "Add to itinerary", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");

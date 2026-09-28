@@ -76,10 +76,13 @@ test('축제 현장 편의 지도는 공식 응답의 위치와 같은 목록을
   await expect(dialog.getByRole('heading', { name: `${event.name} 현장 편의 정보`, exact: true })).toBeVisible();
   await expect(dialog.getByTestId('festival-amenity-map')).toBeVisible();
   await expect(dialog.locator('[data-amenity-marker="restroom"]')).toHaveCount(1);
+  await expect(dialog.getByRole('button', { name: `${event.name} · 축제 위치`, exact: true })).toBeVisible();
   await expect(dialog.locator('[data-amenity-list-id]')).toHaveCount(1);
   await expect(dialog).toContainText('직선거리 210m');
   await expect(dialog).toContainText('기준일 2026-09-15');
   await expect(dialog).toContainText('현재 운영 여부는 방문 전에 확인');
+  await dialog.getByText('출처와 이용 전 확인사항', { exact: true }).click();
+  await expect(dialog.getByText('전국공중화장실표준데이터 · 기준일 2026-09-15', { exact: true })).toBeVisible();
   await dialog.getByRole('button', { name: `${safeTextItem.name} · 등록된 공중화장실`, exact: true }).click();
   await expect(dialog.locator('.leaflet-popup-content')).toContainText(safeTextItem.name);
   await expect(dialog.locator('.leaflet-popup-content img')).toHaveCount(0);

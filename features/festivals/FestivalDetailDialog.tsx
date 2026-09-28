@@ -3,7 +3,7 @@ import NightIcon from '../../components/NightIcon';
 
 
 import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { usePlaceDialogFocus } from "../planner/hooks/usePlaceDialogFocus";
 import type { Place } from "../planner/types";
 import styles from "./FestivalDetailDialog.module.css";
@@ -50,14 +50,15 @@ export default function FestivalDetailDialog({ festival, websiteUrl, onClose, vi
   onClose: () => void;
 }) {
   const dialog = usePlaceDialogFocus(true, onClose);
+  const [failedImage, setFailedImage] = useState(false);
   const primaryUrl = websiteUrl || festival.websiteUrl || festival.officialUrl;
   return <dialog ref={dialog} className={styles.dialog} style={ui.dialog} aria-labelledby={`festival-detail-${festival.id}`} data-testid="festival-detail-dialog">
     <button type="button" className={styles.close} style={ui.close} aria-label="축제 상세 정보 닫기" onClick={onClose} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
     <div className={styles.layout} style={ui.layout}>
-      <div className={styles.poster} style={ui.poster}>
-        {festival.image
-          ? <Image src={festival.image} alt={`${festival.name} 축제 포스터`} fill sizes="(max-width: 760px) 90vw, 42vw" style={{ objectFit: "cover" }} unoptimized />
-          : <div className={styles.posterFallback} style={ui.posterFallback}>등록된 축제 포스터가 없어요.</div>}
+      <div className={styles.poster} style={{ ...ui.poster, backgroundImage: festival.image && !failedImage ? `url(${JSON.stringify(festival.image)})` : undefined }}>
+        {festival.image && !failedImage
+          ? <Image src={festival.image} alt={`${festival.name} 축제 포스터`} fill sizes="(max-width: 760px) 90vw, 42vw" className={styles.posterImage} onError={() => setFailedImage(true)} unoptimized />
+          : <div className={styles.posterFallback} style={ui.posterFallback}>{failedImage ? "사진을 불러오지 못했어요." : "등록된 축제 사진이 없어요."}</div>}
       </div>
       <section className={styles.information} style={ui.information}>
         <span style={ui.state}>{stateLabel(festival)}</span>

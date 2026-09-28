@@ -6,7 +6,7 @@ import type { FacilityMapMarker, MapPickMode, MapPlace, MapProvider, RouteAltern
 
 export type MutableRef<T> = { current: T };
 
-export type MapRenderContent = Pick<MapRendererContext, "origin" | "places" | "route" | "itineraryRoutes" | "crowdVisual" | "crowdPlace" | "facilityMarkers">;
+export type MapRenderContent = Pick<MapRendererContext, "origin" | "originLabel" | "places" | "route" | "itineraryRoutes" | "crowdVisual" | "crowdPlace" | "facilityMarkers">;
 export type MapContentController = { update(content: MapRenderContent): void; dispose(): void };
 
 export function mapContentKey({ places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers }: MapRenderContent) {
@@ -53,6 +53,7 @@ export interface MapRendererContext {
   drawingManagerRef: MutableRef<KakaoDrawingManager | null>;
   fitMapRef: MutableRef<(() => void) | null>;
   origin: RoutePoint;
+  originLabel?: string;
   places: MapPlace[];
   route: RouteAlternative | null;
   itineraryRoutes?: RouteAlternative[];

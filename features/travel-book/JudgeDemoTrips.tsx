@@ -86,15 +86,16 @@ export default function JudgeDemoTrips({ onImport }: { onImport: (input: TravelB
     } finally { setBusyId(""); }
   }
 
+  if (loading || trips.length === 0) return null;
   return <section className="travel-book-demo" aria-labelledby="travel-book-demo-title">
-    <h2 id="travel-book-demo-title">바로 시험할 시연 일정</h2>
-    <p>운영 DB에 준비한 여행 계획입니다. 장소 정보는 담을 때 공식 API에서 다시 확인하고, 내 여행에 담은 사본만 이 기기에서 편집합니다. 방문·시설 확인 완료를 뜻하지 않습니다.</p>
+    <h2 id="travel-book-demo-title">예시 여행 골라보기</h2>
+    <p>마음에 드는 일정을 담아 내 여행으로 바꿔 보세요.</p>
     {loading && <p role="status">시연 일정을 불러오는 중입니다.</p>}
     {!loading && trips.length > 0 && <div className="travel-book-demo-list">{trips.map(trip => <article key={trip.id}>
       <span>{trip.region} · {trip.placeIds.length}곳 · {Math.max(...trip.dayOffsets) + 1}일</span>
       <h3>{trip.title}</h3><p>{trip.note}</p>
       <small>선택한 편의 조건: {trip.profileKeys.map(key => facilityLabel(key)).join(" · ") || "없음"} · 현장 확인 전</small>
-      <button type="button" disabled={Boolean(busyId)} onClick={() => void importTrip(trip)}>{busyId === trip.id ? "공식 장소 확인 중…" : "내 여행에 사본 담기"}</button>
+      <button type="button" disabled={Boolean(busyId)} onClick={() => void importTrip(trip)}>{busyId === trip.id ? "공식 장소 확인 중…" : "이 여행 담기 →"}</button>
     </article>)}</div>}
     {!loading && !trips.length && !notice && <p>현재 준비된 시연 일정이 없습니다.</p>}
     <p role="status" aria-live="polite">{notice}</p>

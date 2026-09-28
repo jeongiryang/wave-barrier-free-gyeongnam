@@ -78,13 +78,13 @@ export async function renderLeafletMap(
   let venueMarkers: Array<{ marker: import("leaflet").Marker; id: string }> = [];
   const originIcon = L.divIcon({
     className: "wave-map-icon origin",
-    html: "<span>출발</span>",
-    iconSize: [46, 46],
-    iconAnchor: [23, 23],
+    html: `<span class="map-origin-name">출발 · ${escapeMapHtml(context.originLabel || "출발지")}</span>`,
+    iconSize: [160, 44],
+    iconAnchor: [80, 22],
   });
-  L.marker([origin.lat, origin.lng], { icon: originIcon, title: "출발지" })
+  L.marker([origin.lat, origin.lng], { icon: originIcon, title: context.originLabel || "출발지" })
     .addTo(map)
-    .bindPopup("<strong>출발지</strong>");
+    .bindPopup(`<strong>${escapeMapHtml(context.originLabel || "출발지")}</strong>`);
   bounds.push([origin.lat, origin.lng]);
   for (const place of places) {
     const lat = Number(place.mapY), lng = Number(place.mapX);

@@ -101,6 +101,8 @@ html:root body .wave-night .community-card-meta time{padding:4px 8px;border-radi
 
 /* Shared photo-card treatment: text-sized translucent blue glass, no full-width dark panel. */
 html:root body .wave-night :is(.community-card-copy>h3,.community-card-copy>p,.community-card-footer>span,.community-editorial-grid>article>div>:is(h3,p,small,a),.simple-place-heading,.simple-place-copy,.rich-card>section>:is(h3,p,small),.festival-card-heading>h2,.festival-card-copy>:is(p,small),.official-exploration-card>:is(h3,p),.night-course-card>div>:is(strong,p,small),.community-card-meta time,.simple-stop>div>:is(h3,p),.simple-stop-details>p),html:root body .scenic-page :is(.journey-place-copy>div,.night-discover-photos>a>span,.night-festival-preview-cards>a>div,.simple-region-link>div){width:fit-content;max-width:100%;box-sizing:border-box;background:#1036500d!important;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);padding:6px 10px;border-radius:10px;color:#fff;text-shadow:0 1px 3px #041b2db3}
+/* Festival photos stay clear until the pointer hovers over the card. */
+html:root body .wave-night .festival-card :is(.festival-card-heading>h2,.festival-card-copy>p,.festival-card-copy>small){backdrop-filter:none;-webkit-backdrop-filter:none}
 html:root body .wave-night .simple-place-row :is(.simple-place-heading,.simple-place-copy){width:fit-content;max-width:100%;padding:6px 10px;border-radius:10px}
 html:root body .wave-night .simple-place-row .simple-place-copy{margin-top:4px}
 html:root body .wave-night .community-card-copy>h3{margin-bottom:6px}
@@ -308,12 +310,13 @@ html:root body .wave-night .simple-place-row>.place-card-actions :is(.place-card
 }
 
 /* A soft photograph and lower contrast layer keep every photo card readable. */
-html:root body .wave-night :is(.simple-place-photo,.rich-card>.smart-spot-image,.official-exploration-photo,.community-list:not([data-layout=compact]) .community-story-cover,.community-editorial-grid .editorial-photo,.festival-card-photo,.night-course-card>span) img{filter:blur(2px) brightness(.84);transform:scale(1.025)}
+html:root body .wave-night :is(.simple-place-photo,.rich-card>.smart-spot-image,.official-exploration-photo,.community-list:not([data-layout=compact]) .community-story-cover,.community-editorial-grid .editorial-photo,.night-course-card>span) img{filter:blur(2px) brightness(.84);transform:scale(1.025)}
+html:root body .wave-night .festival-card .festival-card-photo img{filter:none;transform:none}
 html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,.rich-card,.official-exploration-card,.night-course-card)::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(transparent 20%,#071e32a6 100%)}
 /* Photo-led cards share the same reading treatment on hover and keyboard focus. */
 @media (hover:hover) and (pointer:fine){
   html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,.rich-card,.official-exploration-card,.night-course-card) img{transition:filter .24s ease,transform .3s ease}
-  html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,.rich-card,.official-exploration-card,.night-course-card):is(:hover,:focus-within) img{filter:blur(6px) brightness(.76);transform:scale(1.04)}
+  html:root body .wave-night :is(.community-editorial-grid>article,.rich-card,.official-exploration-card,.night-course-card):is(:hover,:focus-within) img{filter:blur(6px) brightness(.76);transform:scale(1.04)}
 }
 @media(prefers-reduced-motion:reduce){html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,.rich-card,.official-exploration-card,.night-course-card) img{transition:none}}
 /* Community cards: keep the photo readable at rest, then reveal detail on hover/focus. */

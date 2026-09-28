@@ -29,6 +29,7 @@ test('a place restroom action mounts Naru and preserves the requested stop on fi
   await expect(page.locator('dialog.naru-panel')).toHaveCount(0);
   await page.locator('.simple-place-row h3 button').filter({ hasText: '경남도립미술관' }).click();
   const detail = page.locator('dialog.place-modal');
+  await detail.getByRole('tab', { name: /^(이용과 편의|Access and facilities)$/ }).click();
   await detail.locator('summary').filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
   await detail.getByRole('button', { name: '3. 시설', exact: true }).click();
   await detail.getByRole('button', { name: '주변 공중화장실', exact: true }).click();

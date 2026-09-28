@@ -8,7 +8,7 @@ import { plannerJson } from '../services/api';
 
 type Story = { id: string; title: string; audioTitle: string; audioUrl: string; script: string; playTime: string };
 const SpatialAudio=lazy(()=>import('./SpatialAudio'));
-function AudioStory({ story, mode }: { story: Story; mode: AudioGuideMode }) {
+function AudioStory({ story, mode, expanded = false }: { story: Story; mode: AudioGuideMode; expanded?: boolean }) {
   const [failed, setFailed] = useState(false);
   const audio=useRef<HTMLAudioElement|null>(null);
   const keySentences = audioGuideKeySentences(story.script);
@@ -18,12 +18,12 @@ function AudioStory({ story, mode }: { story: Story; mode: AudioGuideMode }) {
     {failed && <p role="alert">음원에 연결하지 못했어요. 대본으로 바꾸거나 재생을 다시 시도해 주세요.</p>}
     {mode === 'text' && <div className="place-guide-script" role="region" aria-label={`${story.audioTitle} 전체 대본`} tabIndex={0}>{story.script || '제공된 대본이 없어요.'}</div>}
     {mode === 'easy' && <div className="place-guide-script easy" role="region" aria-label={`${story.audioTitle} 핵심 문장`} tabIndex={0}>{keySentences.length ? <ol>{keySentences.map((sentence, index) => <li key={`${story.id}:${index}`}>{sentence}</li>)}</ol> : <p>제공된 대본이 없어요.</p>}<small>Odii 원문에서 앞부분의 핵심 문장만 줄여 보여줍니다. 새로운 사실을 덧붙이지 않습니다.</small></div>}
-    {mode === 'audio' && <details><summary>대본도 보기</summary><p tabIndex={0}>{story.script || '제공된 대본이 없어요.'}</p></details>}
+    {mode === 'audio' && (expanded ? <div className="place-guide-script" role="region" aria-label={`${story.audioTitle} 전체 대본`} tabIndex={0}>{story.script || '제공된 대본이 없어요.'}</div> : <details><summary>대본도 보기</summary><p tabIndex={0}>{story.script || '제공된 대본이 없어요.'}</p></details>)}
   </article>;
 }
 
-export default function PlaceAudioGuide({ id, transcript = false, guidance }: { id: string; transcript?: boolean; guidance?: GuidancePreferences }) {
-  const [open, setOpen] = useState(transcript), [version, setVersion] = useState(0);
+export default function PlaceAudioGuide({ id, transcript = false, guidance, expanded = false }: { id: string; transcript?: boolean; guidance?: GuidancePreferences; expanded?: boolean }) {
+  const [open, setOpen] = useState(transcript || expanded), [version, setVersion] = useState(0);
   const preferredMode = transcript ? 'text' : audioGuideModeForPreferences(guidance);
   const [selectedMode, setSelectedMode] = useState<AudioGuideMode | null>(null);
   const mode = selectedMode || preferredMode;
@@ -41,11 +41,12 @@ export default function PlaceAudioGuide({ id, transcript = false, guidance }: { 
     }, 0);
     return () => { clearTimeout(timer); controller.abort(); };
   }, [open, id, version]);
-  return <details className="place-audio-guide" open={open} onToggle={event => setOpen(event.currentTarget.open)}><summary>이 장소의 음성·대본 해설</summary>
-    {open && <fieldset className="place-guide-modes"><legend>해설 방식</legend>{([['audio','소리로 듣기'],['text','대본 읽기'],['easy','쉬운 설명']] as const).map(([value, label]) => <button type="button" key={value} aria-pressed={mode === value} onClick={() => setSelectedMode(value)}>{label}</button>)}</fieldset>}
-    {loading ? <LoadingState>Odii 해설과 대본을 확인하고 있어요.</LoadingState> : error ? <div role="alert"><p>{error}</p><button type="button" onClick={() => setVersion(value => value + 1)}>다시 확인</button></div> : result && <>
-      {result.stories.length ? result.stories.map((story, index) => <AudioStory key={`${story.id}:${index}`} story={story} mode={mode} />) : <p>이 장소와 일치하는 Odii 해설은 아직 확인하지 못했어요. 장소의 운영 정보와 편의 안내는 계속 볼 수 있습니다.</p>}
+  const Container = expanded ? "section" : "details";
+  return <Container className="place-audio-guide" open={expanded ? undefined : open} onToggle={event => { if (!expanded) setOpen((event.currentTarget as HTMLDetailsElement).open); }}>{expanded ? <h3><span aria-hidden="true">♫ </span>음성·대본 해설</h3> : <summary>이 장소의 음성·대본 해설</summary>}
+    {open && (!expanded || Boolean(result?.stories.length)) && <fieldset className="place-guide-modes"><legend>해설 방식</legend>{([['audio','소리로 듣기'],['text','대본 읽기'],['easy','쉬운 설명']] as const).map(([value, label]) => <button type="button" key={value} aria-pressed={mode === value} onClick={() => setSelectedMode(value)}>{label}</button>)}</fieldset>}
+    {loading ? <LoadingState>Odii 해설과 대본을 확인하고 있어요.</LoadingState> : error ? <div role="alert"><p>{error}</p>{!expanded && <button type="button" onClick={() => setVersion(value => value + 1)}>다시 확인</button>}</div> : result && <>
+      {result.stories.length ? result.stories.map((story, index) => <AudioStory key={`${story.id}:${index}`} story={story} mode={mode} expanded={expanded} />) : <p>이 장소와 일치하는 Odii 해설은 아직 확인하지 못했어요. 장소의 운영 정보와 편의 안내는 계속 볼 수 있습니다.</p>}
       <small>한국관광공사 Odii · {evidenceDate(result.checkedAt)} 확인</small>
     </>}
-  </details>;
+  </Container>;
 }

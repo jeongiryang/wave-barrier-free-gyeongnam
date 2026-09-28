@@ -7,7 +7,7 @@ function FeatureContents({ feature }: { feature: LandingFeature }) {
 
 export default function LandingFeatureList() {
   return <section id="features" className="landing-features simple-section" aria-labelledby="landing-features-title" tabIndex={-1} lang="ko">
-    <header className="simple-section-heading" data-land-reveal><h2 id="landing-features-title">WAVE로 할 수 있는 일</h2></header>
+    <header className="simple-section-heading" data-land-reveal><h2 id="landing-features-title">WAVE로 할 수 있는 일?</h2></header>
     <div className="landing-feature-grid" data-land-reveal>{landingFeatures.map(feature => feature.href
       ? <Link className="landing-feature-card" href={feature.href} key={feature.id}><FeatureContents feature={feature} /></Link>
       : <article className="landing-feature-card" key={feature.id}><FeatureContents feature={feature} /></article>)}</div>

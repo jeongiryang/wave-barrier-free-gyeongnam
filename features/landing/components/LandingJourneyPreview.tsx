@@ -11,7 +11,7 @@ const steps = ['여행지 고르기', '일정에 담기', '지도에서 확인']
 const icons = ['pin', 'plus', 'map'];
 
 export default function LandingJourneyPreview({ en }: { en: boolean }) {
-  const { ref, ready, frame, paused, reduced, toggle, select } = usePreviewPlayback(regions.length, 4000, false);
+  const { ref, ready, frame, paused, reduced, select } = usePreviewPlayback(regions.length, 4000, false);
   const [stage, setStage] = useState(0);
   const region = regions[frame], photo = regionShowcasePhotos[region];
   const point = regionBoundaries.find(area => area.name === region)!;
@@ -34,9 +34,8 @@ export default function LandingJourneyPreview({ en }: { en: boolean }) {
     return () => { cancelAnimationFrame(raf); window.removeEventListener('scroll', move); };
   }, [ref, paused, reduced]);
   const choose = (index: number) => { select(index); setStage(0); };
-  const advance = (next: number) => { select(frame); setStage(next); };
   return <div className="wave-journey-demo" ref={ref} data-stage={stage} data-region={region} data-reduced={reduced} aria-label="여행 설계 미리보기">
-    <header><h2>{en ? 'Places become your journey' : '마음에 든 풍경을, 내 여행으로'}</h2>{!reduced && <button type="button" disabled={!ready} onClick={toggle} data-icon-action="" title={paused ? '재생' : '일시정지'} aria-label={paused ? '여행 예시 재생' : '여행 예시 일시정지'}><NightIcon name={paused ? 'play' : 'pause'} size={20}/></button>}</header>
+    <header><h2>{en ? 'Places become your journey' : '마음에 든 풍경을, 내 여행으로'}</h2></header>
     <div className="journey-demo-steps" aria-label="여행 예시 단계">{steps.map((label,i)=><span key={label}><NightIcon name={icons[i]} size={18}/>{label}</span>)}</div>
     <div className="journey-demo-grid">
       <div className="journey-map-preview">
@@ -54,11 +53,10 @@ export default function LandingJourneyPreview({ en }: { en: boolean }) {
             </g>
           </svg>
         </div>
-        <button className="journey-map-zoom" type="button" data-icon-action="" disabled={!ready} aria-label={stage===2?'예시 지도 축소':'예시 지도에서 확인'} title={stage===2?'지도 축소':'지도 확대'} onClick={()=>advance(stage===2?0:2)}><NightIcon name={stage===2?'close':'search'} size={20}/></button>
       </div>
       <div className="journey-destination">
         <Link className="journey-photo-link" href={`/planner?region=${encodeURIComponent(region)}`} aria-label={`${region} 여행 만들기`}><img key={region} className="journey-place-photo" src={photo.image} alt={photo.title} width="800" height="600" loading="lazy"/></Link>
-        <div className="journey-place-copy"><div><span>{region}</span><h3>{photo.title}</h3></div><button type="button" disabled={!ready} data-icon-action="" title={stage>0?'일정에 담음':'일정에 담기'} aria-label={`${photo.title} 예시 일정에 담기`} aria-pressed={stage>0} onClick={()=>advance(stage>0?0:1)}><NightIcon name={stage>0?'check':'plus'} size={20}/></button></div>
+        <div className="journey-place-copy"><div><span>{region}</span><h3>{photo.title}</h3></div></div>
       </div>
     </div>
     <div className="journey-region-tabs" aria-label="예시 여행 지역">{regions.map((name,i)=><button type="button" disabled={!ready} key={name} aria-pressed={name===region} onClick={()=>choose(i)}>{name}</button>)}</div>

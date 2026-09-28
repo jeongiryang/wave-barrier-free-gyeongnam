@@ -111,7 +111,7 @@ html:root body .scenic-page .night-hero-search>.wave-select{flex:1;min-width:0;w
 html:root body .scenic-page .night-hero-search .wave-select-trigger{display:block;width:100%!important;height:auto;min-width:0;min-height:44px;padding:10px 12px;border:0;border-radius:24px;background:transparent!important;color:#edf4fa;font-size:14px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Readable middle content without covering the photographs inside it. */
-html:root body .scenic-page .landing-content{width:calc(100% - 48px);max-width:1440px;margin:24px auto 48px;padding:28px 0;border-radius:28px;background:#102638f0}
+html:root body .scenic-page .landing-content{width:calc(100% - 48px);max-width:1440px;margin:24px auto 48px;padding:28px 0;border-radius:28px;background:rgba(58,44,34,.88);border:1px solid rgba(241,214,176,.16);box-sizing:border-box;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 18px 48px rgba(32,23,16,.18)}
 html:root body .scenic-page .wave-header :is(a,button){text-shadow:0 1px 5px #16364b99}
 @media(max-width:700px){html:root body .scenic-page .landing-content{width:calc(100% - 24px);padding-block:20px;border-radius:22px}}
 

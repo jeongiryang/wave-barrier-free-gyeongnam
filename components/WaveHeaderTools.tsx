@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useHeaderPopover } from "./useHeaderPopover";
 import HelpCenter from "./HelpCenter";
+import NightIcon from "./MenuActionIcon";
 import { PreferenceControls, useSitePreferences } from "./SitePreferences";
 import FooterAccountLink from "../features/auth/components/FooterAccountLink";
-import NightIcon from "./NightIcon";
+
 
 export default function WaveHeaderTools({ onNew }: { onNew?: () => void }) {
   const { locale, hydrated } = useSitePreferences();
@@ -47,7 +48,7 @@ export default function WaveHeaderTools({ onNew }: { onNew?: () => void }) {
       if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget) && !document.querySelector(".help-tour-dialog")) setOpen(false);
     }}>
       <button type="button" className="wave-support-trigger" ref={trigger} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(value => !value)} aria-label={en ? "WAVE support menu" : "WAVE 이용 안내 메뉴"} title={en ? "Support" : "이용 안내"}><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
-      {(open || tourActive) && <div ref={panel} popover="auto" id={panelId} className="account-popover wave-support-panel header-dropdown"><div className="support-shortcuts"><Link href="/planner#places" aria-label={en ? "Find places" : "여행지 검색"} title={en ? "Find places" : "여행지 검색"}><NightIcon name="search"/></Link><Link href="/travel-book" aria-label={en ? "My trips" : "내 여행"} title={en ? "My trips" : "내 여행"}><NightIcon name="bookmark"/></Link><Link href="/guide" aria-label={en ? "How to use WAVE" : "사용 가이드"} title={en ? "How to use WAVE" : "사용 가이드"}><NightIcon name="info"/></Link><Link href="/demo" aria-label="시연용 여행" title="시연용 여행"><NightIcon name="play"/></Link>{onNew && <button type="button" data-icon-action="" title={en ? "New trip" : "새 여행"} aria-label={en ? "New trip" : "새 여행"} onClick={() => { setOpen(false); onNew(); }}><NightIcon name="plus"/></button>}</div><div className="support-settings"><HelpCenter iconOnly /><PreferenceControls iconOnly /></div></div>}
+      {(open || tourActive) && <div ref={panel} popover="auto" id={panelId} className="account-popover wave-support-panel header-dropdown"><div className="support-shortcuts"><Link href="/planner#places" aria-label={en ? "Find places" : "여행지 검색"} title={en ? "Find places" : "여행지 검색"}><NightIcon name="search"/><span>검색</span></Link><Link href="/travel-book" aria-label={en ? "My trips" : "내 여행"} title={en ? "My trips" : "내 여행"}><NightIcon name="bookmark"/><span>내 여행</span></Link><Link href="/guide" aria-label={en ? "How to use WAVE" : "사용 가이드"} title={en ? "How to use WAVE" : "사용 가이드"}><NightIcon name="info"/><span>사용 안내</span></Link><Link href="/demo" aria-label="시연용 여행" title="시연용 여행"><NightIcon name="play"/><span>여행 체험</span></Link>{onNew && <button type="button" data-icon-action="" title={en ? "New trip" : "새 여행"} aria-label={en ? "New trip" : "새 여행"} onClick={() => { setOpen(false); onNew(); }}><NightIcon name="plus"/><span>새 여행</span></button>}</div><div className="support-settings"><HelpCenter /><PreferenceControls /></div></div>}
     </div>
     <FooterAccountLink iconOnly />
   </>;

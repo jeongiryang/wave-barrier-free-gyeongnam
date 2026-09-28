@@ -158,7 +158,7 @@ export default function FestivalExplorer() {
       <div className={`festival-grid${listView ? " night-festival-list" : ""}`} inert={pending || !current || Boolean(failure)}>{shown.map(item => <FestivalCard key={`${item.id}:${item.startDate}:${selected.join(',')}`} festival={item} selectedProfiles={selected} onOpen={openFestival} />)}</div>
       {pending && <div className="festival-grid" aria-hidden="true">{[0,1,2,3].map(id => <div className="festival-skeleton" key={id}><Spinner /></div>)}</div>}
     </section>
-    </div><NightScene kind="festival" closing><section className="night-festival-courses"><header><NightIcon name="pin"/><h2>축제와 함께 여행을 떠나보세요</h2><Link className="night-course-map-link" href="/planner" aria-label="경남 전체 지도 보기" title="경남 전체 지도 보기"><NightIcon name="map" size={22}/></Link></header><div>{shown.slice(0,3).map(item => <Link className="night-course-card" key={item.id} href={`/planner?region=${encodeURIComponent(item.city)}`}><span>{item.image && <Image src={item.image} alt="" fill sizes="120px" unoptimized/>}</span><div><strong>{item.city} 축제와 주변 여행</strong><p>{item.name}</p><small>주변 여행지 둘러보기</small></div></Link>)}{!shown.length && <Link className="night-course-empty" href="/planner">여행 지역을 고르고 나에게 맞는 코스를 만들어보세요 </Link>}</div></section>
-    <SiteFooter /></NightScene>
+    <NightScene kind="festival" closing>
+    <SiteFooter /></NightScene></div>
   </main>;
 }

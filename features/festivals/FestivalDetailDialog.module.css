@@ -7,3 +7,7 @@
   .poster { aspect-ratio: 4/3; }
   .information { padding: 28px 20px 32px !important; }
 }
+.poster { overflow:hidden;isolation:isolate;background-size:cover;background-position:center; }
+.poster::before { content:'';position:absolute;inset:-24px;background:inherit;filter:blur(22px) brightness(.65);z-index:0; }
+.poster .posterImage { position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;object-fit:contain!important;z-index:1; }
+.posterFallback { position:relative;z-index:1;background:#173549;color:#d8e9f1!important;height:100%;box-sizing:border-box; }

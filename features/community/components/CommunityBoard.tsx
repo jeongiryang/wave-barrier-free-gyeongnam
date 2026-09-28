@@ -36,5 +36,5 @@ export default function CommunityPage({initialPlace=null,fieldReportsEnabled=fal
  {savedOpen&&<div id="community-saved-posts"><CommunitySavedPosts/></div>}
  <CommunityPostList board={board} layout={layout}/>
  </div></div>
- <div className="community-guides"><CommunityTravelStories layout={layout}/></div></section><NightScene kind="community" closing><section className="community-closing-invite"><h2>다음 여행도, 함께 나눠요</h2><p>다녀온 이야기와 궁금한 여행을 들려주세요.</p><a className="wave-gradient-button" href={board.writeHref}>여행 이야기 쓰기</a></section><SiteFooter/></NightScene></main>;
+ <div className="community-guides"><CommunityTravelStories layout={layout}/></div><NightScene kind="community" closing><section className="community-closing-invite"><h2>다음 여행도, 함께 나눠요</h2><p>다녀온 이야기와 궁금한 여행을 들려주세요.</p><a className="wave-gradient-button" href={board.writeHref}>여행 이야기 쓰기</a></section><SiteFooter/></NightScene></section></main>;
 }

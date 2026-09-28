@@ -95,6 +95,13 @@ test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편
   await expect(proposal).toContainText('09-20 · 합성 바다 전시관');
   await expect(proposal).toContainText('09-21 · 합성 숲 문화관');
   await expect(proposal).toContainText('방문 전 확인: 승강기 이용 가능 여부');
+  await expect(proposal.locator('.naru-journey-day')).toHaveCount(2);
+  await expect(proposal.locator('.naru-journey-stop')).toHaveCount(2);
+  await expect(proposal.getByRole('heading', { name: '1일차 09월 20일', exact: true })).toBeVisible();
+  const evidence = proposal.locator('.naru-place-evidence').first();
+  await expect(evidence).not.toHaveAttribute('open', '');
+  await evidence.getByText('추천 이유와 출처', { exact: true }).click();
+  await expect(evidence.getByText('합성 관광 데이터로 확인한 일정', { exact: true })).toBeVisible();
   expect(await snapshot(page)).toEqual(before);
   await proposal.getByRole('button', { name: '미확인 항목을 살펴보고 일정에 반영', exact: true }).click();
   await expect(proposal.getByRole('button', { name: '내 일정에 반영했어요', exact: true })).toBeDisabled();

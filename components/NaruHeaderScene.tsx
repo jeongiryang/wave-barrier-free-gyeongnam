@@ -3,12 +3,6 @@ import HandwrittenText from './HandwrittenText';
 import NaruDialogueProfile from './NaruDialogueProfile';
 import { useEffect, useRef, useState } from 'react';
 
-const dialogue = [
-  ['꼬마 여행자', '나루야, 공룡 보러 가고 싶어!'],
-  ['나루', '좋아! 경남의 공룡 여행지를 찾아보자.'],
-  ['꼬마 여행자', '걷다가 힘들면 쉬어 갈 수 있어?'],
-  ['나루', '그럼! 쉬는 곳과 편의정보도 함께 확인하자.'],
-];
 /** One welcome sequence; the composed scenery keeps a fixed camera and character scale. */
 export default function NaruHeaderScene() {
   const root = useRef<HTMLElement>(null);
@@ -43,7 +37,5 @@ export default function NaruHeaderScene() {
         ['planner-harbor-map-desktop-v1.webp','planner-harbor-map-mobile-v1.webp'],
       ].map(([desktop,mobile], index) => <picture key={desktop}><source media="(max-width:700px)" srcSet={`/naru/${mobile}`}/><img src={`/naru/${desktop}`} alt="" width="1536" height="1024" className={scene === index ? 'is-current' : ''} onLoad={markReady} /></picture>)}
     </div>
-    <h2><HandwrittenText text="나루와 함께해요" playing={visible && foreground && ready} /></h2>
-    <div className="naru-welcome-dialogue" role="group" aria-label="여행 대화 예시">{dialogue.slice(pair, pair + 2).map(([, text], i) => <p key={text} hidden={shown <= pair + i}><NaruDialogueProfile speaker={i ? 'naru' : 'child'} /><span className="naru-welcome-copy">{text}</span></p>)}</div>
   </section>;
 }

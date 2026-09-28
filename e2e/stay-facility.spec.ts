@@ -37,6 +37,7 @@ async function openFacilityStep(page: Page, place: Place) {
   await page.locator(".simple-place-row h3 button").click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { level: 2 })).toBeFocused();
+  await dialog.getByRole('tab', { name: /^(이용과 편의|Access and facilities)$/ }).click();
   await dialog.locator("summary").filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
   await dialog.getByRole("button", { name: "3. 시설", exact: true }).click();
   return dialog;
@@ -81,6 +82,7 @@ test("확인된 편의가 전혀 없으면 등록된 시설 정보가 없다는 
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await page.locator(".simple-place-row h3 button").click();
   const dialog = page.getByRole("dialog");
+  await dialog.getByRole('tab', { name: /^(이용과 편의|Access and facilities)$/ }).click();
   await dialog.locator("summary").filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
   await dialog.getByRole("button", { name: "3. 시설", exact: true }).click();
   const detail = dialog.locator(".stay-facility-detail");

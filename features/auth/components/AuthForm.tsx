@@ -28,7 +28,7 @@ export default function AuthForm({ mode, returnTo, kakaoEnabled = false, publicP
 
     <h1 id="auth-title">{auth.registering ? "우리의 여행을 시작해요." : "여행을 이어가세요."}</h1>
     {kakaoEnabled && <KakaoLogin returnTo={returnTo} />}
-    {!kakaoEnabled && publicPreview && <div className="kakao-auth"><p>미리보기에서는 로그인할 수 없어요.</p><a className="auth-primary-link" href={`https://wave-barrier-free-gyeongnam.vercel.app/login?next=${encodeURIComponent(auth.next)}`}>운영 WAVE에서 로그인</a></div>}
+    {!kakaoEnabled && publicPreview && <div className="kakao-auth"><a className="auth-primary-link" href={`https://wave-barrier-free-gyeongnam.vercel.app/login?next=${encodeURIComponent(auth.next)}`}>운영 WAVE에서 로그인</a></div>}
     <HydratedAuthForm onSubmit={auth.submit} onInput={auth.clearError} noValidate>
       {auth.registering && <div className="auth-field"><label htmlFor="auth-name">표시 이름</label><input id="auth-name" name="name" autoComplete="name" placeholder="여행에서 사용할 이름" minLength={2} maxLength={40} required {...fieldProps("name", "auth-name-help")} /><small id="auth-name-help">2–40자로 입력해 주세요. 게시글과 댓글에 표시됩니다.</small></div>}
       <div className="auth-field"><label htmlFor="auth-email">{auth.registering ? "이메일" : "이메일 또는 ID"}</label><div className="auth-input-icon"><FieldIcon kind="email" /><input id="auth-email" name="email" type={auth.registering ? "email" : "text"} inputMode={auth.registering ? "email" : "text"} autoComplete="username" placeholder="hello@example.com" maxLength={254} required {...fieldProps("email")} /></div></div>

@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const assetRoot = join(root, ".vercel/output/static/assets");
 const rscRoot = join(root, "node_modules/.nitro/vite/services/rsc");
 
-// 현재 실측값에 작은 변동 여유를 둔다. 전역 CSS를 성급히 경로별로 쪼개
+// 승인된 프론트 개선에 충분한 여유를 둔다. 전역 CSS를 성급히 경로별로 쪼개
 // hydration 스타일 순서를 깨뜨리기보다, 전송비가 이 선을 넘을 때만 분할한다.
 const BUDGET = {
   // 2026-09-20: Design B landing + secondary routes + 22 reviewed team features.
@@ -41,7 +41,10 @@ const BUDGET = {
   // inquiry/checklist surfaces measure 108.12 KiB. Keep a 0.38 KiB margin.
   // 2026-09-28: requested Naru photo/address result cards replace old row rules;
   // measured 108.62 KiB. Bound this feature's CSS allowance to another 0.5 KiB.
-  cssGzipKiB: 109,
+  // 2026-09-29: Owner requested durable headroom for approved frontend work.
+  // Raise 109 -> 200 KiB; do not reshape approved UI merely to meet the old cap.
+  // This is a budget change, not a new build measurement or verification result.
+  cssGzipKiB: 200,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,

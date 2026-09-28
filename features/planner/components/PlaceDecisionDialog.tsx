@@ -15,8 +15,6 @@ function DetailsUnavailable() {
   return <p role="alert">{locale === "en" ? "These details could not load. Close this dialog and reload the page to try again. Your itinerary remains available." : "상세 화면을 불러오지 못했어요. 닫고 페이지를 새로 열어 다시 시도해 주세요. 일정은 계속 이용할 수 있습니다."}</p>;
 }
 const PlaceDecisionContent = lazy(() => import("./PlaceDecisionContent").catch(() => ({ default: DetailsUnavailable })));
-const PlaceArrivalPreview = lazy(() => import('./PlaceArrivalPreview'));
-const PlaceAudioGuide = lazy(() => import('./PlaceAudioGuide'));
 
 export type PlaceDecisionDialogProps = {
   place: Place;
@@ -44,7 +42,7 @@ function PlaceSaveAction({ saved, canSave, explorationAction, onToggleSaved, en 
       <p id="place-unknown-notice" role="status"><strong>{explorationAction.providerError ? say("편의정보 제공처에 연결하지 못했어요.", "The facility information provider could not be reached.") : say("필요한 편의가 아직 미확인이에요.", "Some required facilities are still unverified.")}</strong><br />{say("시설이 없다는 뜻은 아니에요. 방문 전에 시설에 확인해 주세요.", "Missing information does not mean a facility is absent. Your needs stay selected, and saving this candidate does not verify its facilities. Check with the venue before visiting.")}</p>
       <label><input type="checkbox" checked={acknowledged} onChange={event => setAcknowledged(event.target.checked)} aria-describedby="place-unknown-notice" /><span>{say("방문 전 확인할 후보로 담기", "Save as a candidate whose unverified facilities I will check before visiting")}</span></label>
     </div>}
-    <button type="button" className="place-save-action" data-icon-action="" title={saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")} aria-label={saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")} aria-pressed={saved} disabled={!saved && canSave === false && !(needsAcknowledgement && acknowledged)} onClick={() => onToggleSaved(needsAcknowledgement && acknowledged ? explorationAction.key : undefined)}><NightIcon name={saved ? "bookmark-remove" : "plus"} size={20}/></button>
+    <button type="button" className="place-save-action" title={saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")} aria-label={saved ? say("일정에서 빼기", "Remove from itinerary") : say("일정에 추가", "Add to itinerary")} aria-pressed={saved} disabled={!saved && canSave === false && !(needsAcknowledgement && acknowledged)} onClick={() => onToggleSaved(needsAcknowledgement && acknowledged ? explorationAction.key : undefined)}><NightIcon name={saved ? "bookmark-remove" : "plus"} size={20}/><span>{saved ? say("일정에서 빼기", "Remove from itinerary") : say("내 일정에 담기", "Add to itinerary")}</span></button>
     {!saved && canSave === false && !needsAcknowledgement && <p>{mismatch ? say("필요한 편의가 제공되지 않는 것으로 기록된 장소는 추가할 수 없어요. 다른 후보를 살펴봐 주세요.", "This place reports a required facility as unavailable and cannot be added. Please consider another candidate.") : say("현재 검색의 장소를 확인한 뒤 담을 수 있어요. 조건이나 검색 결과가 바뀌었다면 다시 찾아 이용 정보를 열어 주세요.", "Open a place from your current search before adding it. If your preferences or results changed, search again and reopen its details.")}</p>}
   </>;
 }
@@ -54,9 +52,9 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const location = place.city || region;
-  return <dialog className="place-modal native-place-dialog simple-place-pane" aria-labelledby="place-modal-title" ref={dialogRef}>
+  return <dialog className="place-modal native-place-dialog simple-place-pane place-review-pane" style={place.image ? { backgroundImage: `linear-gradient(180deg, rgba(8,24,31,.08), rgba(8,24,31,.4) 65%), url("${place.image}")` } : undefined} aria-labelledby="place-modal-title" ref={dialogRef}>
       <button className="modal-close" type="button" onClick={onClose} aria-label={en ? "Close" : "닫기"} data-icon-action="" title="닫기"><NightIcon name="close" size={20}/><span className="sr-only">닫기</span></button>
-      <div className="modal-visual" style={place.image ? { backgroundImage: `url("${place.image}")` } : undefined}><span lang={originalLanguage(location)}>{location}</span></div>
+      <div className="modal-visual" style={place.image ? { backgroundImage: `url("${place.image}")` } : undefined}><span lang={originalLanguage(location)}><NightIcon name="pin" size={14} />{location}</span></div>
       <div className="modal-body">
         <h2 id="place-modal-title" lang={originalLanguage(place.name)} tabIndex={-1}>{place.name}</h2><p lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
@@ -64,10 +62,8 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         {/* Keep controls below the lazy detail body unavailable until its layout
             exists, so loading it cannot move a preview button during a click. */}
         <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}>
-          <PlaceDecisionContent {...props} location={location} />
-          <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} onClose={onClose} onOpenRestrooms={onClose} /></Suspense></details>
+          <PlaceDecisionContent key={place.id} {...props} location={location} />
         </Suspense>
-        <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} guidance={props.guidancePreferences} /></Suspense>
         {/* 한 손 조작: 위 닫기 버튼은 습관대로 남기고, 엄지가 닿는 내용 맨 아래에도
             같은 동작의 닫기를 하나 더 둔다. 좁은 화면에서만 보이므로 768px 이상
             배치는 그대로다. 초점 순서의 마지막이며 order 로 순서를 뒤집지 않는다.
