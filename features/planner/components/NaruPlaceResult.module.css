@@ -29,11 +29,20 @@
 .photo img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
 .photo > span { display: flex; align-items: center; gap: 8px; padding: 18px; color: #edf4ff; }
 :global(html:root body .naru-panel.naru-workspace) .photo small { color: #edf4ff; font-size: 12px; }
-.info { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-width: 0; margin-top: 64px; padding: 32px 16px 16px; gap: 4px; background: linear-gradient(to bottom, #10203400, #102034d6 24px, #102034f5 100%); }
+.info { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-width: 0; margin-top: 64px; padding: 32px 16px 16px; gap: 4px; background: transparent; }
+/* Keep the photo clear; soften only the small areas directly behind text. */
+.city, .title, .address, .hint {
+  max-width: 100%;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  text-shadow: 0 1px 2px #000, 1px 0 1px #000, -1px 0 1px #000, 0 -1px 1px #000;
+}
 :global(html:root body .naru-panel.naru-workspace) .city { color: #edf4ff; font-size: 12px; font-weight: 600; }
 :global(html:root body .naru-panel.naru-workspace) button.title {
   min-height: 44px;
-  width: 100%;
+  width: fit-content;
+  min-width: 44px;
   margin: 0;
   padding: 4px 0;
   border: 0;
