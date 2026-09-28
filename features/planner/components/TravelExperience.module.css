@@ -9,3 +9,15 @@
 .fields label { display: grid; gap: 6px; }
 .fields :is(input,select) { width: 100%; padding: 8px; }
 .card { margin-block: 12px; }
+.sensoryMapFrame { position: relative; overflow: hidden; margin-block: 12px; border: 1px solid #7095b7; border-radius: 12px; background: #dce9ef; }
+.sensoryMap { width: 100%; height: clamp(260px,38vw,360px); }
+.sensoryMapStatus { position: absolute; z-index: 500; inset: 50% 16px auto; margin: 0; padding: 10px 14px; border-radius: 8px; color: #173b50; background: #f1f8fb; transform: translateY(-50%); text-align: center; }
+.sensoryMapIcon { border: 0; background: transparent; }
+.sensoryMapIcon:focus-visible { outline: 3px solid #85eaff; outline-offset: 4px; }
+.sensoryMapPin { width: 34px; height: 34px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50% 50% 50% 0; background: #276e91; color: #fff; box-shadow: 0 4px 12px #051b2e80; transform: rotate(-45deg); }
+.sensoryMapPin > span { font-size: 12px; font-weight: 800; transform: rotate(45deg); }
+.sensoryMapPinRestroom { background: #d92d20; }
+.sensoryMapPinSynthetic { border-style: dashed; }
+.sensoryMapPinSelected { box-shadow: 0 0 0 4px #74e6ff,0 5px 14px #051b2e99; }
+.sensoryMapPopup { color: #173b50; }
+.sensoryMapPopup p { margin: 6px 0 0; line-height: 1.5; }

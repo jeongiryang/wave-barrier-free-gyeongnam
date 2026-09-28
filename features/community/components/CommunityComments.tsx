@@ -5,7 +5,7 @@ import CommunityReportControl from "./CommunityReportControl";
 
 export default function CommunityComments({ detail }: { detail: ReturnType<typeof useCommunityDetail> }) {
   const {
-    comments, comment, setComment, discardCommentDraft, commentState, editingComment, setEditingComment,
+    comments, comment, setComment, commentState, editingComment, setEditingComment,
     editingContent, setEditingContent, session, submitComment, saveComment, deleteComment,
     reportingTarget, reportTarget,
   } = detail;
@@ -14,11 +14,11 @@ export default function CommunityComments({ detail }: { detail: ReturnType<typeo
     <form className="comment-form" onSubmit={submitComment} noValidate={!session?.user}>
       <label htmlFor="new-comment">댓글 남기기</label>
       <textarea id="new-comment" value={comment} onChange={(event) => setComment(event.target.value)} rows={4} minLength={2} maxLength={1000} required placeholder={session?.user ? "궁금한 점이나 직접 확인한 경험을 적어 주세요." : "로그인 후 댓글을 남길 수 있습니다."} />
-      <div><small>2자 이상 1,000자 이하</small><span>{comment && <button type="button" onClick={discardCommentDraft}>초안 지우기</button>}<button type="submit" disabled={commentState === "saving"}>{commentState === "saving" ? "등록하는 중…" : session?.user ? "댓글 등록" : "로그인하고 댓글 쓰기"}</button></span></div>
+      <div><small>2자 이상 1,000자 이하</small><span><button type="submit" disabled={commentState === "saving"}>{commentState === "saving" ? "등록하는 중…" : session?.user ? "댓글 등록" : "로그인하고 댓글 쓰기"}</button></span></div>
     </form>
     {comments.length === 0 ? <div className="comments-empty"><span aria-hidden="true">≈</span><p>아직 댓글이 없습니다.</p></div> : <ol className="comment-list">{comments.map((item) => <li key={item.id}>
       <header><strong>{item.authorName}</strong><time dateTime={new Date(item.createdAt).toISOString()}>{communityDate(item.createdAt)}</time></header>
-      {editingComment === item.id ? <div className="comment-edit"><label className="sr-only" htmlFor={`comment-${item.id}`}>댓글 수정</label><textarea id={`comment-${item.id}`} value={editingContent} onChange={(event) => setEditingContent(event.target.value)} minLength={2} maxLength={1000} rows={4} /><div><button type="button" onClick={() => { setEditingComment(null); setEditingContent(""); }}>취소</button><button type="button" onClick={() => void saveComment(item.id)} aria-label="저장" title="저장"><ActionIcon label="저장" /></button></div></div> : <p>{item.content}</p>}
+      {editingComment === item.id ? <div className="comment-edit"><label className="sr-only" htmlFor={`comment-${item.id}`}>댓글 수정</label><textarea id={`comment-${item.id}`} value={editingContent} onChange={(event) => setEditingContent(event.target.value)} minLength={2} maxLength={1000} rows={4} /><div><button type="button" onClick={() => { setEditingComment(null); setEditingContent(""); }}>취소</button><button type="button" onClick={() => void saveComment(item.id)}>저장</button></div></div> : <p>{item.content}</p>}
       {editingComment !== item.id && <footer>{item.isOwner ? <><button type="button" onClick={() => { setEditingComment(item.id); setEditingContent(item.content); }} aria-label="수정" title="수정"><ActionIcon label="수정" /></button><button type="button" onClick={() => void deleteComment(item.id)} aria-label="삭제" title="삭제"><ActionIcon label="삭제" /></button></> : <CommunityReportControl label="댓글" busy={reportingTarget === `comment:${item.id}`} onReport={(reason) => reportTarget("comment", item.id, reason)} />}</footer>}
     </li>)}</ol>}
   </section>;

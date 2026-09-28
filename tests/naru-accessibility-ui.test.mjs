@@ -33,7 +33,7 @@ test('operational fixes remain visible at their integration boundaries', async (
   assert.match(photo, /strict \|\| spotPhotoRegionMatches\(region/);
   assert.match(photo, /candidate\.titleScore >= 90 && candidate\.regionMatched/);
   assert.match(comment, /communityCommentDraftKey\(postId, userId\)/);
-  assert.match(comment, /discardCommentDraft/);
+  assert.doesNotMatch(comment, /초안 지우기/);
   assert.match(restore, /사용 방법/);
   assert.match(restore, /원본 사진과 GPS는 기기 밖으로 보내지 않습니다/);
 });

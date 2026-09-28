@@ -24,6 +24,7 @@ const paths: Record<string, string> = {
   trash: 'M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7',
   'bookmark-remove': 'M6 21V4h12v17l-6-4ZM9 9h6',
   flag: 'M5 22V3m0 0c5-4 9 4 15 0v11c-6 4-10-4-15 0',
+  alert: 'M12 8v5M12 17h.01M10.3 3.7 2.4 18a2 2 0 0 0 1.8 3h15.6a2 2 0 0 0 1.8-3L13.7 3.7a2 2 0 0 0-3.4 0Z',
   phone: 'M6 3H3c0 10 8 18 18 18v-3l-5-3-3 3a16 16 0 0 1-7-7l3-3-3-5Z',
   volume: 'M3 9h4l5-5v16l-5-5H3ZM16 8a6 6 0 0 1 0 8M19 5a10 10 0 0 1 0 14',
   sort: 'M4 5h16M4 12h11M4 19h6',

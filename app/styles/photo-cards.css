@@ -285,6 +285,9 @@ html:root body .wave-night .simple-place-row>.place-card-actions{
   align-items:center;
   gap:8px;
   margin:0;
+  padding:0;
+  background:transparent;
+  backdrop-filter:none;
 }
 html:root body .wave-night .simple-place-row>.place-card-actions .place-save-feedback{
   position:absolute;
@@ -324,6 +327,7 @@ html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,
   html:root body .wave-night .community-list[data-layout=cards] article{
     position:relative;
     isolation:isolate;
+    height:clamp(360px,32vw,480px);
   }
   html:root body .wave-night .community-list[data-layout=cards] article::after{
     content:"";
@@ -336,7 +340,7 @@ html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,
     transition:background .24s ease;
   }
   html:root body .wave-night .community-list[data-layout=cards] .community-story-cover :is(.smart-spot-image,img){
-    transition:filter .24s ease,transform .3s ease;
+    transition:filter .24s ease;
   }
   html:root body .wave-night .community-list[data-layout=cards] .community-card-copy>p,
   html:root body .wave-night .community-list[data-layout=cards] .community-report-tag{
@@ -344,8 +348,7 @@ html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,
     margin-top:0;
     overflow:hidden;
     opacity:0;
-    transform:translateY(8px);
-    transition:max-height .24s ease,margin .24s ease,opacity .18s ease,transform .24s ease;
+    transition:max-height .24s ease,margin .24s ease,opacity .18s ease;
   }
   html:root body .wave-night .community-list[data-layout=cards] .community-card-footer{
     max-height:0;
@@ -353,34 +356,29 @@ html:root body .wave-night :is(.community-editorial-grid>article,.festival-card,
     overflow:hidden;
     visibility:hidden;
     opacity:0;
-    transform:translateY(8px);
-    transition:max-height .24s ease,padding .24s ease,opacity .18s ease,transform .24s ease,visibility 0s linear .24s;
+    transition:max-height .24s ease,padding .24s ease,opacity .18s ease,visibility 0s linear .24s;
   }
   html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within)::after{
     background:linear-gradient(180deg,rgba(3,17,31,.34),rgba(3,17,31,.52) 46%,rgba(3,17,31,.82));
   }
   html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-story-cover :is(.smart-spot-image,img){
     filter:blur(6px) brightness(.76);
-    transform:scale(1.04);
   }
   html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-card-copy>p{
     max-height:6.2em;
     margin-top:10px;
     opacity:1;
-    transform:none;
   }
   html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-report-tag{
     max-height:4em;
     margin-top:7px;
     opacity:1;
-    transform:none;
   }
   html:root body .wave-night .community-list[data-layout=cards] article:is(:hover,:focus-within) .community-card-footer{
     max-height:64px;
     padding-bottom:16px;
     visibility:visible;
     opacity:1;
-    transform:none;
     transition-delay:0s;
   }
   /* A storage failure must leave its explanation and retry button reachable. */
