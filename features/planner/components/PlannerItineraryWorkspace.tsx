@@ -108,7 +108,7 @@ export default function PlannerItineraryWorkspace(props: PlannerItineraryWorkspa
     window.addEventListener('hashchange', openLinkedTools);
     return () => window.removeEventListener('hashchange', openLinkedTools);
   }, []);
-  useEffect(() => { const media = matchMedia('(min-width:1024px)'); const update = () => setDesktop(media.matches); update(); media.addEventListener('change', update); return () => media.removeEventListener('change', update); }, []);
+  useEffect(() => { const media = matchMedia('(min-width:900px)'); const update = () => setDesktop(media.matches); update(); media.addEventListener('change', update); return () => media.removeEventListener('change', update); }, []);
   const mapView = desktop || props.mapView;
   const setMapView = props.onMapViewChange;
   const c = (ko: string, en: string) => locale === "en" ? en : ko;

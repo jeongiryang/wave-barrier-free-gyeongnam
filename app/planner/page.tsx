@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { installLocalItineraryPreview } from "../../features/planner/services/local-itinerary-preview";
 import { PlannerToolProvider, PlannerToolPortal, PlannerToolSection, usePlannerTools, toolSurfaceGroup } from "../../features/planner/components/PlannerToolSurface";
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
 import { getTabStorage } from '../../lib/session-storage.js';
@@ -18,6 +19,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -70,6 +72,7 @@ export default function PlannerPage() { return null; }
 
 export function PlannerWorkspace(props: Parameters<typeof PlannerWorkspaceContent>[0]) { return <PlannerToolProvider><PlannerWorkspaceContent {...props}/></PlannerToolProvider>; }
 function PlannerWorkspaceContent({ active = true, onShow, embedded = false, launchRequest = { id: 0, prompt: '' }, pageContext = '여행 설계', onDismiss }: { active?: boolean; onShow?: () => void; embedded?: boolean; launchRequest?: { id: number; prompt: string }; pageContext?: string; onDismiss?: () => void }) {
+  useLayoutEffect(() => { installLocalItineraryPreview(); }, []);
   const router = useRouter();
   const internalTools = usePlannerTools();
   const requestTool = internalTools.open;

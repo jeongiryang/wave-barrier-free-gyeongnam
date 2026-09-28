@@ -1,0 +1,105 @@
+/* Owner's three-column itinerary reference. Keep the document scrollable. */
+html:root body .wave-night:has(.simple-itinerary-view:not([hidden]) .itinerary-reference) .naru-header-scene{display:none!important}
+html:root body .wave-night:has(.simple-itinerary-view:not([hidden]) .itinerary-reference) .planner-welcome-header{min-height:0!important;height:auto!important}
+html:root body .wave-night:has(.simple-itinerary-view:not([hidden]) .itinerary-reference) .planner-journey-workspace{width:calc(100% - 24px)!important;max-width:1600px!important;padding:16px!important;margin:12px auto 32px!important}
+.reference-stop-number,.reference-trip-summary{display:none!important}
+.reference-info-card{margin-top:12px!important;padding:12px!important;border:1px solid #355b7c!important;border-radius:12px!important;background:#132d47!important;color:#eff6ff!important}
+.reference-info-card header{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;margin-bottom:10px!important}
+.reference-info-card h3{display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;font-size:15px!important;color:#eff6ff!important}
+.reference-info-card header button{display:flex!important;align-items:center!important;gap:4px!important;min-height:44px!important;border:0!important;background:transparent!important;color:#a9dcff!important;font-size:12px!important}
+.reference-access-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important}
+.reference-access-grid>div{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-width:0!important;padding:10px 5px!important;border:1px solid #365a7b!important;border-radius:8px!important;background:#1b3958!important;text-align:center!important;font-size:11px!important}
+.reference-access-grid svg{color:#8bceff!important}
+.reference-access-grid b{color:#c7d7e7!important;font-size:11px!important}
+.reference-access-grid b[data-state=confirmed]{color:#ace6bc!important}
+.reference-access-grid b[data-state=negative]{color:#ffd2bb!important}
+.reference-nearby-list{display:grid!important;gap:8px!important}
+.reference-nearby-list>button{display:grid!important;grid-template-columns:64px minmax(0,1fr) 18px!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:64px!important;padding:0!important;border:1px solid #345776!important;border-radius:9px!important;overflow:hidden!important;background:#18344e!important;color:#eff6ff!important;text-align:left!important}
+.reference-nearby-list .smart-spot-image,.reference-nearby-list img{width:64px!important;height:64px!important;min-height:0!important;object-fit:cover!important}
+.reference-nearby-list button>span{display:grid!important;gap:4px!important;min-width:0!important}
+.reference-nearby-list b{font-size:13px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.reference-nearby-list small{font-size:11px!important;color:#c5d9e9!important}
+.reference-place-note p{margin:0!important;font-size:13px!important;line-height:1.7!important}
+.reference-place-note>small{display:block!important;margin-top:8px!important;color:#b9cde0!important;font-size:11px!important}
+.reference-memo-editor textarea{width:100%!important;min-height:88px!important;padding:10px!important;border:1px solid #6d9ac1!important;border-radius:8px!important;background:#0b2135!important;color:#fff!important;resize:vertical!important}
+.reference-map-modes{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;padding:8px!important;background:#1a3451!important;border-bottom:1px solid #365778!important}
+.reference-map-modes button{display:flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;min-height:44px!important;padding:6px!important;border:0!important;border-radius:12px!important;background:transparent!important;color:#e3edff!important;font-size:12px!important;white-space:nowrap!important}
+.reference-map-modes button[aria-pressed=true]{background:linear-gradient(110deg,#2379df,#5349d8)!important;color:#fff!important}
+@media(min-width:900px){
+  html:root body .wave-night .simple-itinerary-view:has(.itinerary-reference){width:100%!important;max-width:1600px!important;padding:0!important;margin-inline:auto!important}
+  html:root body .itinerary-reference[data-map=true]{display:grid!important;grid-template-columns:minmax(190px,.86fr) minmax(250px,.96fr) minmax(280px,1.12fr)!important;gap:12px!important;align-items:start!important;height:auto!important;min-height:0!important;overflow:visible!important;margin-top:18px!important}
+  html:root body .itinerary-reference .simple-timeboard{display:block!important;height:auto!important;max-height:none!important;padding:12px!important;border:1px solid #3a6082!important;border-radius:14px!important;background:#132c46!important;overflow:visible!important}
+  html:root body .itinerary-reference .simple-day-tabs{margin:0 0 12px!important}
+  html:root body .itinerary-reference .simple-day-tabs button{padding:8px 12px!important;min-height:44px!important;background:linear-gradient(110deg,#2873df,#5146d9)!important;border-color:#7dbbff!important;border-radius:10px!important;color:#fff!important;font-size:13px!important}
+  html:root body .itinerary-reference .simple-day-tabs button span{display:inline!important}
+  html:root body .itinerary-reference .simple-stops{margin:0 0 14px 20px!important;padding:0!important;position:relative!important;border-left:2px solid #4b7eab!important}
+  html:root body .itinerary-reference .simple-stops>li{position:relative!important;padding:0!important;margin:0 0 10px 12px!important;min-height:92px!important;border:1px solid #456a86!important;border-radius:10px!important;overflow:visible!important;background:#0c263d!important}
+  html:root body .itinerary-reference .simple-stops>li[data-selected=true]{border-color:#91ddff!important;box-shadow:0 0 0 1px #91ddff44 inset!important}
+  .reference-stop-number{display:grid!important;place-items:center!important;position:absolute!important;left:-44px!important;top:32px!important;width:26px!important;height:26px!important;border:2px solid #a4d4ff!important;border-radius:50%!important;background:#3277d8!important;color:white!important;font-size:12px!important}
+  html:root body .itinerary-reference .simple-stop{display:block!important;position:relative!important;min-height:92px!important;padding:12px 16px 12px 62px!important;overflow:hidden!important;border-radius:9px!important}
+  html:root body .itinerary-reference .simple-stop>time{position:absolute!important;left:12px!important;top:14px!important;z-index:2!important;padding:0!important;background:none!important;color:#fff!important;font-size:12px!important}
+  html:root body .itinerary-reference .simple-stop-card{display:block!important;min-height:66px!important;padding:0!important}
+  html:root body .itinerary-reference .night-stop-photo{position:absolute!important;inset:0!important;z-index:0!important;width:100%!important;height:100%!important;border-radius:0!important}
+  html:root body .itinerary-reference .night-stop-photo::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(90deg,#0b223de6,#0b223d9c)!important}
+  html:root body .itinerary-reference .simple-stop-copy{position:relative!important;z-index:1!important;padding:0!important}
+  html:root body .itinerary-reference .simple-stop-copy h3 button{padding:0!important;min-height:32px!important;font-size:14px!important;line-height:1.45!important;text-align:left!important;color:#fff!important}
+  html:root body .itinerary-reference .simple-stop-copy>p{margin:3px 0!important;color:#e4efff!important;font-size:11px!important}
+  html:root body .itinerary-reference .simple-stop-copy .simple-facility-summary,
+  html:root body .itinerary-reference .simple-stop-details,
+  html:root body .itinerary-reference .simple-stop-copy .simple-edit-stop{display:none!important}
+  .reference-trip-summary{display:block!important;padding:12px!important;border:1px solid #3c6184!important;border-radius:12px!important;background:#142e49!important;color:#eff6ff!important}
+  .reference-trip-summary h3{display:flex!important;align-items:center!important;gap:7px!important;margin:0 0 14px!important;font-size:15px!important}
+  .reference-trip-metrics{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+  .reference-trip-metrics span{display:grid!important;justify-items:center!important;gap:8px!important;padding:6px!important;border-right:1px solid #3b5d7c!important;text-align:center!important;font-size:11px!important}
+  .reference-trip-metrics span:last-child{border:0!important}
+  .reference-trip-metrics svg{color:#7cc4ff!important}
+  .reference-estimate-note{font-size:11px!important;line-height:1.5!important;color:#c3d4e5!important}
+  .reference-day-progress{display:flex!important;justify-content:space-between!important;gap:4px!important;padding:0!important;margin:14px 0!important;list-style:none!important}
+  .reference-day-progress li{display:grid!important;justify-items:center!important;gap:5px!important;min-width:0!important;font-size:10px!important}
+  .reference-day-progress button{width:44px!important;height:44px!important;border:1px solid #77baff!important;border-radius:50%!important;background:#275ec0!important;color:#fff!important}
+  .reference-day-progress button[aria-pressed=true]{background:#4776ee!important;outline:2px solid #c3eaff!important;outline-offset:2px!important}
+  .reference-companion-note{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;padding:12px!important;border:1px solid #3b6185!important;border-radius:10px!important;background:#183653!important;color:#e7f4ff!important;font-size:12px!important;text-align:left!important}
+  .reference-companion-note svg{flex-shrink:0!important;color:#8ccfff!important}
+  html:root body .itinerary-reference .simple-focus-stop{position:sticky!important;top:82px!important;display:block!important;height:auto!important;max-height:none!important;padding:10px!important;border:1px solid #3e6386!important;border-radius:14px!important;background:#142e49!important;color:#fff!important;overflow:visible!important}
+  .reference-focus-hero{position:relative!important;border:1px solid #5f85a3!important;border-radius:12px!important;overflow:hidden!important;background:#132a42!important}
+  html:root body .itinerary-reference .simple-focus-photo{display:block!important;width:100%!important;height:clamp(240px,26vw,340px)!important;min-height:0!important;aspect-ratio:auto!important;padding:0!important;border:0!important;position:relative!important;overflow:hidden!important}
+  html:root body .itinerary-reference .simple-focus-photo img,
+  html:root body .itinerary-reference .simple-focus-photo .smart-spot-image{height:100%!important;width:100%!important;object-fit:cover!important}
+  html:root body .itinerary-reference .simple-focus-overlay{position:absolute!important;inset:10px 10px auto!important;z-index:3!important}
+  html:root body .itinerary-reference .simple-focus-copy{position:absolute!important;left:0!important;right:0!important;bottom:0!important;margin:0!important;padding:40px 14px 16px!important;background:linear-gradient(transparent,#0b233fee)!important;z-index:2!important}
+  html:root body .itinerary-reference .simple-focus-copy h3 button{font-size:23px!important;min-height:36px!important}
+  html:root body .itinerary-reference .simple-focus-copy>p{font-size:12px!important;margin:2px 0!important}
+  html:root body .itinerary-reference .simple-focus-copy .simple-facility-summary{display:none!important}
+  html:root body .itinerary-reference .simple-focus-details{padding:0!important}
+  html:root body .itinerary-reference .simple-stop-controls{display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:8px 0!important}
+  html:root body .itinerary-reference .simple-stop-controls button{min-height:44px!important;border:1px solid #6293ba!important;border-radius:50%!important;background:#1b4167!important;color:#bde9ff!important}
+  html:root body .itinerary-reference .simple-stop-controls button:last-child{border-radius:10px!important;flex:1!important;padding:8px!important;font-size:11px!important}
+  html:root body .itinerary-reference .visit-hours{border:1px solid #3c6185!important;border-radius:10px!important;background:#16324e!important;color:#eff6ff!important;margin:0!important;padding:0!important}
+  html:root body .itinerary-reference .visit-hours summary{min-height:44px!important;padding:12px!important;color:#eff6ff!important;font-size:14px!important}
+  html:root body .itinerary-reference .visit-hours .modal-data{padding:12px!important;color:#e6f0ff!important}
+  html:root body .itinerary-reference .simple-itinerary-map{position:sticky!important;top:82px!important;height:auto!important;max-height:none!important;padding:12px!important;border:1px solid #3e6386!important;border-radius:14px!important;background:#142e49!important;overflow:visible!important}
+  html:root body .itinerary-reference .reference-transport-details{display:none!important}
+  html:root body .itinerary-reference .simple-itinerary-map .map-panel{border-radius:12px!important;--route-map-height:clamp(440px,58vh,680px)!important}
+  html:root body .itinerary-reference .simple-itinerary-map .route-map-shell:not(.expanded):not(:fullscreen),
+  html:root body .itinerary-reference .simple-itinerary-map .route-map-shell:not(.expanded):not(:fullscreen) .route-map-canvas{height:clamp(440px,58vh,680px)!important;min-height:440px!important}
+  html:root body .itinerary-reference .simple-map-place-summary{display:none!important}
+  html:root body .itinerary-reference .map-legend{display:flex!important;flex-wrap:wrap!important;font-size:11px!important;color:#d3e4f5!important;padding:10px!important}
+  html:root body .itinerary-reference .route-scope-note{display:block!important;font-size:11px!important;color:#bfd5e8!important;padding:0 10px 10px!important;margin:0!important}
+  html:root body .itinerary-reference .reference-route-details{display:block!important;border:1px solid #6898bd!important;border-radius:10px!important;margin:10px 0 0!important;padding:0!important;background:#183752!important;color:#eff6ff!important}
+  html:root body .itinerary-reference .reference-route-details summary{min-height:44px!important;padding:12px!important;color:#eff6ff!important}
+}
+html:root body .itinerary-reference .reference-info-card header{width:100%!important;gap:6px!important}
+html:root body .itinerary-reference .reference-info-card h3{flex:1 1 auto!important;width:auto!important;white-space:nowrap!important;font-size:14px!important}
+html:root body .itinerary-reference .reference-info-card header button{flex:0 0 auto!important;width:auto!important;padding:6px!important}
+html:root body .itinerary-reference .reference-info-card h3 svg{flex-shrink:0!important}
+html:root body .itinerary-reference .reference-day-progress{overflow-x:auto!important;padding:4px!important}
+html:root body .itinerary-reference .map-travel-modes{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:3px!important;padding:8px!important}
+html:root body .itinerary-reference .map-travel-modes button{display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;min-width:0!important;padding:6px 3px!important;min-height:44px!important;font-size:11px!important;white-space:nowrap!important}
+html:root body .itinerary-reference .map-travel-modes button svg{width:16px!important;height:16px!important;flex-shrink:0!important}
+html:root body .itinerary-reference .simple-stop-controls button:last-child{flex:0 0 44px!important;width:44px!important;border-radius:50%!important;padding:0!important}
+@media(min-width:900px){
+  html:root body .itinerary-reference .simple-focus-overlay{display:flex!important;justify-content:space-between!important;align-items:center!important;pointer-events:none!important}
+  html:root body .itinerary-reference .simple-focus-overlay time{display:block!important;padding:7px 12px!important;background:#132e4be8!important;color:#fff!important;border-radius:999px!important;font-size:12px!important;font-weight:700!important}
+  html:root body .itinerary-reference .simple-focus-overlay button{position:static!important;width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;pointer-events:auto!important;border:1px solid #83badf!important;border-radius:50%!important;background:#173f60!important;color:#d4efff!important}
+  html:root body .itinerary-reference .simple-focus-copy h3 button{display:block!important;width:auto!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:white!important;text-align:left!important;line-height:1.4!important}
+}

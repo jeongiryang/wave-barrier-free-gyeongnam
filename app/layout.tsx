@@ -65,6 +65,7 @@ import "./styles/scenic-design.css";
 import "./styles/dropdown-placement.css";
 import "./styles/photo-cards.css";
 import "./styles/wave-palette.css";
+import "./styles/itinerary-reference.css";
 import "./styles/ui-consistency.css";
 import "./styles/naru-friendly.css";
 // The approved landing overrides follow the shared rules in both SSR and dev.
