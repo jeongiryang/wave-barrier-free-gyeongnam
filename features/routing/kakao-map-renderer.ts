@@ -77,7 +77,11 @@ export async function renderKakaoMap(
     bounds.extend(position);
     return new K.Marker({ map, position, title });
   };
-  const originMarker = addPoint(origin.lat, origin.lng, "출발지");
+  const originMarker = addPoint(origin.lat, origin.lng, context.originLabel || "출발지");
+  const originName = document.createElement('span');
+  originName.className = 'map-origin-name';
+  originName.textContent = '출발 · ' + (context.originLabel || '출발지');
+  const originNameOverlay = new K.CustomOverlay({ map, position: new K.LatLng(origin.lat, origin.lng), content: originName, yAnchor: 1.8, xAnchor: .5 });
   let latest: MapRenderContent = context;
   let renderedKey: string | null = null;
   let overlays: Array<{ setMap(map: typeof kakaoMapRef.current): void }> = [];
@@ -194,6 +198,7 @@ export async function renderKakaoMap(
       drawingManagerRef.current = null;
       clearContent();
       originMarker.setMap(null);
+      originNameOverlay.setMap(null);
     },
   };
 }

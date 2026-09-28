@@ -78,6 +78,7 @@ async function openFacilitiesStep(page: Page, dining: unknown, status = 200) {
   await page.locator(".simple-place-row h3 button").click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { level: 2 })).toBeFocused();
+  await dialog.getByRole('tab', { name: /^(이용과 편의|Access and facilities)$/ }).click();
   await dialog.locator("summary").filter({ hasText: /^주차·입구·시설 미리보기$/ }).click();
   await dialog.getByRole("button", { name: "3. 시설", exact: true }).click();
   return dialog.locator(".dining-accessibility");

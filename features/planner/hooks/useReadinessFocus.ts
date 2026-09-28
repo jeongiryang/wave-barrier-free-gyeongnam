@@ -14,10 +14,15 @@ export function useReadinessFocus() {
       const target = focused.current;
       if (!target?.isConnected || document.activeElement !== target) return;
       const box = target.getBoundingClientRect();
+      if (!box.width || !box.height) return;
+      const scroller = target.closest(".naru-workspace-content");
+      const bounds = scroller?.getBoundingClientRect();
       const headerBottom = document.querySelector(".wave-header,.site-header")?.getBoundingClientRect().bottom || 0;
       const rail = document.querySelector(".journey-rail");
-      const bottom = rail && getComputedStyle(rail).position === "fixed" ? rail.getBoundingClientRect().top : window.innerHeight;
-      if (box.top < Math.max(0, headerBottom) + 8 || box.bottom > bottom - 8) {
+      const top = Math.max(0, bounds ? bounds.top : headerBottom);
+      const bottom = bounds ? Math.min(window.innerHeight, bounds.bottom)
+        : rail && getComputedStyle(rail).position === "fixed" ? rail.getBoundingClientRect().top : window.innerHeight;
+      if (box.top < top + 8 || box.bottom > bottom - 8) {
         target.scrollIntoView({ block: "center", behavior: "instant" });
       }
     });
@@ -40,6 +45,13 @@ export function useReadinessFocus() {
     const workspace = root.current?.closest("#planner, .journey-stage-stream");
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(reveal);
     if (workspace) observer?.observe(workspace);
+    // The readiness card also lives in a portal. Its stable content parent
+    // grows when the lazy review above it arrives, even after the portal moves.
+    if (root.current?.parentElement) observer?.observe(root.current.parentElement);
+    const surface = root.current?.closest("[data-naru-tool-surface]");
+    const scroller = root.current?.closest(".naru-workspace-content");
+    if (surface) observer?.observe(surface);
+    if (scroller) observer?.observe(scroller);
     const header = document.querySelector(".wave-header,.site-header");
     if (header) observer?.observe(header);
     window.addEventListener("resize", reveal, { signal: controller.signal });

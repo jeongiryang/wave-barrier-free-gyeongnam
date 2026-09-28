@@ -3,6 +3,7 @@ import { closeNewTripMenu, newTripAction, startNewTrip } from './planner-header-
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { writeFile } from 'node:fs/promises';
 import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
 
 // Independent, public-guest journeys. All trip state is created by UI actions;
@@ -40,6 +41,7 @@ async function prepare(page: Page, info: TestInfo) {
   });
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });
+  await page.route('**/api/judge-demo-trips', route => route.fulfill({ json: { trips: [] } }));
 }
 
 async function current(page: Page) {
@@ -87,7 +89,7 @@ async function openItinerary(page: Page) {
 async function timetable(page: Page, end = "2026-10-14") {
   await openItinerary(page);
   const setup = page.locator(".simple-initial-setup");
-  await expect(setup.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
+  await expect(setup.getByRole("heading", { name: "일정 날짜와 이동 수단 정하기", exact: true })).toBeVisible();
   await setup.getByLabel("시작일", { exact: true }).fill("2026-10-14");
   await setup.getByLabel("마지막 날", { exact: true }).fill(end);
   await setup.getByLabel("하루 시작", { exact: true }).fill("09:30");
@@ -156,7 +158,8 @@ test("지역만 고르면 후보를 자동 조회하고 날짜 없이 담아도 
   await noOverflow(page, ".simple-search-controls, .simple-place-row, .wave-header");
   await page.screenshot({ path: info.outputPath("browse-undated.png"), fullPage: true });
   await openItinerary(page);
-  await expect(page.locator(".simple-initial-setup")).toContainText(`${museum} · ${lake}`);
+  await expect(page.locator(".simple-initial-setup").getByText(museum, { exact: true })).toBeVisible();
+  await expect(page.locator(".simple-initial-setup").getByText(lake, { exact: true })).toBeVisible();
   expect((await current(page)).schedule.travelStart).toBe("");
   expect((await new AxeBuilder({ page }).include(".simple-initial-setup").analyze()).violations).toEqual([]);
 });
@@ -179,7 +182,8 @@ test("첫 날짜 설정 뒤 장소 수정은 적용 전까지 보존되고 취�
   await chooseWaveOption(dialog.getByRole("combobox", { name: `${museum} 머무는 시간`, exact: true }), "180");
   await dialog.getByRole("button", { name: "적용", exact: true }).click();
   await expect.poll(async () => (await current(page)).schedule.visitMinutesByPlaceId["1001"]).toBe(180);
-  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머물러요");
+  await page.getByText('방문 시간표', { exact: true }).click();
+  await expect(page.locator('.simple-timing-mode li').filter({ hasText: museum })).toContainText("관람 180분");
   await page.locator(".simple-command-receipt").getByRole("button", { name: "되돌리기", exact: true }).click();
   await expect.poll(async () => (await current(page)).schedule).toEqual(before.schedule);
   expect((await current(page)).ids).toEqual(before.ids);
@@ -198,7 +202,7 @@ test("새 여행은 미정 날짜의 이전 여행을 백업하고 다시 열어
   expect(archived).toHaveLength(1);
   expect(archived[0]).toMatchObject({ tripId: before.identity?.id, travelStart: "", travelEnd: "", places: [{ id: "1001" }, { id: "1002" }] });
   await page.goto("/travel-book");
-  await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+  await page.getByRole("button", { name: "일정 열기", exact: true }).click();
   await expect(page.locator(".simple-initial-setup")).toBeVisible();
   const restored = await current(page);
   expect(restored.ids).toEqual(before.ids);
@@ -239,7 +243,8 @@ test("저장 버튼 하나로 첫 저장 후 날짜·체류·장소 변경을 �
   expect(await books(page)).toHaveLength(1);
   expect((await books(page))[0]).toMatchObject({ id: first.id, tripId: first.tripId, travelStart: "2026-10-14", travelEnd: "2026-10-15", travelMode: "car" });
   await page.reload();
-  await expect(page.locator("#itinerary-stop-1001")).toContainText("180분 머물러요");
+  await page.getByText('방문 시간표', { exact: true }).click();
+  await expect(page.locator('.simple-timing-mode li').filter({ hasText: museum })).toContainText("관람 180분");
   expect((await current(page)).identity).toMatchObject({ id: first.tripId, binding: { kind: "local", id: first.id } });
   expect(await books(page)).toHaveLength(1);
 });
@@ -338,26 +343,33 @@ test("담기 다음 행동에서 날짜 전에 출발지를 고르고 같은 장
 });
 
 test("나루의 다음 행동이 빈 여행에서 날짜 없는 여행과 완성 일정까지 이어진다", async ({ page }) => {
-  await page.route('**/api/assistant', route => route.fulfill({ json: { available: true } }));
+  await page.route('**/api/assistant', route => route.fulfill({ json: route.request().method() === 'GET' ? { available: true } : { reply: '합성 여행 준비 안내', proposal: null } }));
   await browse(page);
   const launcher = page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true });
   await launcher.click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
-  await chat.getByRole('button', { name: '건너뛰기', exact: true }).click();
+  await chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('여행 준비 방법을 알려줘');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
+  await expect(chat.getByRole('log')).toContainText('합성 여행 준비 안내');
   await expect(chat.getByRole('button', { name: '현재 일정에서 이동 부담을 줄여줘', exact: true })).toHaveCount(0);
   await chat.locator('.naru-suggestions > summary').click();
   await chat.getByRole('button', { name: '여행지 찾아 일정에 담기', exact: true }).click();
-  await expect(chat).not.toBeVisible();
+  await expect(chat.locator('.simple-results')).toBeVisible();
   await add(page, museum);
-  await launcher.click();
+  await chat.getByRole('tab', { name: '대화', exact: true }).click();
   await chat.getByRole('button', { name: '담은 1곳의 날짜·출발지 정하기', exact: true }).click();
   const setup = page.locator('.simple-initial-setup');
+  const progress = chat.getByRole('region', { name: '현재 여행 준비 상태', exact: true });
+  const colorsPath = test.info().outputPath('naru-progress-colors.json');
+  await writeFile(colorsPath, JSON.stringify(await progress.evaluate(node => [node, ...node.querySelectorAll('h2,p')].map(element => ({ tag: element.tagName, className: element.className, text: element.textContent, color: getComputedStyle(element).color, background: getComputedStyle(element).backgroundColor }))), null, 2));
+  await test.info().attach('naru-progress-colors', { contentType: 'application/json', path: colorsPath });
+  expect((await new AxeBuilder({ page }).include('.naru-panel .planner-progress-context').analyze()).violations).toEqual([]);
   await expect(setup.getByLabel('시작일', { exact: true })).toBeFocused();
   await setup.getByLabel('시작일', { exact: true }).fill('2026-10-14');
   await setup.getByLabel('마지막 날', { exact: true }).fill('2026-10-14');
   await setup.getByRole('button', { name: '시간표 만들기', exact: true }).click();
   await expect(page.locator('.simple-timeboard')).toBeVisible();
-  await launcher.click();
+  await chat.getByRole('tab', { name: '대화', exact: true }).click();
   await expect(chat.getByRole('button', { name: '내 일정 1곳 확인', exact: true })).toBeVisible();
   await expect(chat.getByRole('button', { name: '현재 일정에서 이동 부담을 줄여줘', exact: true })).toBeVisible();
 });

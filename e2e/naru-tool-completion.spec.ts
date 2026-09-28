@@ -1,7 +1,7 @@
 import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi, mockPublicShellApi, plan } from './fixtures';
-import { naruDialog } from './naru-tool-fixtures';
+import { naruDialog, openNaruTool } from './naru-tool-fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 const draft = '도구를 확인한 뒤 이어 쓸 여행 질문';
@@ -33,11 +33,8 @@ async function setup(page: Page, beforeNavigate?: () => Promise<void>) {
   await naruDialog(page).getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill(draft);
   return unexpected;
 }
-async function choose(page: Page, label: string, inline = false) {
-  const chat = naruDialog(page);
-  await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
-  await chat.locator('.naru-tool-catalog .naru-tools').getByRole('button', { name: label, exact: true }).click();
-  if (inline) await expect(chat).toBeVisible(); else await expect(chat).toBeHidden();
+async function choose(page: Page, label: string) {
+  await openNaruTool(page, label);
 }
 async function back(page: Page) {
   const chat = naruDialog(page);
@@ -79,6 +76,34 @@ test('Naru save tool focuses the real save action when the pending session resol
   } finally { release(); }
 });
 
+test('Naru pending save does not steal focus after the visitor resumes typing', async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await setup(page, async () => {
+    await page.route('**/api/auth/get-session', async route => {
+      await pending;
+      await route.fulfill({ json: null }).catch(() => {});
+    });
+  });
+  try {
+    const before = await schedule(page);
+    await choose(page, '내 여행에 저장');
+    const save = page.locator('[data-planner-tool="save"] > button');
+    await expect(save).toBeDisabled();
+    const input = naruDialog(page).getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true });
+    await input.click();
+    await input.fill('연결을 기다리며 계속 입력하는 여행 질문');
+    release();
+    await expect(save).toBeEnabled();
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(input).toBeFocused();
+    await page.keyboard.press('End');
+    await page.keyboard.type('!');
+    await expect(input).toHaveValue('연결을 기다리며 계속 입력하는 여행 질문!');
+    expect(await schedule(page)).toEqual(before);
+  } finally { release(); }
+});
+
 test('Naru region, facilities and places tools perform real condition actions and return with the unsent draft', async ({ page }) => {
   await setup(page);
   const before = await schedule(page);
@@ -87,9 +112,8 @@ test('Naru region, facilities and places tools perform real condition actions an
   await page.getByRole('button', { name: '역사·문화', exact: true }).click();
   await expect(page.getByRole('button', { name: '역사·문화', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await back(page); await choose(page, '필요한 편의');
-  await expect(page.locator('.simple-facility-trigger')).toBeFocused();
-  await page.locator('.simple-facility-trigger').click();
   const facilities = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+  await expect(facilities).toBeVisible();
   await facilities.getByRole('checkbox', { name: '접근로', exact: true }).check();
   await facilities.getByRole('button', { name: /^적용/ }).click();
   await page.locator('.simple-facility-trigger').click();
@@ -106,9 +130,8 @@ test('Naru region, facilities and places tools perform real condition actions an
 
 test('Naru dates and itinerary tools commit explicit edits to the shared schedule and preserve the draft on return', async ({ page }) => {
   await setup(page); await choose(page, '날짜·기간');
-  const settingsButton = page.getByRole('button', { name: '여행 설정', exact: true });
-  await expect(settingsButton).toBeFocused(); await settingsButton.click();
   const settings = page.getByRole('dialog', { name: '여행 설정', exact: true });
+  await expect(settings).toBeVisible();
   await settings.getByLabel('하루 시작', { exact: true }).fill('10:00');
   await settings.getByRole('button', { name: '적용', exact: true }).click();
   await expect.poll(async () => (await schedule(page)).dayStartTime).toBe('10:00');
@@ -126,7 +149,7 @@ for (const tool of ['주차·입구 미리보기', '방문 전 문의', '해설 
   await setup(page);
   await page.route('**/api/wave?action=place-audio*', route => route.fulfill({ json: { stories: [{ playTime: '', id: 'qa-story', audioTitle: '미술관 검증 해설', script: '합성 원문: 미술관의 전시를 차분히 살펴보세요.', audioUrl: 'https://wave.test/tool-guide.mp3', title: '미술관' }], checkedAt: '2026-09-27T00:00:00Z' } }));
   const before = await schedule(page);
-  await choose(page, tool, true);
+  await choose(page, tool);
   const detail = naruDialog(page);
   await expect(detail.getByLabel('장소 선택', { exact: true })).toHaveValue('1001');
   if (tool === '해설 대본') {
@@ -140,7 +163,7 @@ for (const tool of ['주차·입구 미리보기', '방문 전 문의', '해설 
       await expect(detail.locator('.place-arrival-preview')).toContainText('이 장소의 입구 상세 정보는 아직 확인하지 못했어요.');
       await expect(detail.locator('.place-arrival-preview')).toContainText('직접 읽은 기록이며 시설 이용 가능을 확인한 표시는 아닙니다.');
     } else {
-      await detail.getByRole('button', { name: '문의 카드 만들기', exact: true }).first().click();
+      await detail.getByRole('button', { name: /^방문 전에 물어보기/ }).click();
       const inquiry = page.locator('dialog.inquiry-dialog');
       await inquiry.getByLabel('추가로 전하고 싶은 말', { exact: true }).fill('방문 전에 출입구 문폭을 확인하고 싶어요.');
       await expect(inquiry.locator('.inquiry-card-preview')).toContainText('방문 전에 출입구 문폭을 확인하고 싶어요.');
@@ -164,14 +187,13 @@ test('Naru coordinate recovery explains when all saved locations already exist w
   await setup(page); const before = await schedule(page); let lookups = 0;
   await page.route('**/api/wave?action=place-coordinates*', route => { lookups++; return route.fulfill({ status: 500, json: { error: 'Unnecessary coordinate lookup' } }); });
   const chat = naruDialog(page);
-  await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
-  await chat.locator('.naru-tool-catalog .naru-tools').getByRole('button', { name: '장소 좌표 복원', exact: true }).click();
+  await choose(page, '장소 좌표 복원');
   const recovery = chat.getByRole('region', { name: '저장 장소 위치 재확인', exact: true });
   await expect(recovery).toBeFocused();
   await expect(recovery).toContainText('담은 장소의 위치가 모두 있어요. 추가로 복원할 위치가 없습니다.');
   await expect(recovery).toContainText('편의시설이나 이동 경로의 접근성');
   await expect(recovery.getByRole('button', { name: '장소 위치 다시 확인', exact: true })).toHaveCount(0);
-  await chat.getByRole('button', { name: '모든 여행 도구', exact: true }).click();
+  await chat.getByRole('button', { name: '다른 기능 고르기', exact: true }).click();
   await chat.getByRole('tab', { name: '대화', exact: true }).click();
   await expect(chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true })).toHaveValue(draft);
   expect(lookups).toBe(0); expect(await schedule(page)).toEqual(before);

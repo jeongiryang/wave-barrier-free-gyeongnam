@@ -190,7 +190,7 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) test(`reg
   expect((await current(page)).ids).toEqual([]);
   expect((await current(page)).identity.id).toBe(fresh.identity.id);
   await page.goto("/travel-book");
-  await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+  await page.getByRole("button", { name: "일정 열기", exact: true }).click();
   await expect(page.locator(".simple-itinerary-heading")).toContainText("2026-10-07 — 2026-10-08");
   await expect(page.locator("#itinerary-stop-1001")).toContainText("경남도립미술관");
   await page.getByRole("group", { name: "일정 날짜", exact: true }).getByRole("button", { name: /^2일차/ }).click();

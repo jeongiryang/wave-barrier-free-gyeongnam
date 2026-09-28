@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi, plan } from './fixtures';
 import type { NaruJourney } from '../lib/naru-journey.js';
+import AxeBuilder from '@axe-core/playwright';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 
@@ -87,6 +88,24 @@ async function send(page: Page) {
   await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
 }
 
+test('카드형 일정안은 날짜·미확인·적용 전 상태와 작은 화면의 조작을 보존한다', async ({ page }, info) => {
+  const { chat } = await setup(page);
+  await send(page);
+  const proposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
+  await expect(proposal.locator('.naru-journey-day')).toHaveCount(2);
+  await expect(proposal).toContainText('확인하고 적용하기 전에는 내 일정이 바뀌지 않아요.');
+  await expect(proposal).toContainText('방문 전 확인: 승강기 이용 가능 여부');
+  for (const width of [1440, 960, 390]) {
+    await page.setViewportSize({ width, height: 960 });
+    await proposal.scrollIntoViewIfNeeded();
+    expect(await proposal.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
+    const apply = proposal.getByRole('button', { name: '미확인 항목을 살펴보고 일정에 반영', exact: true });
+    expect((await apply.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.screenshot({ path: info.outputPath(`naru-cards-${width}.png`) });
+    expect((await new AxeBuilder({ page }).include('.naru-panel').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+  }
+});
+
 test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편의까지 되돌린다', async ({ page }) => {
   const { chat } = await setup(page);
   const before = await snapshot(page);
@@ -95,6 +114,13 @@ test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편
   await expect(proposal).toContainText('09-20 · 합성 바다 전시관');
   await expect(proposal).toContainText('09-21 · 합성 숲 문화관');
   await expect(proposal).toContainText('방문 전 확인: 승강기 이용 가능 여부');
+  await expect(proposal.locator('.naru-journey-day')).toHaveCount(2);
+  await expect(proposal.locator('.naru-journey-stop')).toHaveCount(2);
+  await expect(proposal.getByRole('heading', { name: '1일차 09월 20일', exact: true })).toBeVisible();
+  const evidence = proposal.locator('.naru-place-evidence').first();
+  await expect(evidence).not.toHaveAttribute('open', '');
+  await evidence.getByText('추천 이유와 출처', { exact: true }).click();
+  await expect(evidence.getByText('합성 관광 데이터로 확인한 일정', { exact: true })).toBeVisible();
   expect(await snapshot(page)).toEqual(before);
   await proposal.getByRole('button', { name: '미확인 항목을 살펴보고 일정에 반영', exact: true }).click();
   await expect(proposal.getByRole('button', { name: '내 일정에 반영했어요', exact: true })).toBeDisabled();

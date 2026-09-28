@@ -20,7 +20,7 @@ async function mapJavascriptKey() {
 export function useMapRenderer(options: UseMapRendererOptions) {
   const {
     retryNonce,
-    origin,
+    origin, originLabel,
     places,
     route,
     itineraryRoutes,
@@ -49,9 +49,9 @@ export function useMapRenderer(options: UseMapRendererOptions) {
   } = options;
 
   const contentRef = useRef<MapContentController | null>(null);
-  const readContent = useEffectEvent(() => ({ origin, places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers }));
+  const readContent = useEffectEvent(() => ({ origin, originLabel, places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers }));
   // Only a different travel scope replaces the map and invalidates its searches.
-  const geometryKey = JSON.stringify([origin.lat, origin.lng, places.map(place => [place.id, Number(place.mapX), Number(place.mapY)])]);
+  const geometryKey = JSON.stringify([origin.lat, origin.lng, originLabel, places.map(place => [place.id, Number(place.mapX), Number(place.mapY)])]);
 
   useEffect(() => {
     let cancelled = false;
@@ -152,7 +152,7 @@ export function useMapRenderer(options: UseMapRendererOptions) {
   ]);
 
   useEffect(() => {
-    try { contentRef.current?.update({ origin, places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers }); }
+    try { contentRef.current?.update({ origin, originLabel, places, route, itineraryRoutes, crowdVisual, crowdPlace, facilityMarkers }); }
     catch {
       setProvider("error");
       setProviderDetail("지도를 불러오지 못했습니다.");

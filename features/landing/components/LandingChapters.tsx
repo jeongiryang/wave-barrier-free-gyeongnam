@@ -5,7 +5,7 @@ import HandwrittenText from "../../../components/HandwrittenText";
 import Link from "next/link";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import NightIcon from "../../../components/NightIcon";
-const JourneyPreview = lazy(() => import("./LandingJourneyPreview"));
+
 const RegionPicker = lazy(() => import("../../../components/GyeongnamRegionPicker"));
 
 export default function LandingChapters() {
@@ -27,6 +27,5 @@ export default function LandingChapters() {
    <Link className="night-primary" href={href}>{en?'Plan my trip':`${region} 여행 설계하기`} </Link>
   </div>
   <div className="night-journey-map" data-land-reveal>{ready?<Suspense fallback={<div className="night-map-loading">경남 지도를 준비하고 있어요</div>}><RegionPicker night showDecliningInfo={false} value={region} onChange={setRegion}/></Suspense>:<div className="night-map-loading">경남 18개 시·군</div>}<p className="night-map-signature"><HandwrittenText viewportSelector=".night-journey-map" text={"경남,\n새로운 시선으로"} /></p></div>
-  {ready && <Suspense fallback={<div className="night-map-loading">여행 예시를 준비하고 있어요</div>}><JourneyPreview en={en}/></Suspense>}
  </section>;
 }

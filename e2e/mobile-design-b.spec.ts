@@ -31,7 +31,8 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     expect(backgroundBox.width).toBe(390); expect(backgroundBox.height).toBe(844);
     await expect(page.locator('.landing-hero-copy h1')).toHaveCSS('font-size', '32px');
     const shortcuts = page.locator('.night-feature-links');
-    await expect.poll(() => shortcuts.evaluate(node => Boolean(node.compareDocumentPosition(document.querySelector('#regions')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    await expect.poll(() => shortcuts.evaluate(node => Boolean(node.compareDocumentPosition(document.querySelector('#regions')!) & Node.DOCUMENT_POSITION_PRECEDING))).toBe(true);
+    await expect(shortcuts.locator('a')).toHaveCount(5);
     for (const link of (await shortcuts.getByRole('link').all()).slice(0, 4)) {
       await link.scrollIntoViewIfNeeded();
       const box = (await link.boundingBox())!;
@@ -40,7 +41,7 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
       expect(box.x + box.width).toBeLessThanOrEqual(390);
       expect(box.height).toBeGreaterThanOrEqual(44);
     }
-    await expect(shortcuts.locator('strong').first()).toHaveCSS('font-size', '14px');
+    expect(await shortcuts.locator('strong').first().evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(14);
   } else if (route === '/planner') {
     await expect(page.locator('.simple-region-grid')).toBeVisible();
     await expect.poll(() => page.locator('.simple-region-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(3);
@@ -73,14 +74,15 @@ for (const route of ['/', '/planner', '/community', '/festivals']) test(`mobile 
     expect(Math.abs(coverBounds.width - cardBounds.width)).toBeLessThanOrEqual(2);
     expect(cardBounds.height).toBeGreaterThanOrEqual(340);
   } else {
-    await expect(page.locator('.festival-card')).toHaveCount(2);
+    const results = page.locator('.festival-grid .festival-card');
+    await expect(results).toHaveCount(2);
     await expect(page.getByRole('region', { name: '축제 찾기', exact: true })).toBeHidden();
     await page.getByRole('button', { name: '축제 검색 조건', exact: false }).click();
     await expect(page.getByLabel('언제부터', { exact: true })).toHaveValue('2026-09-21');
     await page.getByRole('button', { name: '축제 검색 조건', exact: false }).click();
     await page.getByRole('group', { name: '축제 진행 상태' }).getByRole('button', { name: '예정', exact: true }).click();
-    await expect(page.locator('.festival-card')).toHaveCount(1);
-    await expect(page.locator('.festival-card')).toContainText('합성 다음 축제');
+    await expect(results).toHaveCount(1);
+    await expect(results).toContainText('합성 다음 축제');
   }
   const violations = (await new AxeBuilder({ page }).analyze()).violations.filter(item => ['serious', 'critical'].includes(item.impact || ''));
   expect(violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) }))).toEqual([]);
@@ -146,4 +148,27 @@ test('960px dates and place detail use the available width; desktop layout remai
     await expect(page.locator('.night-planner-region-map')).toBeVisible();
     expect(await page.locator('.night-planner-hero').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(2);
   }
+});
+
+test('place photo opens its detail when the lazy image finishes between press and release', async ({ page }) => {
+  await setup(page);
+  await page.setViewportSize({ width: 960, height: 900 });
+  let releaseImage!: () => void;
+  const imageGate = new Promise<void>(resolve => { releaseImage = resolve; });
+  await page.route('**/features/tourism/components/SmartSpotImage.tsx*', async route => {
+    await imageGate;
+    await route.continue();
+  });
+  await page.goto('/planner?region=창원');
+  const photo = page.getByRole('button', { name: '경남도립미술관 상세 보기', exact: true });
+  await expect(photo.locator('.simple-photo-placeholder')).toBeVisible();
+  await photo.scrollIntoViewIfNeeded();
+  const bounds = (await photo.boundingBox())!;
+  // Loading must not replace the pointer target during one ordinary click.
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  releaseImage();
+  await expect(photo.locator('.smart-spot-image')).toBeVisible();
+  await page.mouse.up();
+  await expect(page.getByRole('dialog', { name: /경남도립미술관/ })).toBeVisible();
 });

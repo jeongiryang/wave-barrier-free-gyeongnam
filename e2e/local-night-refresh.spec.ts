@@ -21,7 +21,10 @@ for (const width of [390, 960, 1440]) test(`night dropdowns remain readable and 
   const assist = panel.getByRole('button',{name:/색 구분 보조/});
   await assist.click();
   await expect(assist).toHaveAttribute('aria-pressed','true');
-  await expect(panel.locator('.color-assist-preview .status-shape').first()).toBeVisible();
+  // The compact settings show the control's purpose and state; actual facility
+  // shapes and their persistence are exercised by color-assist.spec.ts.
+  await expect(assist).toContainText('색 대신 글자와 모양으로 상태를 구분해요.');
+  expect(await page.evaluate(() => localStorage.getItem('wave-color-assist-v1'))).toBe('on');
   await expect(panel).toContainText('켜짐');
   const bounds = (await panel.boundingBox())!;
   expect(bounds.x).toBeGreaterThanOrEqual(0);

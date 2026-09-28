@@ -79,10 +79,11 @@ test('축제 달력은 밤 테마와 키보드 탐색, 날짜 하한, 닫기 초
 test('나루 날짜 입력은 달력 선택 이벤트와 필수·날짜 범위 검증을 유지한다', async ({ page }) => {
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: {} }));
   await mockPlannerApi(page);
+  await page.route('**/api/assistant', route => route.fulfill({ json: { available: true } }));
   await page.goto('/planner?region=창원');
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   const panel = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
-  await panel.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
+  await panel.getByRole('button', { name: /여행 처음 만들기/ }).click();
   const form = panel.getByRole('form', { name: '여행 준비 맡기기', exact: true });
   const start = form.getByLabel('출발 날짜', { exact: true });
   const end = form.getByLabel('마지막 날짜', { exact: true });

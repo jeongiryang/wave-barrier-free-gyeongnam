@@ -93,7 +93,7 @@ export async function expectNoOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 }
 
-export const chapterIds = ["top", "regions", "story", "departure", "community", "naru", "features", "closing"];
+export const chapterIds = ["top", "story", "regions", "departure", "community", "naru", "features", "closing"];
 export const chapterNames = {
   ko: ["처음", "이용 방법", "할 수 있는 일", "지역", "나루", "출발 전", "커뮤니티", "여행 시작"],
   en: ["Welcome", "How it works", "What you can do", "Regions", "Naru", "Before you go", "Community", "Plan a trip"],
@@ -113,9 +113,17 @@ export function expectOnlyLandingReads(requests: string[]) {
 
 /** Naru and the tools are immediately available without a disclosure. */
 export async function openLandingTools(page: Page) {
-  const tools = page.locator('.night-feature-content');
-  await tools.scrollIntoViewIfNeeded();
-  await expect(tools.locator('#naru')).toBeVisible();
-  await expect(tools.locator('#features')).toBeVisible();
-  await expect(tools.locator(':scope > summary')).toHaveCount(0);
+  await page.locator('#naru').scrollIntoViewIfNeeded();
+  await expect(page.locator('#naru')).toBeVisible();
+  await expect(page.locator('#features')).toBeVisible();
+  await expect(page.locator('#naru > summary, #features > summary')).toHaveCount(0);
+}
+
+/** Owner removed demo-only Apply/Undo buttons; the example remains explanatory. */
+export async function expectNaruDurationExample(page: Page) {
+  const example = page.locator('.simple-naru-example');
+  await expect(example.locator('.example-duration strong:not(.example-proposed)')).toHaveText(/60\s*(분|min)/);
+  await expect(example.locator('.example-proposed')).toHaveText(/90\s*(분|min)/);
+  await expect(example.locator('.example-change-arrow')).toBeVisible();
+  await expect(example.locator('button,input,textarea,form')).toHaveCount(0);
 }

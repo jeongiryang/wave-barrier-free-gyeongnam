@@ -79,7 +79,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     await openPlannerMap(page);
     await openRouteDetails(page);
     await withRouteCoverage(page);
-    await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:25");
+    await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:25 도착 예정");
     await expect(page.locator(".map-load-placeholder")).toBeVisible();
     expect(heldMapRequests, "the delayed-map fixture must intercept the module request").toBeGreaterThan(0);
     // A warm local module used to finish before the 650ms automatic journey
@@ -103,7 +103,7 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
     expect(Math.abs(after - before), "map loading must not move route choices").toBeLessThanOrEqual(1);
     await expect(calm).toHaveAttribute("aria-pressed", "true");
     await expect(calm).toBeFocused();
-    await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:40");
+    await expect(page.locator("#itinerary-stop-1001 time")).toHaveText("10:40 도착 예정");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
@@ -122,11 +122,11 @@ test("route selection stays under the pointer while map rendering settles", asyn
   await withRouteCoverage(page);
   await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
   const arrival = page.locator("#itinerary-stop-1001 time");
-  await expect(arrival).toHaveText("10:25");
+  await expect(arrival).toHaveText("10:25 도착 예정");
   // Stress the route selection and settling map, after preparing the trip.
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
-  await expect(arrival).toHaveText("10:40");
+  await expect(arrival).toHaveText("10:40 도착 예정");
   const fast = page.getByRole("button", { name: /추천 자동차 경로/ });
   await fast.scrollIntoViewIfNeeded();
   const box = await fast.boundingBox();
@@ -141,5 +141,5 @@ test("route selection stays under the pointer while map rendering settles", asyn
   await page.mouse.up();
   await expect(fast).toHaveAttribute("aria-pressed", "true");
   await expect(fast).toBeFocused();
-  await expect(arrival).toHaveText("10:25");
+  await expect(arrival).toHaveText("10:25 도착 예정");
 });

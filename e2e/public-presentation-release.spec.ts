@@ -49,9 +49,10 @@ for (const restored of [false, true]) for (const path of ["/", "/planner", "/com
     await expect(preferences).not.toContainText(/한국어 전체 지원|Some pages are in Korean|화면 색상|Appearance/);
     const textSize = preferences.getByRole('radiogroup', { name: '글자 크기', exact: true });
     await expect(textSize.getByRole('radio')).toHaveCount(3);
-    await expect(textSize.getByRole('radio', { name: '기본 16px', exact: true })).toBeChecked();
+    await expect(textSize.getByRole('radio', { name: '기본', exact: true })).toBeChecked();
     await expect(preferences.getByRole('button', { name: /^색 구분 보조/ })).toBeVisible();
-    await expect(preferences).toContainText('읽기 편한 화면으로 조정합니다.');
+    await textSize.getByRole('radio', { name: '크게', exact: true }).check();
+    await expect(page.locator('html')).toHaveAttribute('data-text-scale', 'large');
     expect((await new AxeBuilder({ page }).include(".preference-controls").analyze()).violations).toEqual([]);
     await preferences.locator(".preference-panel").screenshot({ path: testInfo.outputPath("public-preferences.png") });
     await page.keyboard.press("Escape");

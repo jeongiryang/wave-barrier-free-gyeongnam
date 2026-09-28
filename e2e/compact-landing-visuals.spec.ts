@@ -1,4 +1,5 @@
 import { openSupportMenu } from "./support-menu";
+import { expectNaruDurationExample } from './landing-contract';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { chapterIds, openLandingTools, prepareStory, storyReady, expectUsableTarget, expectNoOverflow } from "./landing-contract";
@@ -15,7 +16,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.addInitScript(value => localStorage.setItem("wave-theme", value), theme);
     await page.goto("/"); await storyReady(page);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    for (const width of [390, 960, 1440]) {
+    for (const width of [390, 960, 1440, 1920, 2560]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
       for (const id of chapterIds) {
@@ -31,12 +32,8 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
       await expect(page.locator(".night-region-shortcuts button")).toHaveCount(5);
       await expect(page.locator(".simple-naru-example")).toHaveAttribute("aria-label", "대화 예시");
-      await expect(page.locator(".simple-naru-example .example-undo")).toHaveAccessibleName("예시 일정에 적용");
-      await page.locator(".simple-naru-example .example-undo").click();
-      await expect(page.locator(".simple-naru-example .example-duration strong:not(.example-proposed)")).toHaveText("90분");
-      await page.getByRole("button", { name: "되돌리기", exact: true }).click();
-      await expect(page.locator(".simple-naru-example .example-duration strong:not(.example-proposed)")).toHaveText("60분");
-      for (const selector of ['.night-hero-search > button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
+      await expectNaruDurationExample(page);
+      for (const selector of ['.night-hero-search > button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href='/guide#naru-guide']"]) {
         await expectUsableTarget(page.locator(selector));
       }
       await expectNoOverflow(page);
@@ -66,17 +63,17 @@ for (const locale of ["ko", "en"] as const) {
     await expectUsableTarget(search);
     await expect(page.locator("#story .night-journey-input > .night-primary")).toHaveAttribute("href", /^\/planner\?region=/);
     await openLandingTools(page);
-    await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAccessibleName(locale === "en" ? "Chat with Naru" : "나루와 대화하기");
-    await expect(page.locator("#naru .simple-text-link[href*=assistant]")).toHaveAttribute("href", "/planner?assistant=naru");
-    for (const selector of [".wave-wordmark", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
+    await expect(page.locator("#naru .simple-text-link")).toHaveAccessibleName('나루 사용 방법');
+    await expect(page.locator("#naru .simple-text-link")).toHaveAttribute("href", "/guide#naru-guide");
+    for (const selector of [".wave-wordmark", "#story .night-journey-input > .night-primary", "#naru .simple-text-link"]) {
       await expectUsableTarget(page.locator(selector));
     }
     await openSupportMenu(page); await expectUsableTarget(page.locator(".wave-support-menu .support-shortcuts a[href='/travel-book']"));
     await expectNoOverflow(page);
     await page.keyboard.press('Escape'); await region.focus(); await region.press('ArrowDown');
     await page.keyboard.press('Home'); await page.keyboard.press('Enter');
-    await expect(region).toHaveText('통영'); await page.keyboard.press('Tab');
+    await expect(region).toHaveText('경남 전체'); await page.keyboard.press('Tab');
     await expect(search).toBeFocused(); await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(url => url.pathname === '/planner' && url.searchParams.get('region') === '통영');
+    await expect(page).toHaveURL(url => url.pathname === '/planner' && url.searchParams.get('region') === '경남 전체');
   });
 }

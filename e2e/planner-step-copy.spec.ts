@@ -77,7 +77,7 @@ test("지역·검색 결과·날짜 설정·내 일정과 출발 전 확인은 �
   await expect(page.getByRole("heading", { name: "창원 여행지", exact: true })).toBeVisible();
   await expectKoreanHeadings(page);
   await page.locator(".wave-header").locator(".wave-my-trips").click();
-  await expect(page.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "일정 날짜와 이동 수단 정하기", exact: true })).toBeVisible();
   await expectKoreanHeadings(page);
   await openItinerary(page, { start: "2026-09-20" });
   await expect(page.getByRole("heading", { name: "내 일정", exact: true })).toBeVisible();

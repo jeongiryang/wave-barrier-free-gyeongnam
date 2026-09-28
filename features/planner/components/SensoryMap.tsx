@@ -2,7 +2,7 @@
 import NightIcon from '../../../components/NightIcon';
 
 import WaveSelect from "../../../components/WaveSelect";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   SENSORY_FIELDS,
@@ -15,9 +15,91 @@ import { localDistanceKilometres } from "../../../lib/device-location.js";
 import { plannerJson } from "../services/api";
 import type { Place } from "../types";
 import PlaceAudioGuide from "./PlaceAudioGuide";
+import LocalAmenityPreview from './LocalAmenityPreview';
 import styles from "./TravelExperience.module.css";
 import { buildEvidenceReviewQueue } from "../../../lib/evidence-cycle.js";
 const visibleSensoryKeys = ["mobility", "restroom"] as const;
+type SensoryPoint = { place: Place; lng: number; lat: number; synthetic: boolean };
+
+function SensoryLeafletMap({ points, places, layer, selected, onSelect }: {
+  points: SensoryPoint[];
+  places: Place[];
+  layer: (typeof visibleSensoryKeys)[number];
+  selected: string;
+  onSelect: (id: string) => void;
+}) {
+  const container = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef(selected);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
+  const pins = useRef(new Map<string, HTMLElement>());
+  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  useEffect(() => {
+    let cancelled = false;
+    let frame = 0;
+    let map: import("leaflet").Map | null = null;
+    void import("leaflet").then((L) => {
+      if (cancelled || !container.current) return;
+      map = L.map(container.current, { scrollWheelZoom: false, keyboard: true, zoomControl: false });
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+      points.forEach((point) => {
+        const number = places.indexOf(point.place) + 1;
+        const pin = document.createElement("span");
+        pin.className = [
+          styles.sensoryMapPin,
+          layer === "restroom" ? styles.sensoryMapPinRestroom : "",
+          point.synthetic ? styles.sensoryMapPinSynthetic : "",
+          point.place.id === selectedRef.current ? styles.sensoryMapPinSelected : "",
+        ].filter(Boolean).join(" ");
+        pin.dataset.sensoryMarker = layer;
+        pin.setAttribute("aria-hidden", "true");
+        const numberLabel = document.createElement("span");
+        numberLabel.textContent = String(number);
+        pin.append(numberLabel);
+        const label = point.synthetic
+          ? `${point.place.name} · 시연용 임의 화장실 위치 · 실제 위치 아님`
+          : `${point.place.name} · ${SENSORY_FIELDS[layer].label} 현장 정보 위치`;
+        const popup = document.createElement("div");
+        popup.className = styles.sensoryMapPopup;
+        const title = document.createElement("strong");
+        title.textContent = point.place.name;
+        const note = document.createElement("p");
+        note.textContent = point.synthetic
+          ? "화면 확인을 위한 시연용 임의 위치이며 실제 화장실 위치가 아닙니다."
+          : `${SENSORY_FIELDS[layer].label} 제보가 연결된 관광지 위치입니다. 시설의 정확한 위치는 현장에서 다시 확인해 주세요.`;
+        popup.append(title, note);
+        const icon = L.divIcon({ className: styles.sensoryMapIcon, html: pin, iconSize: [42, 48], iconAnchor: [21, 45] });
+        const marker = L.marker([point.lat, point.lng], { icon, title: label, alt: label, keyboard: true })
+          .addTo(map!)
+          .bindPopup(popup);
+        marker.on("click", () => onSelect(point.place.id));
+        const element = marker.getElement();
+        if (element) {
+          element.setAttribute("role", "button"); element.setAttribute("aria-label", label);
+          element.setAttribute("aria-pressed", String(point.place.id === selectedRef.current));
+          element.addEventListener("keydown", event => { if(event.key === " " || event.key === "Enter") { event.preventDefault(); marker.fire("click"); marker.openPopup(); } });
+          pins.current.set(point.place.id, element);
+        }
+      });
+      const bounds = L.latLngBounds(points.map(point => [point.lat, point.lng] as [number, number]));
+      if (points.length === 1) map.setView(bounds.getCenter(), 14, { animate: false });
+      else map.fitBounds(bounds, { padding: [42, 42], maxZoom: 14, animate: false });
+      setState("ready");
+      frame = requestAnimationFrame(() => { if (!cancelled) map?.invalidateSize({ animate: false }); });
+    }).catch(() => { if (!cancelled) setState("error"); });
+    return () => { cancelled = true; cancelAnimationFrame(frame); map?.remove(); };
+  }, [layer, onSelect, places, points]);
+  useEffect(() => { for(const [id, element] of pins.current) { element.setAttribute("aria-pressed", String(id === selected)); element.querySelector("[data-sensory-marker]")?.classList.toggle(styles.sensoryMapPinSelected, id === selected); } }, [selected, state]);
+  return <div className={styles.sensoryMapFrame}>
+    <div ref={container} className={styles.sensoryMap} data-testid="sensory-leaflet-map" role="region" aria-label={`${SENSORY_FIELDS[layer].label} 감각지도`} />
+    {state === "loading" && <p className={styles.sensoryMapStatus} role="status">지도를 불러오고 있어요.</p>}
+    {state === "error" && <p className={styles.sensoryMapStatus} role="alert">지도 바탕을 불러오지 못했어요. 아래 장소 목록에서 정보를 확인해 주세요.</p>}
+  </div>;
+}
+
 export default function SensoryMap({
   places,
   onSelectPlace,
@@ -83,23 +165,19 @@ export default function SensoryMap({
       document.removeEventListener("visibilitychange", refresh);
     };
   }, [ids, version]);
-  const points = places.flatMap((p, index) => {
+  const points = useMemo<SensoryPoint[]>(() => places.flatMap((p, index): SensoryPoint[] => {
     const point = supportedPlacePoint(p.mapX, p.mapY);
     if (point) return [{ place: p, ...point, synthetic: false }];
     // Arbitrary pins belong only to labelled local DEV examples, never real unknown locations.
     return import.meta.env.DEV && p.source === "로컬 예시 데이터 · 실제 관광정보 아님"
       ? [{ place: p, lng: 128.1 + (index % 4) * 0.12, lat: 35.05 + Math.floor(index / 4) * 0.1, synthetic: true }]
       : [];
-  });
-  const minX = Math.min(...points.map((p) => p.lng)),
-    maxX = Math.max(...points.map((p) => p.lng));
-  const minY = Math.min(...points.map((p) => p.lat)),
-    maxY = Math.max(...points.map((p) => p.lat));
-  function selectPlace(id: string) {
+  }), [places]);
+  const selectPlace = useCallback((id: string) => {
     setSelected(id);
     setReadings({});
     setNotice("");
-  }
+  }, []);
   function nearbyGuide() {
     if (!navigator.geolocation) {
       setNearby(
@@ -171,6 +249,7 @@ export default function SensoryMap({
   return (
     <div className={styles.experience}>
       <h3>감각지도·지금 현장</h3>
+      {place && <LocalAmenityPreview place={place}/>}
       <p>
         여행자가 직접 관찰한 휠체어 이동·화장실 정보입니다. 관찰 후 2시간이
         지나면 현재 정보에서 제외해요. 제보가 없는 곳은 미확인입니다.
@@ -187,69 +266,10 @@ export default function SensoryMap({
           </button>
         ))}
       </div>
-      <p>
-        일정 장소의 상대적인 위치입니다. 숫자는 아래 장소 목록과 같아요.
-        도로·통행 경로를 표시하는 지도는 아닙니다.
-      </p>
+      <p>관광지의 등록 좌표를 바탕으로 표시한 지도입니다. 숫자는 아래 장소 목록과 같아요. 시설 입구나 실제 화장실의 정확한 위치는 현장에서 다시 확인해 주세요.</p>
+      {points.some(point => point.synthetic) && <p className="modal-note">시연용 임의 화장실 표시는 로컬 화면 확인용이며 실제 위치가 아닙니다.</p>}
       {!!points.length && (
-        <svg
-          width="100%"
-          height="260"
-          viewBox="0 0 600 260"
-          role="group"
-          aria-label={`${SENSORY_FIELDS[layer].label} 감각지도. 아래 목록에서 같은 정보를 읽고 장소를 선택할 수 있습니다.`}
-        >
-          <rect width="600" height="260" fill="#e7f1ed" />
-          {points.map((p) => {
-            const index = places.indexOf(p.place),
-              summary = sensorySummary(
-                reports.filter((r) => r.placeId === p.place.id),
-                now,
-              )[layer];
-            const x = maxX === minX ? 300 : 50 + ((p.lng - minX) / (maxX - minX)) * 500,
-              y = maxY === minY ? 130 : 210 - ((p.lat - minY) / (maxY - minY)) * 150;
-            return (
-              <g key={p.place.id} role="button" tabIndex={0} aria-label={`${p.place.name}${p.synthetic ? " 시연용 임의 위치" : " 위치"}`} onClick={() => selectPlace(p.place.id)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectPlace(p.place.id); } }} style={{ cursor: "pointer" }}>
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="20"
-                  fill={summary.count && !error ? "#165f52" : "#586962"}
-                />
-                {layer === "restroom" && <g className="restroom-location-pin" transform={`translate(${x} ${y})`} aria-hidden="true">
-                  <path d="M0 0C-5-8-20-20-20-36A20 20 0 1 1 20-36C20-20 5-8 0 0Z" fill="#d92d20" stroke="#fff" strokeWidth="3" />
-                  <circle cx="0" cy="-36" r="7" fill="#fff" />
-                </g>}
-                <text
-                  x={x}
-                  y={y + 6}
-                  textAnchor="middle"
-                  fill="white"
-                  fontSize="18"
-                >
-                  {index + 1}
-                </text>
-                <text
-                  x={x}
-                  y={y + 39}
-                  textAnchor="middle"
-                  fill="#243b35"
-                  fontSize="12"
-                >
-                  {p.synthetic
-                    ? "시연용 위치"
-                    : error
-                    ? "갱신 실패"
-                    : summary.conflict
-                      ? "제보 차이"
-                      : summary.count
-                        ? "제보 있음"
-                        : "미확인"}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+        <SensoryLeafletMap points={points} places={places} layer={layer} selected={place?.id || ""} onSelect={selectPlace} />
       )}
       {error && (
         <p role="alert" className="modal-note">

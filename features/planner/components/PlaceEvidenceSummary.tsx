@@ -9,10 +9,11 @@ import type { Place } from "../types";
 import { facilityName, originalLanguage } from "../place-copy";
 import { StatusShapeIcon } from "../../../components/AccessIcons";
 
-export default function PlaceEvidenceSummary({ place: original }: { place: Place }) {
+export default function PlaceEvidenceSummary({ place: original, refresh }: { place: Place; refresh?: { notice: string; loading: boolean; retry: () => void } }) {
   const [requested, setRequested] = useState(false);
-  const refreshed = useSavedPlaceEvidence([original.id], FACILITIES.map(item => item.key), requested);
-  const place = refreshed.places.find(item => item.id === original.id) || original;
+  const refreshed = useSavedPlaceEvidence([original.id], FACILITIES.map(item => item.key), requested && !refresh);
+  const evidence = refresh || refreshed;
+  const place = refresh ? original : refreshed.places.find(item => item.id === original.id) || original;
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const say = (ko: string, english: string) => en ? english : ko;
@@ -41,10 +42,10 @@ export default function PlaceEvidenceSummary({ place: original }: { place: Place
       <dd lang={originalLanguage(item.detail)}>{item.detail || say("제공된 정보가 없습니다. 시설에 직접 확인해 주세요.", "No information supplied. Please check with the venue.")}</dd>
     </div>)}</dl></section>;
     })}</div> : <p>{say("공식 데이터에서 항목별 편의정보를 아직 확인하지 못했어요. 시설이 없다는 뜻은 아니며, 다시 조회하거나 방문 전에 문의해 주세요.", "Item-level facilities have not been confirmed in the official data. This does not mean the facilities are unavailable. Reload the information or contact the venue before visiting.")}</p>}
-    {(!items.length || requested) && <div className="place-evidence-refresh"><button type="button" data-icon-action="" aria-label={refreshed.loading ? say("편의정보 조회 중", "Loading facilities") : say("편의정보 다시 조회", "Reload facilities")} title={say("편의정보 다시 조회", "Reload facilities")} disabled={refreshed.loading} onClick={() => { if (requested) refreshed.retry(); else setRequested(true); }}><NightIcon name="refresh" size={20}/></button><p role="status">{refreshed.notice}</p></div>}
-    <details className="place-evidence"><summary>{say("출처·확인 시각·계산 방법", "Source, retrieval time and method")}</summary>
+    {(!items.length || requested) && <div className="place-evidence-refresh"><button type="button" data-icon-action="" aria-label={evidence.loading ? say("편의정보 조회 중", "Loading facilities") : say("편의정보 다시 조회", "Reload facilities")} title={say("편의정보 다시 조회", "Reload facilities")} disabled={evidence.loading} onClick={() => { if (refresh || requested) evidence.retry(); else setRequested(true); }}><NightIcon name="refresh" size={20}/></button><p role="status">{evidence.notice}</p></div>}
+    <details className="place-evidence"><summary>{say("출처·확인 시각", "Source and retrieval time")}</summary>
       <div className="modal-data"><span><small>{say("출처", "Source")}</small><span lang={originalLanguage(place.source)}>{place.source}</span></span><span><small>{say("조회 시각", "Retrieved")}</small>{place.checkedAt ? new Date(place.checkedAt).toLocaleString(en ? "en-GB" : "ko-KR") : say("확인되지 않음", "Not available")}</span></div>
-      <p>{say("추천 정렬에는 선택한 공식 항목 중 긍정적으로 확인된 항목의 비율(확인됨 ÷ 전체 선택 항목)을 사용합니다. 시설 없음과 미확인은 구분하며 사진·인기·후기는 계산에 넣지 않습니다. 조회 시각은 제공처의 시설 갱신일이 아닙니다.", "Recommendations use the proportion of selected fields reported available. Missing and negative records remain distinct. Photos, popularity and reviews do not change the calculation. Retrieval time is not the provider's facility update date.")}</p>
+
     </details>
   </>;
 }

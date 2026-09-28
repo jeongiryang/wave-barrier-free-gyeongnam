@@ -37,8 +37,12 @@ export function useTripSelection({ schedule, activePlaces, origin, accessibility
     [activePlaces, catalog, saved, savedEvidence.places],
   );
 
+  const rememberedActivePlaces = useRef<Place[]>([]);
   useEffect(() => {
-    const selectedActivePlaces = activePlaces.filter((place) => saved.includes(place.id));
+    // A newly saved detail may be newer than the unchanged search result.
+    // Refresh catalog entries when search records change, not when saving alone.
+    const selectedActivePlaces = activePlaces.filter((place) => saved.includes(place.id) && !rememberedActivePlaces.current.includes(place));
+    rememberedActivePlaces.current = activePlaces;
     if (selectedActivePlaces.length) rememberSavedPlaces(selectedActivePlaces);
   }, [activePlaces, rememberSavedPlaces, saved]);
 

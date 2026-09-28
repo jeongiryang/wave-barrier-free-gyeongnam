@@ -100,7 +100,12 @@ html:root body .scenic-page .night-community-toolbar form:focus-within{box-shado
 html:root body .scenic-page .night-community-toolbar form input{border:0;border-radius:24px;background:transparent;outline:0!important;box-shadow:none;min-width:0;min-height:44px}
 @media(max-width:700px){html:root body .scenic-page :is(.planner-journey-workspace,.community-workspace,.night-festival-workspace){width:calc(100% - 24px);padding:20px 14px;border-radius:22px;margin-top:16px}.naru-welcome-dialogue{min-height:155px}}
 
-html:root body .scenic-page #landing-title,html:root body .scenic-page #landing-title *{-webkit-text-stroke:0;paint-order:normal;text-shadow:0 1px 3px #102a4699,0 3px 12px #102a4666}
+html:root body .scenic-page .landing-hero-copy #landing-title,html:root body .scenic-page .landing-hero-copy #landing-title *{-webkit-text-stroke:0;paint-order:normal;text-shadow:0 1px 1px #061a30,1px 0 1px #061a30,-1px 0 1px #061a30,0 -1px 1px #061a30,0 3px 8px #061a30cc}
+html:root body .scenic-page .landing-hero-copy #landing-title em{text-shadow:none}
+/* Keep the glyph-shaped shadow behind the gradient instead of painting over it. */
+html:root body .scenic-page #landing-title .night-hero-accent{position:relative;isolation:isolate;width:fit-content;max-width:100%;margin-inline:auto}
+html:root body .scenic-page #landing-title .night-hero-accent::before{content:attr(data-shadow);position:absolute;inset:0;z-index:0;color:transparent;-webkit-text-fill-color:transparent;text-shadow:0 1px 1px #061a30,1px 0 1px #061a30,-1px 0 1px #061a30,0 -1px 1px #061a30,0 3px 8px #061a30cc}
+html:root body .scenic-page #landing-title .night-hero-accent>em{position:relative;z-index:1;display:block}
 html:root body .scenic-page .night-photo-opening .night-banner{min-width:0}
 @media(max-width:700px){html:root body .scenic-page .night-photo-opening .night-banner{display:flex;flex-direction:column;align-items:stretch}html:root body .scenic-page .night-photo-opening .night-banner-note{position:static;width:auto;max-width:calc(100% - 32px);box-sizing:border-box;margin:12px 16px 24px;align-self:flex-end;font-size:28px;overflow-wrap:anywhere}.night-banner-note .banner-written-character{white-space:normal}}
 html:root body .scenic-page :is(.night-hero-signature,.night-banner-note,.night-map-signature,.naru-welcome h2),html:root body .scenic-page .night-banner-note span{font-family:WaveHand,cursive!important;font-weight:400;letter-spacing:0}
@@ -111,7 +116,7 @@ html:root body .scenic-page .night-hero-search>.wave-select{flex:1;min-width:0;w
 html:root body .scenic-page .night-hero-search .wave-select-trigger{display:block;width:100%!important;height:auto;min-width:0;min-height:44px;padding:10px 12px;border:0;border-radius:24px;background:transparent!important;color:#edf4fa;font-size:14px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Readable middle content without covering the photographs inside it. */
-html:root body .scenic-page .landing-content{width:calc(100% - 48px);max-width:1440px;margin:24px auto 48px;padding:28px 0;border-radius:28px;background:#102638f0}
+html:root body .scenic-page .landing-content{width:calc(100% - 48px);max-width:1440px;margin:24px auto 48px;padding:28px 0;border-radius:28px;background:rgba(58,44,34,.88);border:1px solid rgba(241,214,176,.16);box-sizing:border-box;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 18px 48px rgba(32,23,16,.18)}
 html:root body .scenic-page .wave-header :is(a,button){text-shadow:0 1px 5px #16364b99}
 @media(max-width:700px){html:root body .scenic-page .landing-content{width:calc(100% - 24px);padding-block:20px;border-radius:22px}}
 
@@ -188,6 +193,7 @@ html:root body .scenic-page .community-workspace>.community-guides>.community-tr
 
 /* Keep scenery untouched; only the letterforms receive soft local separation. */
 html:root body .scenic-page :is(.landing-hero-description,.landing-closing-copy,.simple-footer){color:#f5faff;text-shadow:0 1px 3px #102a46cc,0 3px 10px #102a4699}
+html:root body .scenic-page .landing-opening .landing-hero-copy .landing-hero-description{text-shadow:0 0 1px #061a30,0 1px 1px #061a30,1px 0 1px #061a30,-1px 0 1px #061a30,0 -1px 1px #061a30,0 2px 6px #061a30cc}
 html:root body .scenic-page .simple-footer :is(p,a){color:#f5faff;font-weight:600}
 html:root body .scenic-page .night-festival-heading>div{gap:8px}
 html:root body .scenic-page .night-festival-heading :is(.wave-select-trigger,button){min-height:44px;border:0;border-radius:999px;background:#244b60;color:#e5f6fa;padding:10px 16px}

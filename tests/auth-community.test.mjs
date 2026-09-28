@@ -199,7 +199,11 @@ test("community UI supports public reading, protected participation and place li
   assert.match(editor, /본인이 작성한 글만 수정/);
   assert.doesNotMatch(editor, /fetch\(/);
   assert.match(planner, /PlaceDecisionDialog/);
-  assert.match(placeDialog, /place-visitor-records/);
+  // The owner's detail redesign keeps public stories and participation in the
+  // reviews tab, rather than the retired visitor-records wrapper.
+  assert.match(placeDialog, /<PlaceCommunityStories place=\{place\} location=\{location\}/);
+  assert.match(placeDialog, /<PlaceParticipationActions[^>]*onSubmitFeedback=\{props\.onSubmitFeedback\}/);
+  assert.match(placeDialog, /href=\{`\/community\/new\?category=review&placeId=/);
   assert.match(placeDialog, /placeId=\$\{encodeURIComponent\(place\.id\)\}/);
   assert.match(landing, /night-journey-input/);
   assert.match(await source("components/WaveHeader.tsx"), /community/);

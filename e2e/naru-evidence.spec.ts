@@ -51,7 +51,8 @@ async function setup(page: Page, records: Place[], options: { chooseFacilities?:
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   await expect(chat).toBeVisible();
   if (options.chooseFacilities) {
-    await chat.getByRole('button', { name: '휠체어 이동에 필요한 시설', exact: true }).click();
+    await chat.getByRole('button', { name: '맞춤 도움', exact: true }).click();
+    await chat.getByRole('button', { name: /휠체어 이동에 필요한 시설/ }).click();
     await chat.getByRole('button', { name: '선택 적용', exact: true }).click();
   }
   return { chat, errors };
@@ -185,7 +186,8 @@ for (const viewport of [
   await expect(detail).toContainText(records[0].address);
   await detail.getByRole('button', { name: '닫기', exact: true }).click();
   await expect(app.chat).toBeVisible();
-  await expect(app.chat.locator(viewport.width <= 800 ? '#naru-tab-conversation' : '#naru-message')).toBeFocused();
+  // The full detail now overlays the mounted conversation, so focus returns to its opener.
+  await expect(photoCard.locator('.naru-place-name')).toBeFocused();
   await photoCard.getByRole('button', { name: '담기', exact: true }).click();
   await expect(photoCard.getByRole('button', { name: '✓ 담았음', exact: true })).toBeDisabled();
   await expect.poll(() => page.evaluate(() => {

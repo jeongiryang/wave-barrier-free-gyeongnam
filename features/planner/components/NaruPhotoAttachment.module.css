@@ -1,8 +1,16 @@
-.attachment { padding: 0 16px; font-size: 12px; }
+.attachment { padding: 8px 16px; font-size: 12px; }
 .attachment button { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #284b46; cursor: pointer; }
 .attachment button:disabled { opacity: .55; cursor: wait; }
 .attachment button:focus-visible { outline: 2px solid #267267; outline-offset: 2px; }
 .attachment p { color: #4b5d58; margin: 4px 0 8px; line-height: 1.5; }
-.preview { display: flex; align-items: center; gap: 8px; }
-.preview img { object-fit: contain; border-radius: 6px; background: #f2f4f3; }
-.preview span { flex: 1; }
+.preview { position: relative; width: fit-content; }
+.attachment .thumbnail { display: block; padding: 0; border-radius: 14px; overflow: hidden; background: #eaf1ee; }
+.thumbnail img { display: block; width: 210px; height: 154px; object-fit: contain; }
+.attachment .remove { position: absolute; right: 6px; top: 6px; justify-content: center; border-radius: 50%; color: white; background: #000b; }
+.viewer { position: fixed; inset: 0; box-sizing: border-box; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 64px 24px 24px; border: 0; background: #080a0c; color: white; }
+.viewer[open] { display: flex; align-items: center; justify-content: center; }
+.viewer::backdrop { background: #000e; }
+.viewer img { width: 100%; height: 100%; object-fit: contain; }
+.viewer .viewerClose { position: absolute; top: 12px; right: 16px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid #ffffff60; background: #292d31; color: white; cursor: pointer; }
+.viewerClose:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+@media(max-width:600px) { .thumbnail img { width: 200px; height: 150px; } .viewer { padding: 64px 12px 12px; } }

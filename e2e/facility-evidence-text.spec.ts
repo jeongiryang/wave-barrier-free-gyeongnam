@@ -22,8 +22,9 @@ test('시설 상세는 제공처 서식을 텍스트로 읽고 없음과 미확�
   });
   await page.goto('/planner');
   await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
-  await page.getByRole('button', { name: place.name, exact: true }).click();
+  await page.getByRole('button', { name: `${place.name} 상세 보기`, exact: true }).click();
   const pane = page.locator('.simple-place-pane[open]');
+  await pane.getByRole('tab', { name: '이용과 편의', exact: true }).click();
   const evidence = pane.locator('.facility-evidence-list');
   await expect(evidence.getByText('장애인 전용 화장실 있음 전시실이 위치한 1,2,3층 안내소 & 입구 옆', { exact: true })).toBeVisible();
   await expect(evidence.locator('[data-state="negative"]')).toContainText('승강기 없음 직원에게 문의');

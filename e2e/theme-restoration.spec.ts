@@ -50,7 +50,7 @@ for (const source of ["archive", "shared"] as const) test(`${source}: restoring 
     await selectAccessPath(page);
     await addAndSave(page);
     await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
-    await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+    await page.getByRole("button", { name: "일정 열기", exact: true }).click();
   } else {
     await page.route("**/api/trips/shared-theme", route => route.fulfill({ json: {
       plan, selections: { region: "창원", theme: "nature,food", themes: ["nature", "food"], profiles: [], travelStart: "2026-10-08", travelEnd: "2026-10-09" }, expiresAt: Date.now() + 86_400_000,

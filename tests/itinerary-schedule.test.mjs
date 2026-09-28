@@ -119,3 +119,19 @@ test("editing a visit shifts only later stops that day and reset restores the ca
   }
   assert.deepEqual(buildItinerarySchedule({ ...input, visitMinutesByPlaceId: {} }), before);
 });
+
+test('route-only arrivals exclude visits, breaks and reservations without deleting the visit timetable', () => {
+ const input = { places: [museum, park], days: ['2026-10-01'], startTime: '12:00', origin, routeMinutesByPlaceId: { museum: 42, park: 28 } };
+ const [plain] = buildItinerarySchedule(input);
+ const [withStops] = buildItinerarySchedule({ ...input, visitMinutesByPlaceId: {museum:75}, breakMinutesByPlaceId:{museum:15}, fixedVisits:{park:{time:'16:00'}} });
+ assert.equal(withStops.entries[0].movementArrivesAtLabel, '12:42');
+ assert.equal(withStops.entries[1].movementArrivesAtLabel, '13:10');
+ assert.deepEqual(withStops.entries.map(e=>e.movementArrivesAt), plain.entries.map(e=>e.movementArrivesAt));
+ assert.equal(withStops.entries[1].startsAtLabel, '16:00');
+ assert.equal(withStops.entries[0].breakMinutes,15);
+});
+test('unknown coordinates never produce a confirmed movement-only arrival', () => {
+ const [day] = buildItinerarySchedule({places:[{id:'unknown'},park],days:['2026-10-01'],origin});
+ assert.equal(day.entries[0].movementArrivesAt,null);
+ assert.equal(day.entries[1].movementArrivesAt,null);
+});

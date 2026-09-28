@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useSyncExternalStore } from "react";
+import { useRef } from "react";
 import useLandingReveal from "../features/landing/hooks/useLandingReveal";
 import { useSitePreferences } from "../components/SitePreferences";
 import SkipLink from "../components/SkipLink";
@@ -9,27 +9,21 @@ import LandingCommunityScene from "../features/landing/components/LandingCommuni
 import { LandingFooter, LandingCallToAction } from "../features/landing/components/LandingClosing";
 import LandingHeader from "../features/landing/components/LandingHeader";
 import LandingHero from "../features/landing/components/LandingHero";
+import LandingJourneyPreview from '../features/landing/components/LandingJourneyPreview';
 import LandingChapters from "../features/landing/components/LandingChapters";
 import LandingRegionStory from "../features/landing/components/LandingRegionStory";
 import LandingAssistantStory from "../features/landing/components/LandingAssistantStory";
-import LandingFeatureLinks from "../features/landing/components/LandingFeatureLinks";
+
 import LandingFeatureList from "../features/landing/components/LandingFeatureList";
 import ScenicBackground from "../components/ScenicBackground";
-import LandingUseExample from "../features/landing/components/LandingUseExample";
-import LandingIntro from "../features/landing/components/LandingIntro";
+import LandingRestoredConversation from '../features/landing/components/LandingRestoredConversation';
 
-function subscribeCompact(onChange: () => void) {
-  const query = window.matchMedia("(max-width: 600px)");
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-const compactSnapshot = () => window.matchMedia("(max-width: 600px)").matches;
-const desktopSnapshot = () => false;
+import LandingIntro from "../features/landing/components/LandingIntro";
 
 export default function LandingPage() {
   const { t, locale } = useSitePreferences();
   const root = useRef<HTMLElement>(null);
-  const compact = useSyncExternalStore(subscribeCompact, compactSnapshot, desktopSnapshot);
+
   useLandingReveal(root);
   return <AwardPhotoProvider><LandingIntro /><main ref={root} className="landing-page horizon-edition simple-landing wave-night night-landing scenic-page" lang={locale}>
     <ScenicBackground kind="home" />
@@ -38,15 +32,12 @@ export default function LandingPage() {
     <div className="landing-opening"><AwardPanorama />
     <LandingHero /></div>
     <div className="landing-content">
-    <LandingUseExample />
-    {compact
-      ? [<LandingFeatureLinks key="features" />, <LandingRegionStory key="regions" />]
-      : [<LandingRegionStory key="regions" />, <LandingFeatureLinks key="features" />]}
-    <LandingChapters />
-    <div className="night-discover-grid"><LandingDepartureScene /><LandingCommunityScene /></div>
-    <div className="night-feature-content"><LandingAssistantStory /><LandingFeatureList /></div>
-    </div>
-    <div className="landing-finale"><LandingCallToAction t={t} />
-    <LandingFooter t={t} /></div>
-  </main></AwardPhotoProvider>;
+
+    <div className="landing-section-pair"><LandingChapters /></div>
+    <div className="landing-section-pair"><LandingJourneyPreview en={locale === "en"} /><LandingRegionStory /></div>
+    <div className="landing-section-pair"><LandingRestoredConversation /></div>
+    <div className="landing-section-pair"><LandingDepartureScene /><LandingCommunityScene scene="community" /></div>
+    <div className="landing-section-pair"><LandingCommunityScene scene="festival" /><LandingAssistantStory /></div>
+    <div className="landing-section-pair"><LandingFeatureList /><div className="landing-finale"><LandingCallToAction t={t} /><LandingFooter t={t} /></div></div>
+    </div>  </main></AwardPhotoProvider>;
 }

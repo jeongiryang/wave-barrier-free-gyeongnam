@@ -1,5 +1,5 @@
 "use client";
-import NightIcon from '../../components/NightIcon';
+import NightIcon from '../../components/MenuActionIcon';
 
 
 import Link from "next/link";
@@ -96,7 +96,7 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore, compareEnabled = 
     </div>
     <div className="travel-book-card-body">
       <header>
-        <div><span>{book.theme || "맞춤 여행"} · {book.places.length}곳</span><h2>{book.title}</h2><p>{formatDate(book.travelStart)}{book.travelEnd !== book.travelStart ? ` — ${formatDate(book.travelEnd)}` : ""}</p></div>
+        <div><span>{book.theme || "맞춤 여행"} · {book.places.length}곳</span><h2>{book.title}</h2>{book.travelStart && <p>{formatDate(book.travelStart)}{book.travelEnd && book.travelEnd !== book.travelStart ? ` — ${formatDate(book.travelEnd)}` : ""}</p>}</div>
         <div className="travel-book-status" role="group" aria-label={`${book.title} 여행 상태`}>
           <button type="button" aria-pressed={book.status === "planned"} onClick={() => updateStatus("planned")}>갈 여행</button>
           <button type="button" aria-pressed={book.status === "visited"} onClick={() => updateStatus("visited")}>다녀온 여행</button>
@@ -105,9 +105,9 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore, compareEnabled = 
       <p className="travel-book-card-status" role="status" aria-live="polite">{announcement}</p>
       {compareEnabled && <label className="trip-compare-choice"><input type="checkbox" checked={compareSelected} onChange={() => onCompareToggle?.(book.id)} /> 비교할 여행으로 선택</label>}
       {book.profiles.length > 0 && <ul className="travel-book-profiles" aria-label="선택한 편의조건">{resolveFacilityKeys({ profiles: book.profiles }).map((profile) => <li key={profile}>{facilityLabel(profile)}</li>)}</ul>}
-      <div className="travel-book-days">
+      <p className="travel-book-route-summary">{book.places.map(place => place.name).join(" · ")}</p><details className="travel-book-detail"><summary>일정과 메모 보기</summary><div className="travel-book-days">
         {days.map((day, dayIndex) => <section key={day}>
-          <header>{day && <small>{dayIndex + 1}일차</small>}<strong>{formatDate(day, shortDateFormatter)}{day ? ` · ${book.dayStartTime} 시작` : ""}</strong></header>
+          <header>{day && <small>{dayIndex + 1}일차</small>}{day && <strong>{formatDate(day, shortDateFormatter)}{` · ${book.dayStartTime} 시작`}</strong>}</header>
           <ol>{book.places.filter((place) => book.scheduleAssignments[place.id] === day).map((place, placeIndex) => <li key={place.id}>
             <span>{placeIndex + 1}</span><div><strong>{place.name}</strong><small>{place.address || place.city}</small>{book.visitMinutesByPlaceId?.[place.id] && <small>체류 {book.visitMinutesByPlaceId[place.id]}분</small>}</div><em>방문 전 재확인</em>
           </li>)}</ol>
@@ -119,14 +119,14 @@ function TravelBookCard({ book, onUpdate, onRemove, onRestore, compareEnabled = 
         <small id={noteHelpId}>입력 후 다른 곳을 누르면 자동 저장돼요.</small>
         <small id={noteStatusId} className="travel-book-note-status" role="status" aria-live="polite">{noteState === "saved" ? "메모를 저장했습니다." : noteState === "editing" ? `편집 중 · ${note.length}/1,200자` : `${note.length}/1,200자`}</small>
       </label>
-      <div className="travel-book-actions">
-        <button type="button" className="primary" onClick={() => onRestore(book)}>이 일정 다시 열기 </button>
-        <Link href="/photo-course">사진으로 코스 되살리기</Link>
-        <Link href={journalHref(book)}>여행 후기 초안</Link>
+      </details><div className="travel-book-actions">
+        <button type="button" className="primary" onClick={() => onRestore(book)}><NightIcon name="calendar" size={18}/>일정 열기</button>
+
+        <Link href={journalHref(book)}><NightIcon name="edit" size={18}/>여행 후기 초안</Link>
       </div>
       <CloudSaveAction book={book} />
       <div className="travel-book-delete">
-        <button ref={deleteTriggerRef} type="button" aria-expanded={deleteReady} aria-controls={deletePanelId} onClick={() => deleteReady ? closeDelete() : setDeleteReady(true)} data-icon-action="" title="여행집에서 삭제"><NightIcon name="trash" size={20}/><span className="sr-only">여행집에서 삭제</span></button>
+        <button ref={deleteTriggerRef} type="button" aria-expanded={deleteReady} aria-controls={deletePanelId} onClick={() => deleteReady ? closeDelete() : setDeleteReady(true)} title="여행집에서 삭제"><NightIcon name="trash" size={18}/><span>삭제</span></button>
         {deleteReady && <div ref={deletePanelRef} id={deletePanelId} className="travel-book-delete-confirm" role="group" aria-label={`${book.title} 삭제 확인`}><span>이 여행을 삭제할까요?</span><button type="button" onClick={() => onRemove(book.id)}>삭제 확인</button><button type="button" onClick={closeDelete}>취소</button></div>}
       </div>
     </div>
@@ -186,17 +186,17 @@ export default function TravelBookPage() {
       <button type="button" disabled={!hydrated} onClick={requestNewTrip}>새 여행 설계</button>
       <nav aria-label="여행 저장 위치"><a href="#travel-book-collection">이 기기</a><Link href="/my-trips">계정에 저장한 여행</Link></nav>
     </section>
-    <JudgeDemoTrips onImport={archive} />
+
     <div className="travel-book-collection-heading" id="travel-book-collection"><h2>저장한 여행</h2></div>
-    {hydrated && <TravelProfileSummary books={books} onStart={startFromProfile} />}
+
     {books.length >= 2 && <div className="trip-compare-toolbar"><button type="button" disabled={compareIds.length !== 2} onClick={() => setCompareOpen(true)}>선택한 여행 2개 비교</button><span>{compareIds.length}/2개 선택</span></div>}
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     {storageError && <p className="result-notice error" role="alert">{storageError}</p>}
     {!hydrated ? <section className="travel-book-empty" aria-live="polite"><p>저장한 여행을 불러오는 중입니다.</p></section> : books.length ? <section className="travel-book-list" aria-label="보관한 여행">{books.map((book) => <TravelBookCard key={book.id} book={book} onUpdate={update} onRemove={(id) => { remove(id); setCompareIds(current => current.filter(value => value !== id)); setAnnouncement(`${book.title} 여행을 여행집에서 삭제했습니다.`); }} onRestore={restore} compareEnabled={books.length >= 2} compareSelected={compareIds.includes(book.id)} onCompareToggle={id => setCompareIds(current => current.includes(id) ? current.filter(value => value !== id) : current.length < 2 ? [...current, id] : current)} />)}</section> : <section className="travel-book-empty">
       <p>저장한 여행이 없습니다.</p><h2>여행을 저장하면 여기서 다시 열 수 있습니다.</h2><small>일정의 ‘내 여행에 저장’을 눌러 주세요.</small><Link href="/planner">여행 설계하기</Link>
     </section>}
-    {hydrated && <RegionRecordList books={books} />}
-    {hydrated && <LocalMarketCard books={books} />}
+    <section className="travel-book-discovery" aria-label="다음 여행 준비"><div className="travel-book-recommendation">{hydrated && <TravelProfileSummary books={books} onStart={startFromProfile} />}<div className="travel-book-region-content">{hydrated && <RegionRecordList books={books} />}
+    {hydrated && <LocalMarketCard books={books} />}</div></div><JudgeDemoTrips onImport={archive} /></section>
     <footer className="travel-book-footer"><Link href="/photo-course">사진으로 여행 찾기</Link><Link href="/community">여행자 후기 읽기</Link><Link href="/privacy">개인정보</Link><Link href="/terms">이용 안내</Link><GithubFooterLink /></footer>
     {!newTripReady && newTripError && <p role="alert">{newTripError}</p>}
     {newTripReady && <NewTripDialog onCancel={closeNewTrip} onConfirm={startNewTrip} error={newTripError} />}

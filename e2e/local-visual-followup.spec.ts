@@ -14,16 +14,17 @@ test('family recommendation releases its derived alcohol filter and preserves an
   const family = group.getByRole('button', { name: '가족 추천', exact: true });
   const alcohol = group.getByRole('button', { name: '주류 행사 제외', exact: true });
   const all = group.getByRole('button', { name: '전체', exact: true });
-  await expect(page.locator('.festival-card')).toHaveCount(2);
+  const cards = page.locator('#festival-results .festival-grid > .festival-card');
+  await expect(cards).toHaveCount(2);
   await family.click(); await expect(alcohol).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.festival-card')).toHaveCount(1);
+  await expect(cards).toHaveCount(1);
   await all.click(); await expect(alcohol).toHaveAttribute('aria-pressed', 'false');
-  await expect(page.locator('.festival-card')).toHaveCount(2);
+  await expect(cards).toHaveCount(2);
   await family.click(); await family.click(); await expect(alcohol).toHaveAttribute('aria-pressed', 'false');
   await family.click(); await alcohol.click(); await expect(family).toHaveAttribute('aria-pressed', 'false');
-  await expect(page.locator('.festival-card')).toHaveCount(2);
+  await expect(cards).toHaveCount(2);
   await alcohol.click(); await group.getByRole('button', { name: '가을축제', exact: true }).click();
-  await expect(alcohol).toHaveAttribute('aria-pressed', 'true'); await expect(page.locator('.festival-card')).toHaveCount(1);
+  await expect(alcohol).toHaveAttribute('aria-pressed', 'true'); await expect(cards).toHaveCount(1);
 });
 
 test('regional covers remain selectable when the photo API fails, and image failures have a visible fallback', async ({ page }) => {
@@ -32,6 +33,7 @@ test('regional covers remain selectable when the photo API fails, and image fail
   await page.route('https://tong.visitkorea.or.kr/**', route => route.fulfill({ contentType: 'image/webp', body: bitmap }));
   await page.route('**/api/wave?**', route => new URL(route.request().url()).searchParams.get('action') === 'photo' ? route.fulfill({ status: 503, json: {} }) : route.fallback());
   await page.goto('/planner');
+  await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
   const toggle = page.getByRole('button', { name: '지도에서 지역 고르기' });
   if (await toggle.isVisible()) await toggle.click();
   const picker = page.locator('.night-planner-region-map .region-picker-preview');
@@ -44,6 +46,7 @@ test('regional covers remain selectable when the photo API fails, and image fail
   await page.keyboard.press('Escape');
   await page.route('https://tong.visitkorea.or.kr/**', route => route.abort());
   await page.reload();
+  await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
   if (await toggle.isVisible()) await toggle.click();
   await picker.scrollIntoViewIfNeeded();
   await expect(picker.locator('.region-photo-placeholder')).toHaveCount(18);

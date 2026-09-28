@@ -83,7 +83,7 @@ for (const populated of [false, true]) {
       await expectHighlightContains(spotlight, page.locator('.simple-timeboard h3').first());
     } else {
       await expect(page.locator('#conditions[data-help-tour-active="true"]')).toBeVisible();
-      await expectHighlightContains(spotlight, page.locator('.simple-search-bar'));
+      await expectHighlightContains(spotlight, page.locator('#conditions .simple-search-bar'));
       await expect(dialog.getByRole('button', { name: '투어 마치기', exact: true })).toBeVisible();
     }
     await page.keyboard.press("Escape");

@@ -3,8 +3,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, plan } from "./fixtures";
 import { openNearby } from "./nearby-fixtures";
+import type { Place } from '../features/planner/types';
 
-const accessibility = [
+const accessibility: Place['accessibility'] = [
   { key: "route", label: "접근로", state: "confirmed", detail: "공식 접근로 기록" },
   { key: "restroom", label: "장애인 화장실", state: "unknown", detail: "" },
   { key: "elevator", label: "승강기", state: "negative", detail: "승강기 없음" },
@@ -17,6 +18,8 @@ test.beforeEach(async ({ page }) => {
 async function expectFacilityShapes(page: Page, visible: boolean) {
   await page.locator('.simple-place-row').first().locator('.place-card-info').click();
   const detail = page.locator('.simple-place-pane');
+  await expect(detail.locator('.place-detail-source')).toContainText('최신 관광 정보를 확인했어요');
+  await detail.getByRole('tab', { name: '이용과 편의', exact: true }).click();
   for (const state of ['negative', 'unknown', 'confirmed']) {
     const icon = detail.locator(`.facility-evidence-list [data-state="${state}"] .status-shape`).first();
     if (visible) await expect(icon).toBeVisible();
@@ -26,6 +29,13 @@ async function expectFacilityShapes(page: Page, visible: boolean) {
   await expect(detail.locator('.facility-evidence-list [data-state="negative"]')).toContainText('없음으로 기록');
   await expect(detail.locator('.facility-evidence-list [data-state="unknown"]')).toContainText('미확인');
   await detail.locator('.modal-close').click();
+}
+
+async function prepareFacilityEvidence(page: Page) {
+  const place: Place = { ...plan.places[0], accessibility };
+  await mockPlannerApi(page, { savedPlaces: [place] });
+  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: { ...plan, places: [place] } }));
+  await page.route('**/api/wave?action=place-audio*', route => route.fulfill({ json: { checkedAt: plan.generatedAt, stories: [] } }));
 }
 
 async function toggleColorAssist(page: Page) {
@@ -45,8 +55,7 @@ test("색 구분 보조를 켜면 편의 상태에 글자와 모양이 함께 �
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
-  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: { ...plan, places: [{ ...plan.places[0], accessibility }] } }));
+  await prepareFacilityEvidence(page);
   await page.goto("/planner?region=창원");
   const card = page.locator(".simple-place-row").first();
   // 끈 상태에서도 색 없이 이해할 수 있어야 한다: 상태마다 글자가 이미 붙어 있다.
@@ -58,6 +67,16 @@ test("색 구분 보조를 켜면 편의 상태에 글자와 모양이 함께 �
   await toggleColorAssist(page);
   await expect(page.locator("html")).toHaveAttribute("data-color-assist", "on");
   await expectFacilityShapes(page, true);
+  // The visual setting must not turn an unavailable selected facility into
+  // permission to save. Select the requirement through the real condition UI.
+  await page.locator('.simple-facility-trigger').click();
+  const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+  await picker.getByRole('checkbox', { name: '승강기', exact: true }).check();
+  await picker.getByRole('button', { name: /^적용/ }).click();
+  await expect(page.locator('.simple-results')).toHaveAttribute('aria-busy', 'false');
+  await card.locator('.place-card-info').click();
+  await expect(page.locator('.simple-place-pane').getByRole('button', { name: '일정에 추가', exact: true })).toBeDisabled();
+  await page.locator('.simple-place-pane .modal-close').click();
   await expect(card.locator(".facility-missing")).toHaveText("승강기 없음");
   await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 미확인");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
@@ -79,8 +98,7 @@ test("저장소가 막혀도 화면이 동작하고 색 구분 보조는 기본�
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockPlannerApi(page);
-  await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: { ...plan, places: [{ ...plan.places[0], accessibility }] } }));
+  await prepareFacilityEvidence(page);
   await page.addInitScript(() => {
     const blocked = () => { throw new DOMException("storage blocked", "SecurityError"); };
     Object.defineProperty(window, "localStorage", { configurable: true, get: () => ({ getItem: blocked, setItem: blocked, removeItem: blocked, clear: blocked, key: blocked, length: 0 }) });

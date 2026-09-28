@@ -7,34 +7,34 @@ async function source(path) {
 }
 
 test("landing route composes restored scenes and keeps browser effects inside their owners", async () => {
-  const [page, hero, regions, story, naru] = await Promise.all([
+  const [page, hero, regions, story, naru, departure, reveal] = await Promise.all([
     source("app/page.tsx"),
     source("features/landing/components/LandingHero.tsx"),
     source("features/landing/components/LandingRegionStory.tsx"),
     source("features/landing/components/LandingChapters.tsx"),
     source("features/landing/components/LandingAssistantStory.tsx"),
+    source("features/landing/components/LandingDepartureScene.tsx"),
+    source("features/landing/hooks/useLandingReveal.ts"),
   ]);
-  // Each responsive branch renders one copy of each scene; mobile moves the
-  // feature entry before the region picker without duplicating either section.
-  const responsiveScenes = /\{compact\s*\? \[([^\]]+)\]\s*:\s*\[([^\]]+)\]\}/;
-  const branches = page.match(responsiveScenes);
-  assert.ok(branches, "landing keeps explicit compact and desktop scene order");
+  // Owner's approved local layout uses one responsive tree: the region gallery
+  // follows the journey preview, feature entries live in the departure section,
+  // and the final invitation shares its box with the footer.
   const sceneNames = content => [...content.matchAll(/<(Landing[A-Za-z]+)\b/g)].map(match => match[1]);
-  assert.deepEqual(sceneNames(branches[1]), ["LandingFeatureLinks", "LandingRegionStory"]);
-  assert.deepEqual(sceneNames(branches[2]), ["LandingRegionStory", "LandingFeatureLinks"]);
-  for (const [index, middle] of [[1, ["LandingFeatureLinks", "LandingRegionStory"]], [2, ["LandingRegionStory", "LandingFeatureLinks"]]]) {
-    assert.deepEqual(sceneNames(page.replace(responsiveScenes, branches[index])),
-      ["LandingIntro", "LandingHeader", "LandingHero", "LandingUseExample", ...middle, "LandingChapters", "LandingDepartureScene", "LandingCommunityScene", "LandingAssistantStory", "LandingFeatureList", "LandingCallToAction", "LandingFooter"]);
-  }
-  assert.match(page, /useSyncExternalStore\(subscribeCompact, compactSnapshot, desktopSnapshot\)/);
-  assert.match(page, /query\.addEventListener\("change", onChange\)/);
-  assert.match(page, /return \(\) => query\.removeEventListener\("change", onChange\)/);
+  assert.deepEqual(sceneNames(page), ["LandingIntro", "LandingHeader", "LandingHero", "LandingChapters", "LandingJourneyPreview", "LandingRegionStory", "LandingRestoredConversation", "LandingDepartureScene", "LandingCommunityScene", "LandingCommunityScene", "LandingAssistantStory", "LandingFeatureList", "LandingCallToAction", "LandingFooter"]);
+  assert.match(page, /<LandingJourneyPreview[^>]*\/><LandingRegionStory\s*\/>/);
+  assert.deepEqual([...page.matchAll(/<LandingCommunityScene scene="([^"]+)"/g)].map(match => match[1]), ["community", "festival"]);
+  assert.match(page, /className="landing-finale"><LandingCallToAction[^>]*\/><LandingFooter/);
+  assert.equal((departure.match(/<LandingFeatureLinks\s*\/>/g) || []).length, 1, "the relocated feature links remain reachable once");
+  assert.match(page, /useLandingReveal\(root\)/);
+  assert.match(reveal, /observer\.disconnect\(\); preferenceObserver\.disconnect\(\); cancel\(\)/);
   assert.deepEqual([hero, regions, story, naru].flatMap(content => [...content.matchAll(/<section\b[^>]*\bid="([^"]+)"/g)].map(match => match[1])), ["top", "regions", "story", "naru"]);
   assert.doesNotMatch(page, /useState|useEffect|IntersectionObserver|AbortController/);
   assert.match(regions, /new IntersectionObserver/);
   assert.match(regions, /observer\.disconnect\(\)/);
   assert.match(hero, /action="\/planner"/);
-  assert.match(naru, /href="\/planner\?assistant=naru"/);
+  assert.match(naru, /useOpenNaru\(\)/);
+  assert.match(naru, /onClick=\{\(\) => openNaru\(item\.example\)\}/);
+  assert.match(naru, /disabled=\{!ready\}/);
   assert.match(story, /night-journey-input/);
   assert.match(story, /lazy\(\(\) => import\("\.\.\/\.\.\/\.\.\/components\/GyeongnamRegionPicker"\)/);
   assert.match(story, /observer\.disconnect\(\)/);

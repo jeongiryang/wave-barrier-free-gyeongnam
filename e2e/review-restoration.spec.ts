@@ -39,7 +39,7 @@ for (const width of [390, 1440]) {
   expect(await writing.locator('.wave-written-character').first().evaluate(el => getComputedStyle(el).animationName)).toBe('wave-hand-write');
  });
 }
-test('Naru cycles through the two approved scenes and repeats its four dialogue steps', async ({ page }, info) => {
+test('Naru cycles through the two approved scenes without the retired decorative dialogue', async ({ page }, info) => {
  await page.setViewportSize({ width: 390, height: 844 });
  await mockPlannerApi(page); await page.clock.install();
  await page.goto('/planner');
@@ -62,21 +62,30 @@ test('Naru cycles through the two approved scenes and repeats its four dialogue 
   expect(frame).toBe(previous === 4 ? 1 : previous + 1);
   await expect(scene).toHaveAttribute('data-frame', String(frame)); seen.add(frame);
   await expect(scene.locator('img.is-current')).toHaveAttribute('src', `/naru/planner-harbor-${frame < 3 ? 'grounded-v4' : 'map-desktop-v1'}.webp`);
-  await expect(scene.locator('.naru-dialogue-profile:visible')).toHaveCount(frame % 2 ? 1 : 2);
+  await expect(scene.locator('img.is-current')).toBeVisible();
+  await expect(scene.locator('.naru-dialogue-profile,.wave-written-character')).toHaveCount(0);
  }
  expect([...seen].sort()).toEqual([1, 2, 3, 4]);
  await page.screenshot({ path: info.outputPath('restoration-naru-cycle.png') });
 });
-test('OS reduced motion retains animated writing and cycling scenes', async ({ page }) => {
+test('OS reduced motion keeps the approved scenic cycle and reachable planning controls', async ({ page }) => {
  await page.emulateMedia({ reducedMotion: 'reduce' });
- await mockPlannerApi(page);
+ await mockPlannerApi(page); await page.clock.install();
  await page.goto('/planner');
  const scene = page.locator('.naru-header-scene');
+ await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
+ await scene.scrollIntoViewIfNeeded();
+ await expect.poll(() => scene.locator('img').evaluateAll(nodes => nodes.length === 2 && nodes.every(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0))).toBe(true);
+ await pauseCurrentClock(page);
+ for (let elapsed = 0; elapsed < 8000 && await scene.getAttribute('data-frame') !== '4'; elapsed += 100) await page.clock.runFor(100);
  await expect(scene).toHaveAttribute('data-frame', '4');
  await expect(scene.locator('img.is-current')).toHaveAttribute('src', '/naru/planner-harbor-map-desktop-v1.webp');
- const chars = scene.locator('.wave-written-character');
- await expect(chars.first()).toBeVisible();
- expect(await chars.evaluateAll(els => els.every(el => getComputedStyle(el).animationName !== 'none'))).toBe(true);
+ await expect(scene.locator('img.is-current')).toBeVisible();
+ await expect(scene).toHaveAccessibleName('나루와 함께 여행 준비하기');
+ await expect(scene.locator('.naru-dialogue-profile,.wave-written-character')).toHaveCount(0);
+ for (let elapsed = 0; elapsed < 2600 && await scene.getAttribute('data-frame') !== '1'; elapsed += 100) await page.clock.runFor(100);
  await expect(scene).toHaveAttribute('data-frame', '1');
- await expect(scene.locator('.naru-dialogue-profile:visible')).toHaveCount(2);
+ await expect(scene.locator('img.is-current')).toHaveAttribute('src', '/naru/planner-harbor-grounded-v4.webp');
+ await page.getByRole('combobox', { name: '여행 지역', exact: true }).focus();
+ await expect(page.getByRole('combobox', { name: '여행 지역', exact: true })).toBeFocused();
 });

@@ -1,4 +1,5 @@
 import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
+import { expectNaruDurationExample } from './landing-contract';
 import { expectOnlyLandingReads } from "./landing-contract";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -77,10 +78,7 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   const example = page.locator(".simple-naru-example");
   await expect(example).toHaveAttribute("aria-label", "대화 예시");
   await expect(example.locator("input,form,textarea,[contenteditable=true]")).toHaveCount(0);
-  await example.getByRole("button", { name: "예시 일정에 적용", exact: true }).click();
-  await expect(example.locator(".example-duration strong:not(.example-proposed)")).toHaveText("90분");
-  await example.getByRole("button", { name: "되돌리기", exact: true }).click();
-  await expect(example.locator(".example-duration strong:not(.example-proposed)")).toHaveText("60분");
+  await expectNaruDurationExample(page);
   expect(writes).toEqual([]); expectOnlyLandingReads(requests);
 });
 
@@ -123,6 +121,15 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 601, 
     const first = cards.first().locator(".simple-region-link");
     await expect(first).toBeFocused();
     await expect(first).toHaveAccessibleName(en ? "Tongyeong places" : "통영 여행지 보기");
+    // Native keyboard focus scrolls smoothly. Let that real movement finish
+    // before expectUsableTarget centers a different control with instant scroll.
+    await expect(first).toBeInViewport({ ratio: 1 });
+    await expect.poll(() => first.evaluate(async node => {
+      const position = () => [scrollX, scrollY, node.getBoundingClientRect().top];
+      const before = position();
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      return position().every((value, index) => value === before[index]);
+    })).toBe(true);
     const expand = region.getByRole("button", { name: en ? "View all 18 regions" : "18개 지역 모두 보기", exact: true });
     await expectUsableTarget(expand);
     await expect(expand).toHaveAttribute("aria-expanded", "false");

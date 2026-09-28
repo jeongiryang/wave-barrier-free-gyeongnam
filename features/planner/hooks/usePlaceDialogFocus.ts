@@ -18,6 +18,10 @@ export function usePlaceDialogFocus(open: boolean, onClose: () => void, sidePane
     if (!open || !dialog) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const owner = previousFocus?.closest<HTMLDialogElement>("dialog");
+    // An asynchronous Naru command can replace its send button before opening
+    // details. Keep a local fallback only for that still-open conversation.
+    const naruReturn = owner?.classList.contains("naru-panel") ? owner
+      : previousFocus === document.body ? document.querySelector<HTMLDialogElement>("dialog.naru-panel[open]") : null;
     owners.set(dialog, owner && owner !== dialog ? owner : null);
     const previousOverflow = document.body.style.overflow;
     const media = matchMedia('(min-width:1024px)');
@@ -62,7 +66,17 @@ export function usePlaceDialogFocus(open: boolean, onClose: () => void, sidePane
       dialog.removeEventListener("keydown", containTab);
       if (dialog.open) dialog.close();
       document.body.style.overflow = previousOverflow;
-      if (previousFocus?.isConnected && previousFocus.getClientRects().length) previousFocus.focus({ preventScroll: true });
+      const restore = (target: HTMLElement | null | undefined) => {
+        if (!target?.isConnected || target === document.body || !target.getClientRects().length
+          || target.matches(":disabled") || getComputedStyle(target).visibility === "hidden") return false;
+        target.focus({ preventScroll: true });
+        return document.activeElement === target;
+      };
+      if (!restore(previousFocus) && naruReturn?.isConnected && naruReturn.open) {
+        const tab = naruReturn.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+        // Avoid summoning a phone's software keyboard when returning from details.
+        if (matchMedia("(max-width:800px)").matches || !restore(naruReturn.querySelector<HTMLElement>("#naru-message"))) restore(tab);
+      }
     };
   }, [onClose, open, sidePanel]);
   return dialogRef;

@@ -55,7 +55,7 @@ test("장소 상세는 최신 일반글과 무관하게 현장 확인 정보를 
   await page.goto("/planner");
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true }).click();
-  await page.locator(".place-visitor-records > summary").click();
+  await page.getByRole('tab', { name: '후기', exact: true }).click();
   const reports = page.getByRole("region", { name: "여행자가 남긴 정보", exact: true });
   await expect(reports).toContainText("경남도립미술관 · 2026-06-15 현장 확인");
   await expect(reports).toContainText(/\d+개월 전에 확인한 정보예요/);

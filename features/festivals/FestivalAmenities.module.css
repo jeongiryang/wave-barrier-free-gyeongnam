@@ -1,4 +1,22 @@
 .panel { padding: 16px 0 4px; }
+.dialog { pointer-events: auto; }
+.intro { margin-bottom: 20px; }
+.intro h3 { margin-top: 6px; font-size: 1.3rem; }
+.intro p { margin: 6px 0 0; color: #c4d9e6; }
+.eyebrow { color: #a8eddb; font-size: 13px; font-weight: 600; }
+.resultHeading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.resultHeading > span { color: #a8eddb; font-size: 13px; white-space: nowrap; }
+.emptyState { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px 24px; border: 1px solid #46677d; border-radius: 16px; background: #102b40; text-align: center; }
+.emptyState > svg { color: #a8eddb; }
+.emptyState > strong { font-size: 1.1rem; }
+.emptyState > p { margin: 0; max-width: 440px; color: #c4d9e6; }
+.legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; }
+.legend > span:first-child { color: #a8eddb; }
+.recordDetails { margin-top: 12px; border-top: 1px solid #46677d; }
+.recordDetails > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: #c4d9e6; }
+.recordDetails > summary::after { content: '+'; margin-left: auto; }
+.recordDetails[open] > summary::after { content: '−'; }
+.recordDetails > summary:focus-visible { outline: 3px solid #85eaff; outline-offset: 3px; }
 .panel h3 { margin: 0 0 8px; font-size: 1.05rem; line-height: 1.5; }
 .panel > p { margin: 0 0 14px; font-size: 14px; line-height: 1.7; }
 .panel p,.panel small { line-height: 1.7; overflow-wrap: anywhere; }
@@ -18,6 +36,7 @@
 .official a,.official button { margin: 0 8px 8px 0; }
 .markerIcon { border: 0; background: transparent; }
 .markerPin { width: 32px; height: 32px; display: block; border: 4px solid #fff; border-radius: 50%; background: #d52b2b; }
+.festivalPin { width: 28px; height: 28px; margin: 6px; display: block; border: 4px solid #fff; background: #13614f; transform: rotate(45deg); box-shadow: 0 2px 8px #0006; }
 .openButton { width: calc(100% - 48px); min-height: 46px; margin: 0 24px 24px; padding: 10px 14px; border: 1px solid #31596a; border-radius: 8px; color: #e9f8ff; background: #0d3549; font: inherit; font-weight: 700; }
 .openButton:focus-visible,.dialogHeader button:focus-visible { outline: 3px solid #85eaff; outline-offset: 3px; }
 .dialog { width: min(760px,calc(100vw - 32px)); max-height: 90dvh; margin: auto; padding: 0 24px 24px; overflow: auto; border: 1px solid #31596a; border-radius: 18px; color: #edf4ff; background: #081b2e; color-scheme: dark; box-shadow: 0 28px 80px rgba(0,0,0,.38); }

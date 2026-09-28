@@ -155,8 +155,10 @@ test('a selected region survives native-to-custom hydration and regains focus af
     const region = page.getByRole('combobox', { name: '어디로 떠나고 싶으세요?', exact: true });
     await expect(region).toHaveJSProperty('tagName', 'SELECT');
     await tabTo(page, region);
+    const destination = await region.locator('option:not([disabled])').evaluateAll(options => options.findIndex(option => (option as HTMLOptionElement).value === '거제'));
+    expect(destination).toBeGreaterThanOrEqual(0);
     await region.press('Home');
-    await region.press('ArrowDown');
+    for (let index = 0; index < destination; index++) await region.press('ArrowDown');
     await expect(region).toHaveValue('거제');
     await expect(region).toBeFocused();
     held.releaseApp();

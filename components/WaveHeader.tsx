@@ -38,7 +38,7 @@ export default function WaveHeader({ current, savedCount, savedReady = true, onS
   return <header className={`wave-header ${className}`}>
     <Link className="wave-wordmark" href={current === "intro" ? "#top" : "/"} aria-label={en ? "WAVE home" : "WAVE 홈"}>{night && <svg className="night-wave-mark" viewBox="0 0 64 40" aria-hidden="true"><path fill="#17d6ff" d="M1 21C18 27 22-7 46 10L61 20C42 8 29 40 1 21Z"/><path fill="#1199ff" d="M6 28C28 37 36 10 62 23C42 19 37 50 6 28Z"/><path fill="#85eaff" d="M13 14C27 13 30-2 46 7C33 4 26 23 13 14Z"/></svg>}<span>WAVE</span>{night && <small>모두가 떠나는,<br/>더 넓은 경남</small>}</Link>
     <nav aria-label={en ? "Main menu" : "주요 메뉴"}>
-      <Link href="/" aria-current={current === "intro" ? "page" : undefined}><NavIcon name="intro" /><span>{en ? "About WAVE" : "서비스 소개"}</span></Link>
+      <Link href="/" aria-current={current === "intro" ? "page" : undefined}><NavIcon name="intro" /><span>{en ? "About WAVE" : "소개"}</span></Link>
       <Link href="/planner" aria-current={current === "planner" ? "page" : undefined}><NavIcon name="planner" /><span>{en ? "Plan a trip" : "여행 설계"}</span></Link>
       <Link href="/festivals" aria-current={current === "festivals" ? "page" : undefined}><NavIcon name="festivals" /><span>{en ? "Festivals" : "축제"}</span></Link>
       <Link href="/community" aria-current={current === "community" ? "page" : undefined}><NavIcon name="community" /><span>{en ? "Community" : "커뮤니티"}</span></Link>

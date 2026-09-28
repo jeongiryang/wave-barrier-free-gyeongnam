@@ -8,6 +8,7 @@ html body .night-secondary .wave-header{max-width:none;width:100%;margin:0;paddi
 .night-secondary :is(.auth-card,.travel-book-card,.travel-book-empty,.travel-account-welcome,.account-settings,.current-trip-card,.photo-course,.shared-error,.shared-loading,.shared-places,.shared-itinerary,.community-detail,.community-editor,.community-gate){color:var(--ink);background:linear-gradient(135deg,#0d2238,#071522);border:1px solid var(--line);border-radius:16px;box-shadow:0 16px 48px #0002}
 .night-secondary :is(.auth-submit,.auth-primary-link,.travel-book-actions .primary,.travel-book-task-heading>button,.photo-course-pick){color:#fff;border:1px solid #469bff;border-radius:10px;background:linear-gradient(120deg,#0877cf,#3257e5 68%,#7043d4);box-shadow:0 0 20px #167def25}
 .night-secondary :is(.auth-submit,.auth-primary-link):hover{filter:brightness(1.12)}
+.night-secondary .photo-course-sample-button{color:var(--ink)}
 .night-secondary .kakao-login-button{color:#191919;background:#fee500;border-color:#fee500}
 html body .night-secondary.auth-focused{padding:0 0 64px}
 html body .night-secondary .auth-layout{width:min(1240px,calc(100% - 80px));min-height:0;margin:48px auto 0;padding:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(400px,.9fr);gap:28px;align-items:stretch}
@@ -41,6 +42,7 @@ html body .night-secondary.policy-page{padding:0 max(32px,calc((100% - 1200px)/2
 .night-secondary.policy-page>header:not(.wave-header){padding:44px 0 36px;max-width:100%}
 .night-secondary.policy-page>header:not(.wave-header) h1{font-size:44px;line-height:1.25;font-weight:700}
 .night-secondary.policy-page>header:not(.wave-header) p{color:#54d6ff}.night-secondary.policy-page>header:not(.wave-header) span{color:var(--muted)}
+.night-secondary.policy-page .policy-summary>div>p{color:#54d6ff}
 .night-secondary.policy-page :is(.policy-summary,.policy-link-grid>a,.policy-detail-grid>section,.policy-table-wrap,.policy-list li,.policy-toc a),.night-secondary.policy-page>nav a,.night-secondary.policy-page>footer a{color:var(--ink);background:#0b2034;border-color:var(--line)}
 .night-secondary .policy-summary{padding:30px;margin-bottom:28px;border-radius:16px}.night-secondary .policy-summary h2{font-size:28px}
 .night-secondary .policy-link-grid{margin-bottom:48px;border-radius:14px;overflow:hidden}.night-secondary .policy-link-grid>a{min-height:145px;padding:40px 24px 24px}

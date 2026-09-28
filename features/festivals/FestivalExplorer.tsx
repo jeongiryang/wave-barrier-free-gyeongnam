@@ -26,6 +26,7 @@ import { getTabStorage } from '../../lib/session-storage.js';
 import { emptyTrip } from '../../lib/current-trip-storage.js';
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
 import FestivalAmenities from './FestivalAmenities';
+import LocalFestivalExamples from './LocalFestivalExamples';
 import FestivalCardPanel from './FestivalCardPanel';
 import FestivalDetailDialog, { type FestivalDetail } from './FestivalDetailDialog';
 import { addFestivalToTrip, existingFestivalVisit, rescheduleFestivalVisit } from '../../lib/festival-trip.js';
@@ -151,6 +152,7 @@ export default function FestivalExplorer() {
     <div className="festival-state-tabs" role="group" aria-label="축제 진행 상태">{[['all','전체'],['ongoing','진행 중'],['upcoming','예정'],['ended','종료']].map(([value,label]) => <button type="button" key={value} disabled={!current || pending} aria-pressed={eventState === value} onClick={() => setEventState(value)}>{label}</button>)}</div>
     <p className="festival-period-help">선택한 날짜와 겹치는 축제를 보여드려요. 종료된 축제는 과거 날짜로 조회해 주세요.</p>
     <div className="night-festival-heading"><h2><NightIcon name="star"/>지금, 경남에서 만나는 축제 <em>{current && !pending && !failure ? shown.length : ''}</em></h2><div><WaveSelect icon="sort" aria-label="축제 정렬" value={sort} onChange={event => setSort(event.target.value)}>{['추천순','가까운 날짜순','이름순'].map(item => <option key={item}>{item}</option>)}</WaveSelect><button type="button" data-icon-action="" title={listView ? "카드형으로 보기" : "목록형으로 보기"} aria-label={listView ? '카드형으로 보기' : '목록형으로 보기'} aria-pressed={listView} onClick={() => setListView(!listView)}><NightIcon name={listView ? 'grid' : 'list'}/></button></div></div>
+    <LocalFestivalExamples/>
     <section id="festival-results" className="festival-results" tabIndex={-1} aria-busy={pending}>{pending && <LoadingState>행사 날짜와 관광정보를 확인하고 있어요.</LoadingState>}{notice && <p className="result-notice" role="alert">{notice}</p>}{failure && <div className="result-notice error" role="alert"><p>{failure}</p><button type="button" onClick={() => setReload(current => current + 1)} data-icon-action="" title="다시 조회"><NightIcon name="refresh" size={20}/><span className="sr-only">다시 조회</span></button></div>}
       {!validQuery && (start || end) && <p role="status">시작일부터 끝날까지 날짜를 골라주세요.</p>}
       {!pending && !failure && current && data && <p role="status">{shown.length}개의 축제 · {evidenceDate(data.checkedAt)} 한국관광공사 조회{data.partial && ' · 일부 제공 범위의 결과입니다.'}</p>}
@@ -158,7 +160,7 @@ export default function FestivalExplorer() {
       <div className={`festival-grid${listView ? " night-festival-list" : ""}`} inert={pending || !current || Boolean(failure)}>{shown.map(item => <FestivalCard key={`${item.id}:${item.startDate}:${selected.join(',')}`} festival={item} selectedProfiles={selected} onOpen={openFestival} />)}</div>
       {pending && <div className="festival-grid" aria-hidden="true">{[0,1,2,3].map(id => <div className="festival-skeleton" key={id}><Spinner /></div>)}</div>}
     </section>
-    </div><NightScene kind="festival" closing><section className="night-festival-courses"><header><NightIcon name="pin"/><h2>축제와 함께 여행을 떠나보세요</h2><Link className="night-course-map-link" href="/planner" aria-label="경남 전체 지도 보기" title="경남 전체 지도 보기"><NightIcon name="map" size={22}/></Link></header><div>{shown.slice(0,3).map(item => <Link className="night-course-card" key={item.id} href={`/planner?region=${encodeURIComponent(item.city)}`}><span>{item.image && <Image src={item.image} alt="" fill sizes="120px" unoptimized/>}</span><div><strong>{item.city} 축제와 주변 여행</strong><p>{item.name}</p><small>주변 여행지 둘러보기</small></div></Link>)}{!shown.length && <Link className="night-course-empty" href="/planner">여행 지역을 고르고 나에게 맞는 코스를 만들어보세요 </Link>}</div></section>
-    <SiteFooter /></NightScene>
+    <NightScene kind="festival" closing>
+    <SiteFooter /></NightScene></div>
   </main>;
 }

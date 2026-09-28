@@ -10,7 +10,12 @@ test('Naru is one persistent conversation with compact, large and mobile fullscr
   const [assistant, page, css] = await Promise.all([source('features/planner/components/PlannerAssistant.tsx'), source('app/planner/page.tsx'), source('app/styles/planner-conversation.css')]);
   assert.match(assistant, /naru-\$\{size\}/);
   assert.match(assistant, /wave-naru-size-v1/);
-  assert.match(assistant, /여행 설계에서 자세히 보기/);
+  // Tools now open within the persistent Naru surface. Preserve the real entry
+  // and full place details instead of restoring the retired navigation copy.
+  assert.match(assistant, /<PlannerToolSurfaces visible=\{props\.open && workspaceTab === 'tools'\}/);
+  assert.match(page, /<PlaceDecisionDialog/);
+  assert.match(page, /onPlace=\{inspectPlace\}/);
+  assert.match(assistant, /onClick=\{\(\) => setWorkspaceTab\('tools'\)\}/);
   assert.doesNotMatch(assistant, /onToolHost|PlannerAssistantPlaceTools/);
   assert.doesNotMatch(page, /PlannerStagePortal|assistantHost/);
   assert.match(css, /\.naru-panel\.naru-compact[^}]*440px/);
@@ -33,7 +38,7 @@ test('operational fixes remain visible at their integration boundaries', async (
   assert.match(photo, /strict \|\| spotPhotoRegionMatches\(region/);
   assert.match(photo, /candidate\.titleScore >= 90 && candidate\.regionMatched/);
   assert.match(comment, /communityCommentDraftKey\(postId, userId\)/);
-  assert.match(comment, /discardCommentDraft/);
+  assert.doesNotMatch(comment, /초안 지우기/);
   assert.match(restore, /사용 방법/);
   assert.match(restore, /원본 사진과 GPS는 기기 밖으로 보내지 않습니다/);
 });

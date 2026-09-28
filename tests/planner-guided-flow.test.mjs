@@ -27,7 +27,10 @@ test("지역을 고르면 결과를 보고 담은 장소는 별도 내 일정 �
   assert.match(results, /current=\{resultCurrent\}/);
   assert.match(itinerary, /if \(!props\.tripSelection\.travelStart\) return <InitialTripSetup trip=\{props\.tripSelection\}/);
   assert.match(settings, /type: 'schedule', start, end, startTime: time, transport/);
-  assert.match(settings, /trip\.orderedSavedPlaces\.map\(place => place\.name\)/);
+  assert.match(settings, /trip\.orderedSavedPlaces\.map\(place =>[\s\S]*?<strong>\{place\.name\}<\/strong>/);
+  assert.match(settings, /trip\.applyTripCommand\(\{ type: 'remove', id: place\.id \}\)/);
+  assert.match(settings, /trip\.undoCommand\(\)/);
+  assert.match(settings, /trip\.saved\.length > 0 && <SettingsForm trip=\{trip\}/);
   assert.doesNotMatch(page + header, /<PlannerStageFrame|<PlannerJourneyRail|<PlannerJourneyModeToggle/);
 });
 

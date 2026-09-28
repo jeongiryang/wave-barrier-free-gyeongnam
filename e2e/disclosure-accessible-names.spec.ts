@@ -16,10 +16,12 @@ test('support and nested preferences expose named controls and restore keyboard 
   await expect(preferences).toHaveAttribute('aria-expanded', 'true');
   const panel = page.locator('.preference-panel');
   await expect(panel.getByRole('radio', { name: /기본/ })).toBeVisible();
-  const textSize = panel.getByRole('radio', { name: /크게.*18px/ });
+  const textSize = panel.getByRole('radio', { name: '크게', exact: true });
   await textSize.focus();
   await page.keyboard.press('Space');
   await expect(textSize).toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('data-text-scale', 'large');
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe('18px');
   await page.keyboard.press('Escape');
   await expect(panel).toHaveCount(0);
   await expect(preferences).toBeFocused();

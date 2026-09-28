@@ -25,7 +25,9 @@ for (const motion of ['no-preference', 'reduce'] as const) test(`restored scener
   await expect(closing.locator('img,a,button')).toHaveCount(0);
   await expect(closing.getByRole('heading')).toHaveText('다음 풍경에서 만나요');
   await expectUsableTarget(page.locator('.night-journey-input > .night-primary'));
-  await expectUsableTarget(page.locator('#departure a[href="/guide"]'));
+  const guideLinks = page.locator('#departure a[href="/guide"]');
+  await expect(guideLinks).toHaveCount(2);
+  for (const guideLink of await guideLinks.all()) await expectUsableTarget(guideLink);
   await expect(page.locator('#departure .horizon-checks li')).toHaveText(['운영시간', '날씨', '이동수단', '편의시설']);
   await expectUsableTarget(page.locator('#community a.simple-text-link[href="/community"]'));
   await expect(page.locator('.simple-region')).toHaveCount(5);

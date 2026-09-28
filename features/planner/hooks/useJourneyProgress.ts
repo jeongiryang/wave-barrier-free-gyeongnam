@@ -114,6 +114,7 @@ export function useJourneyProgress({
 
   const goToStep = useCallback((id: JourneyStepId) => {
     if (!observeSections && !steps.find((step) => step.id === id)?.available) return false;
+    const from = typeof document === "undefined" ? null : document.activeElement;
     onActiveStepChange(id, true);
     if (typeof window === "undefined") return false;
     if (window.location.pathname !== '/planner') return true;
@@ -123,7 +124,14 @@ export function useJourneyProgress({
       window.history.pushState(null, "", url);
     }
     window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => { if (window.location.pathname === '/planner') scrollToSection(id, motion === "calm"); });
+      window.requestAnimationFrame(() => {
+        if (window.location.pathname !== '/planner') return;
+        const active = document.activeElement;
+        // The destination heading may receive focus during the stage change.
+        // A later choice elsewhere must not be scrolled away by this old request.
+        if (active !== document.body && active !== from && !document.getElementById(id)?.contains(active)) return;
+        scrollToSection(id, motion === "calm");
+      });
     });
     return true;
   }, [motion, onActiveStepChange, observeSections, steps]);

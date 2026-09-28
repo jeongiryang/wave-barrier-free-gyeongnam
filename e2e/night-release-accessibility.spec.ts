@@ -9,14 +9,10 @@ for(const width of [1440,960,390]) for(const route of ['/','/planner','/communit
   await page.route('**/api/festivals**',r=>r.fulfill({json:{items:[],state:'available',partial:false,checkedAt:'2026-09-20T00:00:00Z'}}));
   await page.goto(route);if(route==='/'){
    await storyReady(page);
-   // On a cold Vinext dev request hydration can precede Vite's replacement
-   // for the server-linked page CSS. Audit the mounted client stylesheet,
-   // not the brief gap while the original link is being handed over.
-   await page.waitForFunction(()=>{
-    if(!document.querySelector('style[data-vite-dev-id]'))return true;
-    const sheet=document.querySelector<HTMLStyleElement>('style[data-vite-dev-id$="/app/styles/night-landing.css"]')?.sheet;
-    return Boolean(sheet?.cssRules.length);
-   });
+   // Wait for the rendered presentation, independent of the CSS bundle names.
+   // The approved style is split across stylesheets and production bundles.
+   await expect(page.locator('.scenic-background-home')).toHaveCSS('position','fixed');
+   await expect(page.locator('#landing-title em')).toHaveCSS('background-clip','text');
    await expect(page.locator('.night-landing.scenic-page .scenic-background img.is-current')).toBeVisible();
    await page.evaluate(()=>document.fonts.ready);
   }await expect(page.locator('h1').first()).toBeVisible();

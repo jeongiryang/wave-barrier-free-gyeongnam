@@ -56,16 +56,21 @@ test("route comparison is grouped by travel mode and ordered by time", async () 
 });
 
 test("place detail can surface only real public WAVE community stories", async () => {
-  const [dialog, stories, reads, retirement] = await Promise.all([
+  const [dialog, stories, reads, retirement, policies] = await Promise.all([
     Promise.all([source("features/planner/components/PlaceDecisionDialog.tsx"), source("features/planner/components/PlaceDecisionContent.tsx")]).then(parts => parts.join("\n")),
     source("features/planner/components/PlaceCommunityStories.tsx"),
     source("features/community/server/post-read-repository.ts"),
     source("migrations/006_retire_community_seed.sql"),
+    source("app/policies/page.tsx"),
   ]);
   assert.match(dialog, /<PlaceCommunityStories/);
   assert.match(stories, /listCommunityPosts/);
-  assert.match(stories, /방문자 기록 · 공식 시설정보와 별도/);
-  assert.match(stories, /WAVE community · excluded from official scores/);
+  assert.match(stories, /place-community-stories/);
+  assert.match(stories, /방문 후기/);
+  assert.match(dialog, /href="\/policies#travel-information-policy"/);
+  assert.match(policies, /id="travel-information-policy"/);
+  assert.match(policies, /공식 시설정보와 구분/);
+  assert.match(policies, /공식 편의 점수에 반영하지 않습니다/);
   assert.doesNotMatch(stories, /샘플/);
   assert.match(reads, /p\.author_id <> 'wave-seed'/);
   assert.match(retirement, /moderation_status = 'hidden'/);

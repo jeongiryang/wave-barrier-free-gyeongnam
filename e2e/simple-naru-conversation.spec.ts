@@ -149,7 +149,7 @@ test('상세에서 본 장소를 거기로 참조하고 닫고 열어도 입력�
   await app.input.fill('아직 보내지 않은 질문');
   await app.chat.getByLabel('대화에서 찾은 여행지').getByRole('button', { name: places[0].name, exact: true }).click();
   const details = page.getByRole('dialog', { name: places[0].name, exact: true });
-  await expect(details).toBeVisible(); await expect(app.chat).toHaveCount(0);
+  await expect(details).toBeVisible(); await expect(app.chat).toBeVisible();
   await details.getByRole('button', { name: '닫기', exact: true }).click();
   await expect(app.chat).toBeVisible(); await expect(app.input).toHaveValue('아직 보내지 않은 질문');
   await send(app.chat, '거기를 일정에 담아줘');

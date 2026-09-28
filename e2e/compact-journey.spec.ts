@@ -38,7 +38,7 @@ test("dates are chosen after collecting places and an unapplied date draft survi
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await screens.locator(".wave-my-trips").click();
   const setup = page.locator(".simple-initial-setup");
-  await expect(setup.getByRole("heading", { name: "언제 떠날까요?", exact: true })).toBeVisible();
+  await expect(setup).toHaveAccessibleName("일정 날짜와 이동 수단 정하기");
   await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
   await setup.getByLabel("마지막 날", { exact: true }).fill("2026-09-21");
   await screens.locator(".night-search-link").click();

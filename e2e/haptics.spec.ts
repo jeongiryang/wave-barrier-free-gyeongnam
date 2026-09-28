@@ -59,7 +59,7 @@ test("the vibration preference defaults to off, toggles on and is stored only in
   await expect(row).toHaveAttribute("data-haptics", "off");
   await expect(row).toHaveAttribute("aria-pressed", "false");
   await expect(row).toContainText("진동 알림");
-  await expect(row).toContainText("중요한 순간에 짧게 진동해요. 기기에 따라 동작하지 않을 수 있어요.");
+  await expect(row).toContainText("중요한 알림을 짧은 진동으로 알려줘요.");
   // 조작 영역은 44px 이상이어야 한다.
   expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => localStorage.getItem("wave-haptics-v1"))).toBe("off");

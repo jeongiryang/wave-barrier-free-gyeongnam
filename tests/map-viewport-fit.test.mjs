@@ -410,7 +410,7 @@ for (const provider of ["kakao", "leaflet"]) {
     if (provider === "leaflet")
       assert.equal(firstMap.fits[0][1].maxZoom, 13);
     else
-      assert.deepEqual(f.overlays.map(overlay => overlay.content["aria-label"].split(" · ")[0]), ["Junam", "Daesan"]);
+      assert.deepEqual(f.overlays.filter(overlay => overlay.content.dataset.placeId).map(overlay => overlay.content["aria-label"].split(" · ")[0]), ["Junam", "Daesan"]);
     const oldFit = f.context.fitMapRef.current;
     f.state.canvas = rect(24, 200, 342, 500);
     f.state.bar = rect(32, 209, 326, 64);
@@ -450,7 +450,12 @@ for (const provider of ["kakao", "leaflet"]) {
     firstNode.listeners.click();
     assert.equal(f.chosen.at(-1), metadata[0], 'the existing click handler must pass the newest evidence, including negative evidence');
 
-    const oldContent = f.layers.filter(item => item.map === map && (item.options.content || item.kind === 'polyline' || item.kind === 'circle' || item.element?.dataset.placeId || item.options.path));
+    // The origin label is deliberately persistent chrome, not replaceable
+    // destination/route content. A visual refresh must keep exactly that label.
+    const originLabels = f.layers.filter(item => item.map === map && item.options.content?.className === 'map-origin-name');
+    if (provider === 'kakao') assert.equal(originLabels.length, 1);
+    const oldContent = f.layers.filter(item => item.map === map && (item.options.content?.dataset.placeId || item.options.content?.dataset.facilityMarkerId || item.kind === 'polyline' || item.kind === 'circle' || item.element?.dataset.placeId || item.options.path));
+    assert.ok(oldContent.length >= 2, 'the replacement assertion must cover the real destination markers');
     const refreshedPlaces = metadata.map((place, index) => ({ ...place, name: `${place.name} refreshed`, image: index ? '' : 'https://example.invalid/new-photo.jpg' }));
     const route = { configured: true, geometry: [{ lat: 35.2, lng: 128.6 }, { lat: 35.3, lng: 128.65 }, { lat: 35.31, lng: 128.67 }] };
     const update = { ...f.context, places: refreshedPlaces, route,
@@ -459,6 +464,8 @@ for (const provider of ["kakao", "leaflet"]) {
     assert.equal(f.maps.length, 1); assert.equal(map.removed, undefined);
     assert.equal(f.context.fitMapRef.current, fit); assert.equal(map.fits.length, fitCount, 'visual arrivals must not refit a user-panned viewport');
     assert.ok(oldContent.every(item => item.map === null), 'old route and venue layers must detach instead of accumulating');
+    assert.ok(originLabels.every(item => item.map === map), 'the origin label must survive a destination refresh');
+    if (provider === 'kakao') assert.equal(f.layers.filter(item => item.map === map && item.options.content?.className === 'map-origin-name').length, 1);
     const currentNode = f.nodes().find(node => node.dataset.placeId === 'Junam');
     assert.notEqual(currentNode, firstNode);
     assert.equal(currentNode['aria-current'], 'location');
@@ -478,6 +485,7 @@ for (const provider of ["kakao", "leaflet"]) {
     f.cancel(); content.update({ ...update, route: null });
     assert.equal(f.layers.length, currentLayers, 'a cancelled map must ignore a late visual update');
     content.dispose();
+    assert.ok(originLabels.every(item => item.map === null), 'the origin label must detach when the map is disposed');
     assert.equal(f.nodes().length, 0);
   });
 }

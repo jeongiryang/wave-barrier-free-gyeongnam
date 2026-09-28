@@ -114,7 +114,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <p className="photo-course-limit">JPG · PNG · WebP · TIFF 원본 최대 {MAX_PHOTOS}장 · 촬영 정보로 여행 순서 확인</p>
       </div>
 
-      <div className="photo-course-samples" aria-label="AI 생성 시연 사진">
+      <div className="photo-course-samples" role="group" aria-label="AI 생성 시연 사진">
         {samples.map(({ fileName, caption }) => <figure key={fileName}>
           <img src={`/media/photo-course-demo/${fileName}`} alt={caption} width="160" height="120" loading="lazy" />
           <figcaption>{caption}</figcaption>

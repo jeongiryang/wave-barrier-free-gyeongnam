@@ -67,6 +67,8 @@ import "./styles/photo-cards.css";
 import "./styles/wave-palette.css";
 import "./styles/ui-consistency.css";
 import "./styles/naru-friendly.css";
+import "./styles/naru-cards.css";
+import "./styles/team-review.css";
 // The approved landing overrides follow the shared rules in both SSR and dev.
 // Importing them from client components reordered them after hydration only.
 import "./styles/landing-restored.css";

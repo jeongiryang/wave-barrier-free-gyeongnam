@@ -172,8 +172,8 @@ test('낮잠을 60분 넣으면 후속 운영시간 충돌을 대화에서 확�
   await app.chat.getByRole('button', { name: '되돌리기', exact: true }).last().click();
   await expect.poll(() => snapshot(page)).toEqual(before);
   await expect(review(app.chat)).toContainText('2곳 중 0곳 일정 조정 필요 · 0곳 정보 확인 필요');
-  await expect(review(app.chat).locator('details')).not.toHaveAttribute('open', '');
-  await review(app.chat).getByText('장소별 확인 내용', { exact: true }).click();
+  await expect(review(app.chat).locator('details')).toHaveAttribute('open', '');
+  await expect(review(app.chat).getByText('장소별 확인 내용', { exact: true })).toBeVisible();
   await expect(secondReview(app.chat)).toContainText('등록된 운영시간 안에 방문');
   expect(app.hoursRequests.sort()).toEqual(['1001', '1002']);
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);
@@ -184,9 +184,9 @@ test('운영정보 제공처 실패는 미확인으로 남으며 명시 재조�
   const app = await setup(page, { seeded: true, failedHours: failed });
   await send(app.chat, '첫 번째 장소 뒤에 쉬는 시간을 60분 넣어줘');
   await expect(review(app.chat)).toContainText('2곳 중 0곳 일정 조정 필요 · 1곳 정보 확인 필요');
-  await expect(review(app.chat).locator('details')).not.toHaveAttribute('open', '');
+  await expect(review(app.chat).locator('details')).toHaveAttribute('open', '');
   await expect(review(app.chat).getByRole('button', { name: '미확인 운영시간 다시 확인', exact: true })).toBeVisible();
-  await review(app.chat).getByText('장소별 확인 내용', { exact: true }).click();
+  await expect(review(app.chat).getByText('장소별 확인 내용', { exact: true })).toBeVisible();
   await expect(secondReview(app.chat)).toContainText('운영 정보를 불러오지 못했어요');
   await expect(secondReview(app.chat)).not.toContainText('등록된 운영시간 안에 방문');
   expect(app.hoursRequests.filter(id => id === '1002')).toHaveLength(1);
@@ -209,7 +209,7 @@ test('늦은 운영정보 응답은 이후의 더 짧은 휴식으로 재계산�
   await expect.poll(async () => (await snapshot(page)).schedule.breakMinutesByPlaceId).toEqual({ '1001': 15 });
   gate.release();
   await expect(review(app.chat)).toContainText('2곳 중 0곳 일정 조정 필요 · 0곳 정보 확인 필요');
-  await review(app.chat).getByText('장소별 확인 내용', { exact: true }).click();
+  await expect(review(app.chat).getByText('장소별 확인 내용', { exact: true })).toBeVisible();
   await expect(secondReview(app.chat)).toContainText('등록된 운영시간 안에 방문');
   await expect(secondReview(app.chat)).not.toContainText('일정 조정 필요');
   expect(app.hoursRequests.sort()).toEqual(['1001', '1002']);
@@ -225,7 +225,7 @@ test('해설 대본 요청은 자동 재생 없이 나루의 장소 도구로 �
   await expect(app.chat).toContainText('소리를 재생하지 않고 해설 대본을 읽을 수 있어요');
   expect(app.audioRequests).toEqual([]);
   expect(await page.evaluate(() => (window as unknown as { personaMediaPlayCount: number }).personaMediaPlayCount)).toBe(0);
-  await card.getByRole('button', { name: '여행 설계에서 자세히 보기', exact: true }).click();
+  await card.getByRole('button', { name: '나루에서 도구 열기', exact: true }).click();
   await expect(app.chat).toBeVisible();
   await expect(app.chat.getByLabel('장소 선택', { exact: true })).toHaveValue('1002');
   expect(await snapshot(page)).toEqual(before);
@@ -299,7 +299,7 @@ test('기존 일정의 날짜 변경을 안내로 답해도 방문과 필수 시
   await expect(app.chat.getByText(/담아둔 일정이 있어요.*기존 여행을 보존/)).toBeVisible();
   const card = app.chat.locator('.naru-tool-card').last();
   await expect(card).toContainText('날짜·기간');
-  await expect(card.getByRole('button', { name: '여행 설계에서 자세히 보기', exact: true })).toBeVisible();
+  await expect(card.getByRole('button', { name: '나루에서 도구 열기', exact: true })).toBeVisible();
   await expect(app.chat.getByRole('group', { name: '한 가지씩 안내 선택', exact: true })).toHaveCount(0);
   expect(await snapshot(page)).toEqual(before); expect(app.planRequests).toHaveLength(searches);
   expect(app.assistantRequests).toEqual([]); expect(app.journeyCalls()).toBe(0); expect(app.errors).toEqual([]);

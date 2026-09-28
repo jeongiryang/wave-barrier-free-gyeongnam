@@ -41,9 +41,7 @@ test("글자 크기 세 단계가 즉시 반영되고 새로고침 뒤에도 유
   const group = preferences.getByRole("radiogroup", { name: "글자 크기", exact: true });
   await expect(group.getByRole("radio")).toHaveCount(3);
   await expect(group).toContainText("기본");
-  await expect(group).toContainText("16px");
-  await expect(group).toContainText("18px");
-  await expect(group).toContainText("20px");
+  for (const name of ['기본', '크게', '아주 크게']) await expect(group.getByRole('radio', { name, exact: true })).toHaveCount(1);
 
   const rootSize = () => page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
   expect(await rootSize()).toBeCloseTo(16, 1);

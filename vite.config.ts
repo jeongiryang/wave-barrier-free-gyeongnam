@@ -21,7 +21,7 @@ export default defineConfig(async () => {
       host: "0.0.0.0",
       // Trace HTML is evidence, not application input. Watching it creates a
       // reload → new trace → reload loop during independent harness checks.
-      watch: { ignored: ["**/integration-*/**", "**/test-results*/**", "**/playwright-report/**", "**/harness-results/**", "**/*.log"] },
+      watch: { ignored: ["**/tmp/**", "**/integration-*/**", "**/test-results*/**", "**/playwright-report/**", "**/harness-results/**", "**/*.log"] },
     },
     // Nitro owns requests and its worker owns the RSC module runner. Keep
     // vinext's complete plugin stack, with no second standalone HTTP handler.

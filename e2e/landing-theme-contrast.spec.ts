@@ -31,7 +31,12 @@ async function samples(page: Page, selector: string) {
       // The Naru example uses an opaque pastel gradient. backgroundColor alone
       // is transparent there, so compositing it would compare dark text with the
       // navy section hidden behind that gradient. Measure its actual pixels.
-      return { background, color: parse(getComputedStyle(node).color), painted: Boolean(node.closest(".simple-naru-example")), index: nodes.indexOf(node), text: node.textContent?.replace(/\s+/g, " ").trim().slice(0, 80) || node.tagName.toLowerCase() };
+      const foreground = getComputedStyle(node);
+      const solid = [node, ...node.querySelectorAll('*')].every(child => {
+        const style = getComputedStyle(child);
+        return style.color === foreground.color && style.webkitTextFillColor === foreground.color && parseFloat(style.webkitTextStrokeWidth) === 0;
+      });
+      return { background, color: parse(foreground.color), solid, painted: Boolean(node.closest(".simple-naru-example")), index: nodes.indexOf(node), text: node.textContent?.replace(/\s+/g, " ").trim().slice(0, 80) || node.tagName.toLowerCase() };
     });
   });
 }
@@ -64,7 +69,7 @@ const CASES = [
   ".night-journey-tabs button", ".night-journey-input > .night-primary", ".simple-text-link",
   ".horizon-checks li", "#departure .simple-text-link", ".night-discover-card h2", ".night-discover-copy > p:not(.horizon-eyebrow)",
   ".simple-naru-story h2", ".simple-naru-story > div > p", ".simple-naru-example p",
-  ".simple-naru-example-title strong", ".example-undo",
+  ".simple-naru-example-title strong", ".example-duration > span", ".example-duration strong",
 
 ];
 
@@ -102,13 +107,17 @@ for (const theme of ["dark", "light"] as const) {
       expect(measured.minimum, selector).toBeGreaterThanOrEqual(requirement.minimum);
     }
     for (const selector of CASES) {
+      // The optional launcher hint can cover the inline 90-minute preview.
+      // Dismiss it through its real control before sampling those glyphs.
+      const closeHint = page.getByRole('button', { name: '나루 안내 잠시 닫기', exact: true });
+      if (await closeHint.isVisible()) await closeHint.click();
       await page.locator(selector).first().scrollIntoViewIfNeeded();
       const measured = await samples(page, selector);
       const requirement = await textContrastRequirement(page, selector);
       await info.attach(`contrast-threshold-${selector}`, { body: JSON.stringify({ selector, requirement }), contentType: 'application/json' });
       expect(measured, `${selector}을 찾지 못했다`).not.toEqual([]);
       for (const sample of measured) {
-        const painted = sample.painted ? await paintedContrast(page, selector, true, sample.index) : null;
+        const painted = sample.painted ? await paintedContrast(page, selector, sample.solid, sample.index) : null;
         if (painted) expect(painted.pixels, `${selector} · ${sample.text} glyphs`).toBeGreaterThan(0);
         const ratio = painted ? painted.minimum : contrastRatio(sample.color, sample.background);
         expect(ratio, `${selector} · ${sample.text} 대비 ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(requirement.minimum);
@@ -116,6 +125,30 @@ for (const theme of ["dark", "light"] as const) {
     }
   });
 }
+
+test('hero glyphs remain readable over a brightest-photo fixture without changing the scenery layer', async ({ page }, info) => {
+  await prepareStory(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  // A white photograph is the upper luminance boundary of any future image.
+  // Keep the actual page overlay, foreground gradient and shadow unchanged.
+  await page.route('**/media/night/*.webp', route => route.fulfill({
+    contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="1024"><rect width="1536" height="1024" fill="white"/></svg>',
+  }));
+  await page.goto('/');
+  await storyReady(page);
+  await expect.poll(() => page.locator('.scenic-background-home img').evaluateAll(images => images.length > 0 && images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  for (const width of [390, 960, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const selector of ['.landing-hero-copy h1', '.landing-hero-description']) {
+      const measured = await paintedContrast(page, selector);
+      const requirement = await textContrastRequirement(page, selector);
+      await info.attach(`bright-photo-${width}-${selector}`, { body: JSON.stringify({ width, selector, requirement, measured }), contentType: 'application/json' });
+      expect(measured.pixels).toBeGreaterThan(0);
+      expect.soft(measured.minimum, `bright photograph ${width}px ${selector}`).toBeGreaterThanOrEqual(requirement.minimum);
+      console.log(JSON.stringify({ photograph: 'maximum luminance', width, selector, requirement, ...measured }));
+    }
+  }
+});
 
 
 test("painted contrast includes invisible white-on-white glyphs", async ({ page }) => {

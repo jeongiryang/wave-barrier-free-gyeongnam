@@ -61,7 +61,10 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         // A result render can temporarily remove focus from the select/button
         // that started it. Restore only that accidental loss; never override a
         // control the traveller deliberately focused while waiting.
-        if (!userInteracted && control.isConnected) control.focus({ preventScroll: true });
+        const active = window.document?.activeElement;
+        if (!userInteracted && control.isConnected && (active === control || active === window.document?.body)) {
+          control.focus({ preventScroll: true });
+        }
       }));
     };
     const onInteraction = (event: Event) => {
@@ -134,7 +137,8 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         latestPlan.current = example;
         setPlan(example);
         setResultSignature(requestedSignature);
-        setPlanError("");
+        // Preview data must not hide the real failure or remove its retry action.
+        setPlanError(planFailureKind(error, navigator.onLine !== false));
         setRecentPlan(null);
         setUsingRecent(null);
         setNoticeKind("error");
@@ -142,7 +146,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         if (revealResults && !reveal.signal.aborted) onRevealResults?.();
         cancelReveal();
         restoreRequestFocus();
-        return true;
+        return false;
       }
       cancelReveal();
       const message = planFailureKind(error, navigator.onLine !== false);

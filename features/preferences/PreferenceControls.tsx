@@ -6,7 +6,7 @@ import { useSitePreferences } from "./context";
 import { localeOptions } from "./locale-catalog";
 import type { Locale, TextScale, Tone } from "./types";
 import NightIcon from "../../components/NightIcon";
-import { StatusShapeIcon } from "../../components/AccessIcons";
+
 import { presentationOptionsEnabled } from "./presentation-release";
 import { hapticsSupported } from "../../lib/haptics.js";
 
@@ -69,12 +69,12 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
       }}
     >
       <button type="button" className="preference-trigger" ref={trigger} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(value => !value)} title={en ? "Preferences" : "환경설정"} aria-label={en ? "Open preferences" : "환경설정 열기"}>
-        {iconOnly ? <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m9 3-.6 2.4-2 .9-2.2-.7L2 9.4l1.8 1.7v1.8L2 14.6l2.2 3.8 2.2-.7 2 .9L9 21h6l.6-2.4 2-.9 2.2.7 2.2-3.8-1.8-1.7v-1.8L22 9.4l-2.2-3.8-2.2.7-2-.9L15 3Z"/><circle cx="12" cy="12" r="3.1"/></svg> : <><NightIcon name="settings" /><b>{en ? "Preferences" : "환경설정"}</b></>}
+        {iconOnly ? <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m9 3-.6 2.4-2 .9-2.2-.7L2 9.4l1.8 1.7v1.8L2 14.6l2.2 3.8 2.2-.7 2 .9L9 21h6l.6-2.4 2-.9 2.2.7 2.2-3.8-1.8-1.7v-1.8L22 9.4l-2.2-3.8-2.2.7-2-.9L15 3Z"/><circle cx="12" cy="12" r="3.1"/></svg> : <><NightIcon name="settings" /><b>{open ? (en ? "Back to menu" : "메뉴로 돌아가기") : (en ? "Preferences" : "환경설정")}</b></>}
       </button>
       {open && <div className="preference-panel" id={panelId}>
         <div className="preference-panel-heading">
           <b>{en ? "Preferences" : "환경설정"}</b>
-          <small>{en ? "Adjust the screen for comfortable reading." : "읽기 편한 화면으로 조정합니다."}</small>
+          
         </div>
         {showPresentationOptions && <><label className="preference-row">
           <span><b>{t("language", "언어")}</b><small>{en ? "Some pages are in Korean" : "한국어 전체 지원"}</small></span>
@@ -95,7 +95,7 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
                   setTextScale(item.id);
                   setTextScaleNotice(en ? `Text size changed to ${item.english}.` : `글자 크기를 ${item.phrase} 바꿨어요.`);
                 }} />
-              <b>{en ? item.english : item.label}</b><small>{item.size}</small>
+              <b>{en ? item.english : item.label}</b>
             </label>)}
           </div>
         </div>
@@ -106,25 +106,19 @@ export function PreferenceControls({ iconOnly = false }: { iconOnly?: boolean })
             ? en ? "Colour-free cues are on." : "색 구분 보조를 켰어요."
             : en ? "Colour-free cues are off." : "색 구분 보조를 껐어요.");
         }}>
-          <span><b>{en ? "Colour-free cues" : "색 구분 보조"}</b><small>{en ? "Show status with words and shapes as well as colour." : "시설 정보의 확인·없음·미확인을 글자와 도형으로 구분해요."}</small></span>
+          <span><b>{en ? "Colour-free cues" : "색 구분 보조"}</b><small>{en ? "Show status with words and shapes as well as colour." : "색 대신 글자와 모양으로 상태를 구분해요."}</small></span>
           <em aria-hidden="true">{colorAssist === "on" ? en ? "On" : "켜짐" : en ? "Off" : "꺼짐"}</em>
         </button>
-        <div className="color-assist-preview" aria-label={en ? "Facility status preview" : "시설 상태 표시 미리보기"}>
-          <small>{en ? "Preview" : "표시 예시"}</small>
-          <span><StatusShapeIcon kind="confirmed" />{en ? "Confirmed" : "확인"}</span>
-          <span><StatusShapeIcon kind="negative" />{en ? "Unavailable" : "없음"}</span>
-          <span><StatusShapeIcon kind="unknown" />{en ? "Unknown" : "미확인"}</span>
-        </div>
         <span className="sr-only" role="status" aria-live="polite">{colorAssistNotice}</span>
         {showHaptics && <button className="preference-row" type="button" data-haptics={haptics} aria-pressed={haptics === "on"} onClick={() => setHaptics(haptics === "on" ? "off" : "on")}>
-          <span><b>{en ? "Vibration alerts" : "진동 알림"}</b><small>{en ? "A short vibration at important moments. It may not work on some devices." : "중요한 순간에 짧게 진동해요. 기기에 따라 동작하지 않을 수 있어요."}</small></span>
+          <span><b>{en ? "Vibration alerts" : "진동 알림"}</b><small>{en ? "A short vibration at important moments. It may not work on some devices." : "중요한 알림을 짧은 진동으로 알려줘요."}</small></span>
           <em aria-hidden="true">{haptics === "on" ? en ? "On" : "켜짐" : en ? "Off" : "꺼짐"}</em>
         </button>}
         {showDialectTone && <><button className="preference-row" type="button" data-preference="tone" onClick={() => setTone(tone === "gyeongnam" ? "standard" : "gyeongnam")}
           aria-label={en
             ? `Screen tone, currently ${toneName(tone, true)}. Switch to ${toneName(nextTone(tone), true)}.`
             : `화면 말투, 현재 ${toneName(tone, false)}. 눌러서 ${toneName(nextTone(tone), false)}로 바꾸기`}>
-          <span><b>{en ? "Screen tone" : "화면 말투"}</b><small>{en ? "Only the tone of the Korean guidance changes. The information stays the same." : "안내 문구의 말투만 바뀌어요. 내용은 같아요."}</small></span>
+          <span><b>{en ? "Screen tone" : "화면 말투"}</b><small>{en ? "Only the tone of the Korean guidance changes. The information stays the same." : "안내 문구를 원하는 말투로 바꿔요."}</small></span>
           <em aria-hidden="true">{toneName(tone, en)}</em>
         </button>
         <div className="sr-only" role="status" aria-live="polite">{en ? `Screen tone is ${toneName(tone, true)}.` : `화면 말투는 ${toneName(tone, false)}입니다.`}</div></>}

@@ -23,6 +23,8 @@ async function setup(page: Page) {
   await page.route("**/api/**", route => { errors.push(`Unexpected API: ${new URL(route.request().url()).pathname}`); return route.fulfill({ status: 503, json: { error: "Unmocked test API" } }); });
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { plannerView: "overview", savedPlaces: response.explorationPlaces });
+  // The approved detail view opens audio/transcript information immediately.
+  await page.route('**/api/wave?action=place-audio*', route => route.fulfill({ json: { stories: [], checkedAt: plan.generatedAt } }));
   await page.route("**/api/community/posts?**", route => route.fulfill({ json: { posts: [], hasMore: false, page: 1 } }));
   await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: response }));
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -63,6 +65,7 @@ for (const theme of ["light", "dark"]) test(`${theme}: a provider failure candid
   await expect(dialog.getByRole("button", { name: "일정에 추가", exact: true })).toBeDisabled();
   await expect(dialog.getByLabel(consentName, { exact: true })).not.toBeChecked();
   await expect(dialog.locator(".place-unknown-consent")).toContainText("제공처에 연결하지 못했어요");
+  await dialog.getByRole('tab', { name: '이용과 편의', exact: true }).click();
   await expect(dialog.getByRole("group", { name: "공식 데이터 확인 범위" })).toHaveText(/확인됨 0미확인 5없음으로 기록 0/);
   await dialog.getByLabel(consentName, { exact: true }).focus();
   await page.keyboard.press("Space");
@@ -100,6 +103,7 @@ for (const theme of ["light", "dark"]) test(`${theme}: a provider failure candid
   const view=page.getByRole('group',{name:'일정 보기 방식',exact:true});if(await view.count())await view.getByRole('button',{name:'시간표',exact:true}).click();
   await page.locator(".simple-stops h3").getByRole("button", { name: unknown.name, exact: true }).click();
   dialog = page.getByRole("dialog", { name: unknown.name, exact: true });
+  await dialog.getByRole('tab', { name: '이용과 편의', exact: true }).click();
   await expect(dialog.getByRole("group", { name: "공식 데이터 확인 범위" })).toHaveText(/확인됨 0미확인 5없음으로 기록 0/);
   await expect(dialog.getByRole("button", { name: "일정에서 빼기", exact: true })).toBeEnabled();
   expect(errors).toEqual([]);

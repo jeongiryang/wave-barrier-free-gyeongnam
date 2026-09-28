@@ -29,7 +29,7 @@ async function checkTargets(controls: Locator) {
   }
 }
 
-for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 }, { width: 390, height: 844 }]) {
+for (const viewport of [{ width: 2560, height: 1440 }, { width: 1920, height: 1080 }, { width: 1440, height: 960 }, { width: 960, height: 800 }, { width: 390, height: 844 }]) {
   test(`Naru workspace fits ${viewport.width}px with usable tabs, preparation and saved work`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
     const origin = new URL(testInfo.project.use.baseURL as string).origin;
@@ -48,8 +48,12 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     await expect(panel).toBeVisible();
     const tabs = panel.getByRole('tablist', { name: '나루 작업공간' });
     await checkBounds(page, panel);
+    if (viewport.width >= 1920) {
+      await page.screenshot({ path: testInfo.outputPath(`naru-workspace-welcome-${viewport.width}.png`) });
+      await testInfo.attach('workspace-viewport', { body: JSON.stringify({ viewport, panel: await panel.boundingBox() }), contentType: 'application/json' });
+    }
     await checkTargets(tabs.getByRole('tab'));
-    await panel.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
+    await panel.getByRole('button', { name: /^여행 처음 만들기/ }).click();
     const form = panel.getByRole('form', { name: '여행 준비 맡기기', exact: true });
     await chooseWaveOption(form.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
     await form.getByLabel('출발 날짜', { exact: true }).fill('2026-10-03');
@@ -66,18 +70,20 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     await expect(panel.getByRole('log')).toContainText('선택한 지역과 여행 날짜를 확인했어요.');
     expect(requests).toHaveLength(1);
     expect(requests[0]).toContain('부모님과 창원');
-    await tabs.getByRole('tab', { name: '여행 도구', exact: true }).click();
+    await tabs.getByRole('tab', { name: '직접 골라서 하기', exact: true }).click();
+    await panel.getByRole('button', { name: '전체', exact: true }).click();
     const tools = panel.getByRole('region', { name: '모든 여행 도구', exact: true });
     await expect(panel.locator('.naru-workspace-body')).toBeHidden();
-    await expect(tools.locator('.naru-tools button')).toHaveCount(28);
-    expect(await tools.locator('.naru-tools button').allTextContents()).toEqual(expect.arrayContaining(['페이스·감각지도·여행여권', '오디오 가이드·후기', '장소 좌표 복원', '이동 구간 확인']));
-    await checkTargets(tools.locator('.naru-tools button'));
+    await expect(tools.locator('.naru-task-actions > button')).toHaveCount(28);
+    expect(await tools.locator('.naru-task-actions > button strong').allTextContents()).toEqual(expect.arrayContaining(['페이스·감각지도·여행여권', '장소 해설 듣기', '장소 좌표 복원', '이동 구간 확인']));
+    await checkTargets(tools.locator('.naru-task-actions > button'));
     await checkBounds(page, panel);
-    await tabs.getByRole('tab', { name: '저장한 내용', exact: true }).click();
+    await tabs.getByRole('tab', { name: '저장한 여행', exact: true }).click();
     const saved = panel.getByRole('region', { name: '저장한 여행 작업', exact: true });
     await saved.getByLabel('여행 이름', { exact: true }).fill('부모님과 창원 여행');
     await saved.getByRole('button', { name: '대화와 현재 여행 저장', exact: true }).click();
-    await expect(saved.getByRole('button', { name: '부모님과 창원 여행 이어가기', exact: true })).toBeVisible();
+    const card = saved.locator('.naru-saved-workspaces > article').filter({ hasText: '부모님과 창원 여행' });
+    await expect(card.getByRole('button', { name: '이어서 준비하기', exact: true })).toBeVisible();
     await checkBounds(page, panel);
     await checkTargets(saved.locator('button,input'));
     const savedA11y = await new AxeBuilder({ page }).include('.naru-panel').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();

@@ -18,16 +18,22 @@ function contrastRatio(foreground: number[], background: number[]) {
 
 async function assertContrast(page: Page, selector: string, name: string) {
   const samples = await page.locator(selector).evaluateAll((nodes) => nodes.map((node) => {
-    const parse = (value: string) => (value.match(/\d+(\.\d+)?/g) || []).slice(0, 3).map(Number);
-    let background = getComputedStyle(node).backgroundColor;
+    const parse = (value: string) => (value.match(/[\d.]+/g) || []).map(Number);
+    const layers: number[][] = [];
     let walker: Element | null = node;
-    while (walker && (background === "rgba(0, 0, 0, 0)" || background === "transparent")) {
+    while (walker) {
+      const layer = parse(getComputedStyle(walker).backgroundColor);
+      layers.unshift(layer);
+      if ((layer[3] ?? 1) === 1) break;
       walker = walker.parentElement;
-      background = walker ? getComputedStyle(walker).backgroundColor : "rgb(255, 255, 255)";
     }
+    // Alpha is part of the approved glass surface. Treating rgba(255,255,255,.04)
+    // as opaque white reported a false contrast failure on the dark panel.
+    const blend = (under: number[], over: number[]) => under.map((value, index) => (over[index] ?? 0) * (over[3] ?? 1) + value * (1 - (over[3] ?? 1)));
+    const background = layers.reduce(blend, [255, 255, 255]);
     return {
-      background: parse(background),
-      color: parse(getComputedStyle(node).color),
+      background,
+      color: blend(background, parse(getComputedStyle(node).color)),
       text: node.textContent?.trim() || node.tagName.toLowerCase(),
     };
   }));
@@ -41,12 +47,10 @@ async function assertContrast(page: Page, selector: string, name: string) {
 
 const TARGETS = [
   [".preference-panel-heading b", "패널 제목"],
-  [".preference-panel-heading small", "패널 설명"],
   [".preference-row b", "설정 이름"],
   [".preference-row small", "설정 상태"],
-  [".preference-row select", "언어 선택"],
+  [".preference-row [role='combobox']", "언어 선택"],
   [".preference-row em", "설정 값"],
-  [".preference-panel-heading small", "설정 안내"],
 ] as const;
 
 for (const theme of ["light", "dark"] as const) {

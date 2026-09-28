@@ -78,13 +78,22 @@ test("switching modes cancels old coverage and cannot restore it by switching ba
   await page.emulateMedia({ reducedMotion: "reduce" });
   let held = false;
   let heldRequests = 0;
+  let oldResponsesFinished = 0;
+  let holdFresh = false;
+  let freshRequests = 0;
+  let totalRequests = 0;
   let release!: () => void;
   const responseGate = new Promise<void>(resolve => { release = resolve; });
+  let releaseFresh!: () => void;
+  const freshGate = new Promise<void>(resolve => { releaseFresh = resolve; });
   await page.route("**/api/route?*", async request => {
+    totalRequests++;
     const mode = new URL(request.request().url()).searchParams.get("mode") || "";
     const oldResponse = held && mode === "car";
     if (oldResponse) { heldRequests++; await responseGate; }
+    else if (holdFresh && mode === "car") { freshRequests++; await freshGate; }
     await request.fulfill({ json: bundle(mode, oldResponse ? "old car" : "current journey") }).catch(() => {});
+    if (oldResponse) oldResponsesFinished++;
   });
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -103,13 +112,26 @@ test("switching modes cancels old coverage and cannot restore it by switching ba
   await withRouteCoverage(page, async () => { await expect(coverage.getByRole("button", { name: "구간 확인 중…", exact: true })).toHaveAttribute("aria-busy", "true"); });
   await expect.poll(() => heldRequests).toBe(1);
   await withRouteCoverage(page, async () => { await chooseWaveOption(mode, "walk"); });
-  release(); held = false;
+  held = false;
   await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 0구간 확인");
   await expect(page.locator(".route-option")).toHaveCount(0);
+  holdFresh = true;
   await withRouteCoverage(page, async () => { await chooseWaveOption(mode, "car"); });
+  // Returning to car starts a new automatic request after 650ms. Keep that
+  // response pending while the obsolete request finishes, so a fast current
+  // response cannot mask restoration of the cancelled evidence.
+  await expect.poll(() => freshRequests).toBe(1);
+  release();
+  await expect.poll(() => oldResponsesFinished).toBe(1);
   await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 0구간 확인");
+  await expect(page.locator(".route-option")).toHaveCount(0);
+  await expect(coverage.locator(".coverage-actions > button").first()).toHaveAttribute("aria-busy", "true");
+  holdFresh = false; releaseFresh();
+  await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 1구간 확인");
   await withRouteCoverage(page, async () => { await expect(check).toHaveAttribute("aria-busy", "false"); });
+  const beforeRetry = totalRequests;
   await withRouteCoverage(page, async () => { await check.click(); });
+  await expect.poll(() => totalRequests).toBe(beforeRetry + 1);
   await expect(coverage.locator('[role="status"]')).toContainText("전체 1구간 중 1구간 확인");
   await withRouteCoverage(page, async () => { await coverage.getByRole("button", { name: "이 구간 지도에서 보기", exact: true }).click(); });
   await expect(page.locator(".route-option")).toContainText("current journey");

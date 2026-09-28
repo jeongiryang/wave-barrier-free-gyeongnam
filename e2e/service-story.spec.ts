@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { expectNaruDurationExample } from './landing-contract';
 import { expect, test } from "@playwright/test";
 import { chapterIds, openLandingTools, prepareStory, storyReady, expectUsableTarget,  expectNoOverflow } from "./landing-contract";
 import { awardHeroImage, mockAwardHero } from './landing-photo-fixture';
@@ -29,7 +30,7 @@ for (const locale of ["ko", "en"] as const) {
     const example = page.locator('.simple-naru-example');
     await expect(example).toHaveAttribute('aria-label', locale === 'en' ? 'Example conversation' : '대화 예시');
     await expect(example.locator('.example-user')).toHaveText(locale === 'en' ? 'Make my first visit 90 minutes.' : '첫 번째 장소에서 90분 머물게 해줘');
-    await expect(example.getByRole('button', { name: locale === 'en' ? 'Apply to example' : '예시 일정에 적용', exact: true })).toBeEnabled();
+    await expectNaruDurationExample(page);
     const photo = page.locator(".scenic-background-home .award-panorama");
     await expect(photo).toBeVisible();
     await expect.poll(() => photo.locator('img').evaluateAll(images => images.length > 0 && images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
@@ -39,10 +40,10 @@ for (const locale of ["ko", "en"] as const) {
     await expect(page.locator('.night-hero-search')).toHaveAttribute('action', '/planner');
     await expect(heroAction).toHaveAccessibleName(locale === 'en' ? 'Find places' : '여행지 검색');
     expect(await heroAction.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
-    for (const selector of ['.night-hero-search button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) await expectUsableTarget(page.locator(selector));
+    for (const selector of ['.night-hero-search button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link"]) await expectUsableTarget(page.locator(selector));
     await expectNoOverflow(page);
     expect((await new AxeBuilder({ page }).include("#story").include("#naru").analyze()).violations).toEqual([]);
-    const action = locale === 'en' ? page.locator('#naru .simple-text-link[href*=assistant]') : heroAction;
+    const action = locale === 'en' ? page.locator('.restored-naru-preview header a') : heroAction;
     if (locale === 'en') await expect(action).toHaveAttribute('href', '/planner?assistant=naru');
     else await expect(action).toHaveAttribute('type', 'submit');
     await action.press("Enter");

@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { openOnsiteCommunication } from "./onsite-communication-fixtures";
 
-test("offline entry, fixed answer, ask again and end stay within one accessible dialog", async ({ page }) => {
+test("offline entry, fixed answer and ask again stay in the dialog, then return to the selected purpose", async ({ page }) => {
   const board = await openOnsiteCommunication(page, true);
   const relay = board.getByRole("link", { name: "문자·수어 통화 도움", exact: true });
   await expect(relay).toHaveAttribute("href", "https://mail.relaycall.or.kr/user/main");
@@ -18,8 +18,11 @@ test("offline entry, fixed answer, ask again and end stay within one accessible 
   await board.getByRole("button", { name: "다시 질문", exact: true }).click();
   await expect(board.locator(".inquiry-card-preview")).toContainText("계단 없는 입구를 안내해 주세요.");
   await board.getByRole("button", { name: "대화 끝내기", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "이렇게 물어보세요." })).toBeVisible();
-  await expect(page.getByRole("button", { name: "화면으로 대화", exact: true })).toBeFocused();
+  await expect(board).toHaveCount(0);
+  const detail = page.locator(".native-place-dialog");
+  await expect(detail).toBeVisible();
+  await expect(detail.getByRole("button", { name: /^현장에서 화면으로 대화/ })).toBeFocused();
+  await detail.getByRole("button", { name: /^방문 전에 물어보기/ }).click();
   await expect(page.getByRole("checkbox", { name: "운영·입장 시간", exact: true })).toBeChecked();
 });
 
@@ -48,7 +51,7 @@ test("door topic works offline without a network request and restores focus", as
   expect(requests).toEqual([]);
   expect((await new AxeBuilder({ page }).include(".inquiry-dialog").analyze()).violations).toEqual([]);
   await board.getByRole("button", { name: "대화 끝내기", exact: true }).click();
-  await expect(page.getByRole("button", { name: "화면으로 대화", exact: true })).toBeFocused();
+  await expect(page.locator(".native-place-dialog").getByRole("button", { name: /^현장에서 화면으로 대화/ })).toBeFocused();
 });
 
 test("keyboard, Escape and rotation work at a 320px reflow viewport", async ({ page }) => {
@@ -65,7 +68,7 @@ test("keyboard, Escape and rotation work at a 320px reflow viewport", async ({ p
   await board.getByRole("button", { name: "제가 안내할게요", exact: true }).click();
   await board.getByRole("button", { name: "다시 질문", exact: true }).click();
   await board.getByRole("button", { name: "대화 끝내기", exact: true }).click();
-  await page.getByRole("button", { name: "화면으로 대화", exact: true }).click();
+  await page.locator(".native-place-dialog").getByRole("button", { name: /^현장에서 화면으로 대화/ }).click();
   await expect(page.getByRole("dialog", { name: "직원과 화면으로 대화", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await board.screenshot({ path: test.info().outputPath("onsite-communication-320px.png") });
@@ -73,5 +76,5 @@ test("keyboard, Escape and rotation work at a 320px reflow viewport", async ({ p
   await page.keyboard.press("Escape");
   await expect(page.locator(".inquiry-dialog")).toHaveCount(0);
   await expect(page.locator(".native-place-dialog")).toBeVisible();
-  await expect(page.getByRole("button", { name: /문의 카드 만들기/ })).toBeFocused();
+  await expect(page.locator(".native-place-dialog").getByRole("button", { name: /^현장에서 화면으로 대화/ })).toBeFocused();
 });

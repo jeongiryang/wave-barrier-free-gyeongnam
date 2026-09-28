@@ -121,13 +121,31 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
   });
   const before = await snapshot();
 
-  await tabs.locator(".night-search-link").click();
+  const searchAction = tabs.locator(".night-search-link");
+  await searchAction.focus();
+  await page.clock.install();
+  await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
+  await page.evaluate(() => {
+    const original = Element.prototype.scrollIntoView;
+    const trace = { calls: [] as string[] };
+    Object.assign(window, { headerScrollTrace: trace });
+    Element.prototype.scrollIntoView = function (...args) {
+      trace.calls.push(this.id);
+      return original.apply(this, args);
+    };
+  });
+  await page.keyboard.press("Enter");
   await expect(page.locator("#conditions")).toBeVisible();
   await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   const itineraryAction = page.locator(".wave-header").locator(".wave-my-trips");
   await itineraryAction.focus();
+  await page.evaluate(() => { (window as unknown as { headerScrollTrace: { calls: string[] } }).headerScrollTrace.calls = []; });
+  await page.clock.runFor(50);
+  expect(await page.evaluate(() => (window as unknown as { headerScrollTrace: { calls: string[] } }).headerScrollTrace.calls)).toEqual([]);
+  await expect(itineraryAction).toBeFocused();
   await expect(itineraryAction).toBeInViewport();
+  await page.clock.resume();
   await itineraryAction.click();
   await expect(page.locator("#itinerary")).toBeVisible();
   await expect(page.locator("#navigation .leaflet-container")).toBeVisible();

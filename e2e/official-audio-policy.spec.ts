@@ -47,7 +47,7 @@ for (const permitted of [true, false]) test(`production CSP ${permitted ? 'plays
   await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await page.locator('.simple-place-row h3 button').first().click();
   const detail = page.locator('dialog.place-modal');
-  await detail.locator('.place-audio-guide > summary').click();
+  await expect(detail.locator('.place-audio-guide').getByRole('heading', { name: /음성·대본 해설/ })).toBeVisible();
   const audio = detail.locator('audio');
   await expect(audio).toHaveAttribute('src', audioUrl);
   expect(await audio.evaluate((element: HTMLAudioElement) => element.paused)).toBe(true);

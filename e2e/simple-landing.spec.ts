@@ -101,8 +101,10 @@ for (const width of [1440, 960, 390]) test(`${width}px reduced motion keeps the 
   await region.press('ArrowDown');
   const menu = page.getByRole('listbox', { name: '어디로 떠나고 싶으세요?', exact: true });
   await expect(menu).toBeVisible();
+  const destination = await menu.getByRole('option').evaluateAll(options => options.filter(option => option.getAttribute('aria-disabled') !== 'true').findIndex(option => option.textContent?.trim() === '거제'));
+  expect(destination).toBeGreaterThanOrEqual(0);
   await page.keyboard.press('Home');
-  await page.keyboard.press('ArrowDown');
+  for (let index = 0; index < destination; index++) await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await expect(region).toBeFocused();
   await expect(region).toHaveText('거제');

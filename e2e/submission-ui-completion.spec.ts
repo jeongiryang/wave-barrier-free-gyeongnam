@@ -2,7 +2,7 @@ import { chooseWaveOption } from './wave-select-fixture';
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, mockPublicShellApi, openItinerary, plan } from './fixtures';
-import { naruDialog } from './naru-tool-fixtures';
+import { naruDialog, openNaruTool } from './naru-tool-fixtures';
 import { prepareStory, storyReady } from './landing-contract';
 import { waitForRenderedEntry } from './painted-contrast';
 
@@ -17,17 +17,14 @@ async function prepare(page: Page) {
   await expect(page.locator('.simple-place-list .simple-place-row')).toHaveCount(2);
 }
 async function tool(page: Page, label: string) {
-  await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
-  const chat = naruDialog(page);
-  await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
-  await chat.getByRole('region', { name: '모든 여행 도구', exact: true }).locator('.naru-tools').getByRole('button', { name: label, exact: true }).click();
+  await openNaruTool(page, label);
 }
 
 test('나루 편의 비교가 선택 모드를 열고 비교할 시설은 여행 조건을 바꾸지 않는다', async ({ page }) => {
   await prepare(page);
   const before = await page.evaluate(() => sessionStorage.getItem('wave-session-facilities-v1'));
   await tool(page, '편의 비교');
-  await expect(naruDialog(page)).toBeHidden();
+  await expect(naruDialog(page)).toBeVisible();
   await expect(page.getByRole('button', { name: '비교 선택 닫기', exact: true })).toBeVisible();
   const choices = page.locator('.simple-place-list').getByRole('checkbox', { name: /비교/ });
   await choices.nth(0).check(); await choices.nth(1).check();
@@ -49,7 +46,7 @@ test('나루 캘린더 도구가 공유 메뉴를 직접 열고 사용자 클릭
   await openItinerary(page, { start: '2026-10-14' });
   await tool(page, '캘린더');
   const share = page.getByRole('dialog', { name: '여행 공유', exact: true });
-  await expect(share).toBeVisible(); await expect(naruDialog(page)).toBeHidden();
+  await expect(share).toBeVisible(); await expect(naruDialog(page)).toBeVisible();
   const downloaded = page.waitForEvent('download');
   await share.getByRole('button', { name: '캘린더', exact: true }).click();
   expect((await downloaded).suggestedFilename()).toBe('wave-trip.ics');
@@ -63,24 +60,27 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   await waitForRenderedEntry(page.locator('#closing .landing-closing-copy'));
   const measured = await footer.evaluate(node => {
     const box = node.getBoundingClientRect();
-    return { left: box.left, right: box.right, width: document.documentElement.clientWidth,
+    const parent = node.closest('.landing-section-pair')!.getBoundingClientRect();
+    return { left: box.left, right: box.right, parentLeft: parent.left, parentRight: parent.right, width: document.documentElement.clientWidth,
       overflow: document.documentElement.scrollWidth > window.innerWidth,
       background: getComputedStyle(node).backgroundColor };
   });
-  expect(Math.abs(measured.left)).toBeLessThanOrEqual(1);
-  expect(Math.abs(measured.right - measured.width)).toBeLessThanOrEqual(1);
+  expect(measured.left).toBeGreaterThanOrEqual(measured.parentLeft);
+  expect(measured.right).toBeLessThanOrEqual(measured.parentRight);
+  expect(Math.abs((measured.left + measured.right) / 2 - (measured.parentLeft + measured.parentRight) / 2)).toBeLessThanOrEqual(1);
   expect(measured.overflow).toBe(false); expect(measured.background).toBe('rgba(0, 0, 0, 0)');
   // The scenic layout uses a compact closing edge. Check readable containment
   // and separation from the footer instead of restoring the previous padding.
   const closingGeometry = await page.locator('.landing-finale').evaluate(node => {
     const finale = node.getBoundingClientRect();
+    const section = node.closest('.landing-section-pair')!.getBoundingClientRect();
     const closing = node.querySelector('#closing')!.getBoundingClientRect();
     const footer = node.querySelector('.wave-balanced-footer')!.getBoundingClientRect();
     const copy = Array.from(node.querySelectorAll('#closing h2, #closing p')).map(element => {
       const box = element.getBoundingClientRect();
       return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, height: box.height };
     });
-    return { top: finale.top, bottom: finale.bottom, closingBottom: closing.bottom, footerTop: footer.top, footerBottom: footer.bottom, width: innerWidth, copy };
+    return { top: finale.top, bottom: section.bottom, closingBottom: closing.bottom, footerTop: footer.top, footerBottom: footer.bottom, width: innerWidth, copy };
   });
   expect(closingGeometry.copy).toHaveLength(2);
   for (const copy of closingGeometry.copy) {
@@ -92,7 +92,7 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   }
   expect(closingGeometry.footerTop).toBeGreaterThanOrEqual(closingGeometry.closingBottom - 1);
   expect(closingGeometry.bottom - closingGeometry.footerBottom).toBeGreaterThanOrEqual(16);
-  await expect(page.locator('#closing .landing-closing-copy')).toHaveCSS('padding-top', '0px');
+  for (const link of await footer.getByRole('link').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect((await new AxeBuilder({ page }).include('.landing-page').analyze()).violations).toEqual([]);
 });
 

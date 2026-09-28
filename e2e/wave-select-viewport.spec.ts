@@ -7,6 +7,9 @@ async function setup(page: Page) {
   await page.route('**/*', route => new URL(route.request().url()).origin === new URL(test.info().project.use.baseURL || 'http://127.0.0.1:4173').origin ? route.fallback() : route.abort());
   await page.route('**/api/**', route => route.fulfill({ status: 503, json: { error: 'Synthetic viewport test' } }));
   await mockPlannerApi(page, { preserveView: true });
+  // The request form requires an available assistant. Unavailable AI offers
+  // direct tools instead, which is covered separately.
+  await page.route('**/api/assistant', route => route.fulfill({ json: { available: true } }));
   await page.addInitScript(() => localStorage.setItem('wave-naru-starter-v1', 'done'));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/planner?region=창원');
@@ -23,7 +26,7 @@ test('an open region menu follows a narrower viewport without losing selection o
   await setup(page);
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
-  await chat.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
+  await chat.getByRole('button', { name: /^여행 처음 만들기/ }).click();
   const region = chat.getByRole('combobox', { name: '여행 지역', exact: true });
   await region.click();
   const menu = page.getByRole('listbox', { name: '여행 지역', exact: true });
@@ -72,7 +75,7 @@ for (const size of ['large', 'compact']) test(`Naru preserves its portal calenda
   await setup(page);
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
-  await chat.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
+  await chat.getByRole('button', { name: /^여행 처음 만들기/ }).click();
   const start = chat.getByLabel('출발 날짜', { exact: true });
   await start.fill('2026-10-03');
   for (const width of [390, 1440]) {
