@@ -74,7 +74,7 @@ test("pace preview, apply and undo preserve itinerary; sensory reports and passp
   await expect(page.getByRole("button", { name: "쉬는 곳", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "빛", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "화장실", exact: true }).click();
-  await expect(page.locator(".restroom-location-pin")).toHaveCount(2);
+  await expect(page.locator('[data-sensory-marker="restroom"]')).toHaveCount(2);
   await expect(page.getByText("화장실: 미확인", { exact: true })).toHaveCount(
     2,
   );
