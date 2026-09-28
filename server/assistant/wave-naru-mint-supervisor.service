@@ -1,0 +1,18 @@
+[Unit]
+Description=WAVE dedicated LM Studio recovery
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/wave-naru
+ExecStart=/usr/bin/python3 %h/wave-naru/supervisor-mint.py
+Restart=on-failure
+RestartSec=15
+UMask=0077
+# Keep existing inference/CLI children alive if the supervisor itself restarts.
+KillMode=process
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=default.target

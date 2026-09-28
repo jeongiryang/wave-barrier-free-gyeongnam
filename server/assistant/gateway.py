@@ -8,9 +8,11 @@ import base64
 import binascii
 import json
 import os
+import sys
 import threading
 import time
 import urllib.request
+import urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 TOKEN = os.environ.get('WAVE_GATEWAY_TOKEN', '')
@@ -21,9 +23,32 @@ BACKEND = os.environ.get('WAVE_MODEL_BACKEND', 'ollama')
 LM_STUDIO = os.environ.get('WAVE_LM_STUDIO_URL', 'http://127.0.0.1:1234').rstrip('/')
 # The shared DSW runtime defaults to CPU. A dedicated runtime can opt into GPU.
 GPU_LAYERS = int(os.environ.get('WAVE_OLLAMA_GPU_LAYERS', '0'))
+MODEL_CONTEXT = 16384  # Full trusted instructions plus six bounded history turns.
 ACTIVE = threading.BoundedSemaphore(1)
 RATE_LOCK = threading.Lock()
 RECENT = []
+
+
+def report_failure(error, stage):
+    """One bounded diagnostic per failed inference; never serialize exceptions."""
+    allowed_stages = {'request', 'response_json', 'completion', 'model_json', 'reply', 'stream'}
+    details = {'stage': stage if stage in allowed_stages else 'request'}
+    if isinstance(error, urllib.error.HTTPError):
+        details['category'] = 'http_error'
+        details['status'] = error.code if isinstance(error.code, int) and 100 <= error.code <= 599 else 0
+    elif isinstance(error, TimeoutError):
+        details['category'] = 'timeout'
+    elif isinstance(error, json.JSONDecodeError):
+        details['category'] = 'invalid_json'
+    elif stage == 'completion':
+        details['category'] = 'incomplete'
+    elif isinstance(error, urllib.error.URLError):
+        details['category'] = 'connection_error'
+    else:
+        details['category'] = 'invalid_response'
+    print('naru_gateway_failure ' + json.dumps(details), file=sys.stderr, flush=True)
+
+
 FORMAT = {'type': 'object', 'properties': {
     'reply': {'type': 'string'},
     'proposal': {'anyOf': [{'type': 'null'}, {'type': 'object', 'properties': {
@@ -154,7 +179,7 @@ def model_request(messages, has_photo, streaming):
     else:
         payload = {'model': MODEL, 'messages': messages, 'stream': streaming,
                    'think': False, 'keep_alive': -1,
-                   'options': {'num_gpu': GPU_LAYERS, 'num_thread': 8, 'num_ctx': 8192,
+                   'options': {'num_gpu': GPU_LAYERS, 'num_thread': 8, 'num_ctx': MODEL_CONTEXT,
                                'num_batch': 256, 'draft_num_predict': 0,
                                'num_predict': 900 if has_photo else 320, 'temperature': 0}}
         if not streaming:
@@ -257,7 +282,8 @@ class Handler(BaseHTTPRequestHandler):
                 started = True
         except (BrokenPipeError, ConnectionResetError):
             pass
-        except Exception:
+        except Exception as error:
+            report_failure(error, 'stream')
             # A failure before any byte keeps the existing error contract.
             if not started:
                 self.respond(503, {'error': 'model_unavailable'})
@@ -311,12 +337,15 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(429, {'error': 'busy'})
         # Photo review always keeps the schema-checked, non-streaming path.
         wants_stream = streamed and not has_photo
+        stage = 'request'
         try:
             request = model_request(messages, has_photo, wants_stream)
             if wants_stream:
                 return self.relay_stream(request)
             with urllib.request.urlopen(request, timeout=40) as response:
+                stage = 'response_json'
                 result = json.loads(response.read(32000))
+            stage = 'completion'
             content = result.get('message', {}).get('content', '')
             if BACKEND == 'lmstudio':
                 choice = result.get('choices', [{}])[0]
@@ -325,11 +354,14 @@ class Handler(BaseHTTPRequestHandler):
                 content = choice.get('message', {}).get('content', '')
             if not isinstance(content, str) or len(content) > 6000 or result.get('done_reason') == 'length':
                 raise ValueError('incomplete')
+            stage = 'model_json'
             decoded = json.loads(content)
+            stage = 'reply'
             if not isinstance(decoded, dict) or not isinstance(decoded.get('reply'), str):
                 raise ValueError('invalid')
             self.respond(200, {'choices': [{'message': {'role': 'assistant', 'content': content}}]})
-        except Exception:
+        except Exception as error:
+            report_failure(error, stage)
             self.respond(503, {'error': 'model_unavailable'})
         finally:
             ACTIVE.release()
