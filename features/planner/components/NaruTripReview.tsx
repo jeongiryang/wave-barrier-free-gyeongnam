@@ -7,6 +7,7 @@ import { suggestTripBreaks, type TripComfort } from '../../../lib/trip-comfort.j
 import type { Place } from '../types';
 import type { RoutePoint } from '../../routing/types';
 import NaruScheduleReview from './NaruScheduleReview';
+import NightIcon from '../../../components/NightIcon';
 
 type Props = {
   places: Place[]; days: string[]; assignments: Record<string, string>; startTime: string;
@@ -32,7 +33,7 @@ export default function NaruTripReview(props: Props) {
   const visits = days.flatMap(day => day.entries.map(entry => ({ place: entry.place, day: day.day,
     startsAt: entry.startsAt, endsAt: entry.visitEndsAt, travelSource: entry.travelSource })));
   return <section ref={panel} tabIndex={-1} className="naru-schedule-review" aria-label="나루 여행 점검">
-    <h3>시간·휴식·귀가</h3>
+    <h3><NightIcon name="calendar" />시간·휴식·귀가</h3>
 
     {days.map(day => {
       const late = day.entries.filter(entry => entry.lateMinutes > 0);
@@ -40,7 +41,7 @@ export default function NaruTripReview(props: Props) {
       const deadline = assessDayDeadline(day.entries, props.deadlines[day.day]);
       const rests = day.entries.filter(entry => suggested[entry.place.id]);
       return <article key={day.day}>
-        <h4>{day.day} · {day.entries.length}곳</h4>
+        <h4>{day.day} · 방문 {day.entries.length}곳</h4>
         {!day.entries.length ? <div><p>아직 방문 장소가 없는 날이에요.</p><button type="button" onClick={() => props.onTool('itinerary')}>이 날에 장소 배치하기</button></div> : <>
 
           <ul>
@@ -53,11 +54,13 @@ export default function NaruTripReview(props: Props) {
             {estimate > 0 && <li>{estimate}개 이동 구간은 추정값이에요. 실제 교통편을 확인하면 시간표가 달라질 수 있어요.</li>}
             {rests.length > 0 && <li>설정한 휴식 간격에 따라 {rests.map(entry => entry.place.name).join(', ')} 방문 뒤 휴식을 검토해 주세요.</li>}
           </ul>
-          <details><summary>이 날의 시간표 요약</summary><p>{day.entries[0].startsAtLabel} 첫 방문 · {day.entries.at(-1)!.endsAtLabel} 마지막 휴식까지 · 체류 {day.entries.reduce((sum, entry) => sum + entry.visitMinutes, 0)}분 · 휴식 {day.entries.reduce((sum, entry) => sum + entry.breakMinutes, 0)}분</p></details>
+          <div className="naru-review-metrics" aria-label="이 날의 시간표 요약"><div><NightIcon name="flag"/><strong>방문 {day.entries.length}곳</strong><span>체류 {day.entries.reduce((sum, entry) => sum + entry.visitMinutes, 0)}분</span></div><div><NightIcon name="car"/><strong>이동 {day.entries.length}구간</strong><span>{estimate ? `${estimate}구간 추정 포함` : '조회한 경로 기준'}</span></div><div><NightIcon name="bed"/><strong>{deadline ? '귀가 시간 설정' : '귀가 미설정'}</strong><span>{deadline ? props.deadlines[day.day].time : '시간을 정해 주세요'}</span></div></div>
+          <details><summary>이 날의 시간표 상세</summary><p>{day.entries[0].startsAtLabel} 첫 방문 · {day.entries.at(-1)!.endsAtLabel} 마지막 휴식까지 · 체류 {day.entries.reduce((sum, entry) => sum + entry.visitMinutes, 0)}분 · 휴식 {day.entries.reduce((sum, entry) => sum + entry.breakMinutes, 0)}분</p></details>
         </>}
       </article>;
     })}
-    <div>
+    <div className="naru-review-settings"><article><h4><NightIcon name="bed"/>휴식 설정</h4><p>원하는 시간에 휴식을 더해 보세요.</p><button type="button" onClick={() => props.onTool('comfort')}>휴식 시간 설정<NightIcon name="right" size={16}/></button></article><article><h4><NightIcon name="car"/>귀가 시간 설정</h4><p>여행을 마칠 시각과 귀가시간을 정해요.</p><button type="button" onClick={() => props.onTool('transport')}>귀가 시간 설정<NightIcon name="right" size={16}/></button></article></div>
+    <h4>더 자세히 조정해 볼까요?</h4><div className="naru-review-actions">
       <button type="button" onClick={() => props.onTool('itinerary')}>날짜·방문시간 수정</button>
       <button type="button" onClick={() => props.onTool('comfort')}>걷기·휴식·귀가 설정</button>
       <button type="button" onClick={() => props.onTool('transport')}>실제 이동 확인</button>

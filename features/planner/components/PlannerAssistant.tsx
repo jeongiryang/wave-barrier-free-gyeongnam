@@ -460,7 +460,7 @@ export default function PlannerAssistant(props: Props) {
     journeyUndo.current = { region: plan.region, themes: plan.themes, profiles: plan.selected, criteria: JSON.stringify([draft.region, draft.themes, draft.profiles]), route: props.onJourneyApplied(draft) };
     setMessages(current => current.map(item => item.id === message.id ? { ...item, applied: true } : item));
     append(draft.restOnly ? '기존 장소와 고정 방문을 유지하고 순서·날짜·휴식을 조정했어요. 실제 이동시간은 경로에서 확인해 주세요.' : `${draft.stops.length}곳의 날짜·순서·체류·휴식을 반영했어요. 지도와 실제 이동시간을 이어서 확인하고, 원하는 곳은 직접 수정할 수 있어요.`);
-    setReviewHours(true);
+    setReviewTrip(true); setReviewHours(false);
     setActivity({ phase: 'done', text: '내 일정에 반영했어요. 지도와 이동 경로를 확인하고 있어요.' });
     props.onActivity({ phase: 'done', text: '내 일정에 반영했어요. 지도에서 이동 정보를 확인할 수 있어요.' });
   }
@@ -721,6 +721,7 @@ export default function PlannerAssistant(props: Props) {
         {starterDone && messages.filter(message => message.id !== 0 || !trip.saved.length).map(message => <div key={message.id} id={`naru-reply-${message.id}`} className={`naru-message ${message.role}`}>
           {message.role === 'assistant' && <span className="naru-message-avatar"><NaruAvatar /></span>}
           <p>{message.text}</p>
+          {message.draft && !message.cancelled && message.draft.stops.length > 0 && <div className="naru-answer-places" aria-label="일정안의 장소">{message.draft.stops.map(stop => <button type="button" key={stop.place.id} onClick={() => props.onPlace(stop.place)}><NightIcon name="pin" size={16}/>{stop.place.name}</button>)}</div>}
           {message.role === 'assistant' && message.text && <button type="button" className="naru-readback" aria-label="답변 복사" onClick={() => { void (navigator.clipboard?.writeText(message.text) || Promise.reject(new Error('clipboard-unavailable'))).then(() => setWorkspaceNotice('답변을 복사했어요.'), () => setWorkspaceNotice('복사하지 못했어요. 답변 글자를 선택해 복사해 주세요.')); }} title="복사"><ActionIcon label="복사" /></button>}
           {message.source === 'local-vision' && <p className="naru-note">사진에서 읽은 내용이에요. 맞는지 확인한 뒤 장소와 날짜를 입력해 여행에 반영해 주세요. 일정은 아직 변경하지 않았어요.</p>}
           {message.photoItems && <div className="naru-tool-card" aria-label="사진 내용과 관광정보 대조 결과"><strong>공식 관광정보 대조</strong>{message.photoItems.map((item, index) => <article key={`${item.fact.name}-${index}`}><b>{item.fact.name || '장소명 미확인'}</b><span>{item.state === 'verified' ? ' · 같은 장소 확인' : item.state === 'ambiguous' ? ' · 같은 이름이 여러 곳' : ' · 같은 장소를 찾지 못함'}</span>{item.fact.date && <small>{item.fact.date}{item.fact.startTime ? ` ${item.fact.startTime}` : ''}{item.fact.endTime ? `–${item.fact.endTime}` : ''}</small>}{item.place && <button type="button" onClick={() => props.onPlace(item.place!)}>공식 정보 보기</button>}</article>)}{message.photoItems.some(item => item.state === 'verified') && (canApplyPhotoItems(message) ? <button type="button" disabled={busy || message.applied} onClick={() => applyPhotoItems(message)}>{message.applied ? '일정에 반영됨' : '확인된 장소로 일정안 만들기'}</button> : <button type="button" onClick={() => openTool('dates')}>여행 날짜 먼저 정하기</button>)}<p className="naru-note">사진의 글자는 참고 자료이며, 같은 이름·지역·행사 날짜가 공공데이터와 맞은 장소만 담을 수 있어요.</p></div>}

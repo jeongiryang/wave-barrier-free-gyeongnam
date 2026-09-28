@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mockPlannerApi, plan } from './fixtures';
 import type { NaruJourney } from '../lib/naru-journey.js';
+import AxeBuilder from '@axe-core/playwright';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 
@@ -86,6 +87,24 @@ async function send(page: Page) {
   await chat.getByRole('textbox').fill('기존 약속을 유지하고 이틀 동안 쉬엄쉬엄 갈 곳을 추가해줘');
   await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
 }
+
+test('카드형 일정안은 날짜·미확인·적용 전 상태와 작은 화면의 조작을 보존한다', async ({ page }, info) => {
+  const { chat } = await setup(page);
+  await send(page);
+  const proposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
+  await expect(proposal.locator('.naru-proposal-day')).toHaveCount(2);
+  await expect(proposal).toContainText('적용 전');
+  await expect(proposal).toContainText('방문 전 확인: 승강기 이용 가능 여부');
+  for (const width of [1440, 960, 390]) {
+    await page.setViewportSize({ width, height: 960 });
+    await proposal.scrollIntoViewIfNeeded();
+    expect(await proposal.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
+    const apply = proposal.getByRole('button', { name: '미확인 항목을 살펴보고 일정에 반영', exact: true });
+    expect((await apply.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.screenshot({ path: info.outputPath(`naru-cards-${width}.png`) });
+    expect((await new AxeBuilder({ page }).include('.naru-panel').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+  }
+});
 
 test('NDJSON 일정안을 확인하고 적용한 뒤 장소·날짜·휴식·편의까지 되돌린다', async ({ page }) => {
   const { chat } = await setup(page);
