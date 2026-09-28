@@ -16,4 +16,4 @@ const statements = orderedMigrationStatements(migrations);
 
 const sql = neon(databaseUrl);
 await sql.transaction(statements.map((statement) => sql.query(statement)));
-console.log(`001~005 Production migration 적용 완료 (${statements.length}개 statement)`);
+console.log(`Production migration 적용 완료 (${statements.length}개 statement)`);
