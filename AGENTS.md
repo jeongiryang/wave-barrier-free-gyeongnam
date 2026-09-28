@@ -42,6 +42,10 @@ Repository Owner·Product Owner·Release Authority는 정이량(`jeongiryang`)�
 
 GitHub 이슈/PR/Actions가 팀 작업의 공유 기록이고 Production이 실제 제공 상태다. Notion은 관제용으로 유지하며 별도의 충돌하는 실행 규칙을 만들지 않는다. 이슈 종료 전 본문과 의미 있는 후속 요구를 구현·이관·보류·미채택으로 매핑한다. PR 병합만으로 모든 요구가 완료됐다고 하지 않는다.
 
+공모전 일정·제출물·심사 준비·남은 일·진행 경과를 다룰 때는 [2026 공모전 대시보드](https://app.notion.com/p/3e7b3295f8cb8165a146d70ab4c0e8d6)와 그 아래 [한국관광공사 관광데이터 활용 공모전](https://app.notion.com/p/3e9b3295f8cb816d81bae1ffc546a52f)을 먼저 확인한다. 최초 제출 제안서와 기능설명서 제출확정본은 하위 페이지의 **제출 원본 보관**에서 찾는다. Notion의 5MiB 제한 때문에 기능설명서는 열람용 PDF 2개와 원본 복원 ZIP 2개로 보관된다. 기능 요구의 판단은 제출 원본과 `harness/features.json`을 대조한다.
+
+PR 병합, 필수 CI/CD 결과, Production 배포, 핵심 기능·심사자 여정 검증, P0/P1 해결·발견, 외부 제공처 제한, 공식 일정·제출 상태처럼 심사 준비에 영향을 주는 변경이 확정되면 해당 하위 페이지의 현황·남은 일·근거 링크를 갱신한다. 날짜, PR·커밋·배포 식별자, 실제 검증 범위와 미확인 사항을 함께 적고, 계획·진행 중·완료를 구분한다. 단순 코드 수정마다 갱신하지 않는다. GitHub·Actions·Production·공식 공고가 각 사실의 원천이고 Notion은 그 요약이므로, 내용이 다르면 원천을 확인해 차이를 바로잡는다. 접수번호·계정 자격 증명·API 키 등 민감 정보는 Notion에 기록하지 않는다.
+
 ## 배포와 완료
 
 Vercel Production은 GitHub Actions CD 한 경로로 배포한다. 기본 Vercel Git 자동 배포를 다시 켜지 않는다.
