@@ -28,6 +28,8 @@
 
 Qwen 결과는 모델 자체의 지능 열세를 뜻하지 않는다. 어댑터를 바꾼 뒤 기능·안전·지연 비교가 필요하다. 이번에는 검증된 Gemma를 유지한다. 공식 Gemma QAT 양자화도 후보지만 이 환경에서 실측하지 않았으므로 우수하다고 주장하지 않는다. 26B급 모델을 12GB 예비 GPU에 억지로 올리는 구성은 채택하지 않았다.
 
+위 7/7은 응답 성공과 예상 action 일치 검사다. 출력 내용도 확인했으며 주 모델은 요구한 편의·장소·90분을 반영했다. 예비 12B는 일정 생성 한 사례에 요청하지 않은 네 가지 themes를 모두 포함했다. 따라서 예비의 의미 품질이 주 모델과 동등하다고 판정하지 않으며 예비는 연결 지속을 위한 2순위로 유지한다.
+
 근거: [Gemma 공식 모델 문서](https://ai.google.dev/gemma/docs/core), [Qwen 공식 모델 카드](https://huggingface.co/Qwen/Qwen3.8-27B), [Ollama Gemma 모델 크기](https://ollama.com/library/gemma4/tags), [LM Studio 병렬 요청](https://lmstudio.ai/docs/app/advanced/parallel-requests), [Ollama 문맥·병렬 메모리](https://docs.ollama.com/faq).
 
 ## 실제 검증
