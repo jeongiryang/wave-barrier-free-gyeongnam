@@ -121,6 +121,15 @@ for (const locale of ["ko", "en"] as const) for (const width of [320, 390, 601, 
     const first = cards.first().locator(".simple-region-link");
     await expect(first).toBeFocused();
     await expect(first).toHaveAccessibleName(en ? "Tongyeong places" : "통영 여행지 보기");
+    // Native keyboard focus scrolls smoothly. Let that real movement finish
+    // before expectUsableTarget centers a different control with instant scroll.
+    await expect(first).toBeInViewport({ ratio: 1 });
+    await expect.poll(() => first.evaluate(async node => {
+      const position = () => [scrollX, scrollY, node.getBoundingClientRect().top];
+      const before = position();
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      return position().every((value, index) => value === before[index]);
+    })).toBe(true);
     const expand = region.getByRole("button", { name: en ? "View all 18 regions" : "18개 지역 모두 보기", exact: true });
     await expectUsableTarget(expand);
     await expect(expand).toHaveAttribute("aria-expanded", "false");

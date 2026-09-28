@@ -1,6 +1,6 @@
 import { arrivalPlaybackReady } from "./landing-contract";
 import { chooseWaveOption } from './wave-select-fixture';
-import { openNaruTool, closeNaruTool } from './naru-tool-fixtures';
+import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -99,6 +99,9 @@ test("landing: reduced motion shows a dismissible intro and preserves the real p
 });
 
 test("planner supports decision, save, route-aware schedule and focus restoration", async ({ page }) => {
+  // Run the whole functional/axe journey with the same supported preference;
+  // planner-stage-jump separately covers both reduced and ordinary motion.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const api = await mockPlannerApi(page, { preserveView: true });
   let releaseAutomatic!: () => void;
   const automaticHeld = new Promise<void>(resolve => { releaseAutomatic = resolve; });
@@ -160,7 +163,12 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
     await expect(arrival).toHaveText("10:40 도착 예정");
     releaseAutomatic();
-    await openNaruTool(page, "이동 구간 확인");
+    // Reopening Naru should retain the active tool. Do not repeat the entire
+    // catalog-selection flow just to observe the same pending request finish.
+    await page.getByRole("button", { name: "WAVE 여행 가이드 나루와 대화 열기", exact: true }).click();
+    await expect(naruDialog(page)).toBeVisible();
+    await expect(naruDialog(page).getByRole("tab", { name: "직접 골라서 하기", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(naruDialog(page).locator(".itinerary-route-coverage")).toBeVisible();
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
     await expect(arrival).toHaveText("10:40 도착 예정");
@@ -182,7 +190,11 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
 
     await screens.locator(".night-search-link").click();
     await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
-    await screens.locator(".wave-my-trips").click();
+    // The first trip-menu entry above covers pointer input. Cover keyboard
+    // re-entry here without competing with the result page's smooth scroll.
+    await screens.locator(".wave-my-trips").focus();
+    await expect(screens.locator(".wave-my-trips")).toBeFocused();
+    await screens.locator(".wave-my-trips").press("Enter");
     await expect(itinerary.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
     await openNaruTool(page, "오디오 가이드·후기");
     await expect(page.getByRole("link", { name: "여행 후기 작성", exact: true })).toHaveAttribute("href", /draft=journal/);
@@ -193,7 +205,9 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await expect(itinerary.locator("#itinerary-stop-1002")).toHaveCount(0);
     await screens.locator(".night-search-link").click();
     await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
-    await screens.locator(".wave-my-trips").click();
+    await screens.locator(".wave-my-trips").focus();
+    await expect(screens.locator(".wave-my-trips")).toBeFocused();
+    await screens.locator(".wave-my-trips").press("Enter");
     expect(api.enrichmentRequestCount()).toBe(0);
     await openNaruTool(page, "출발 전 확인");
     await page.locator(".travel-layers > summary").click();
@@ -204,7 +218,6 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toBeVisible();
     await expect(page.locator("#itinerary-stop-1001 time").first()).toHaveText("09:25 도착 예정");
     await expect(page.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
-    await page.emulateMedia({ reducedMotion: "reduce" });
     await expectNoSeriousA11yIssues(page);
   } finally { releaseAutomatic(); }
 });

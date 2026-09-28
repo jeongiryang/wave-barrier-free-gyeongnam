@@ -129,10 +129,46 @@ test('overlay keyboard leaves readable answers, reachable input and all optional
   await expect.poll(() => chat.getByRole('log').evaluate(el => el.scrollTop)).toBe(0);
   const latestBox = (await latest.boundingBox())!;
   const logBox = (await chat.getByRole('log').boundingBox())!;
-  expect(latestBox.y).toBeGreaterThanOrEqual(logBox.y + logBox.height);
+  // The short-viewport action floats inside the log, preserving its reading height.
+  expect(logBox.height).toBeGreaterThan(180);
+  expect(latestBox.height).toBeGreaterThanOrEqual(44);
+  expect(latestBox.y).toBeGreaterThanOrEqual(logBox.y);
+  expect(latestBox.y + latestBox.height).toBeLessThanOrEqual(logBox.y + logBox.height);
   expect(latestBox.y + latestBox.height).toBeLessThanOrEqual((await input.boundingBox())!.y);
+  expect(await chat.getByRole('log').evaluate(el => parseFloat(getComputedStyle(el).paddingBottom))).toBeGreaterThanOrEqual(latestBox.height);
+  expect(await latest.evaluate(node => { const rect = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)); })).toBe(true);
+  await page.screenshot({ path: info.outputPath('naru-keyboard-earlier-answer.png') });
+  // Scroll the end of the answer above the floating action, just as a reader can.
+  const answer = chat.locator('.naru-message.assistant > p').last();
+  const answerScroll = await answer.evaluate((node, actionTop) => {
+    const text = node.firstChild!;
+    const end = text.textContent!.trimEnd().length;
+    const range = document.createRange();
+    range.setStart(text, end - 1); range.setEnd(text, end);
+    return range.getBoundingClientRect().bottom - actionTop + 8;
+  }, latestBox.y);
+  await page.mouse.move(logBox.x + logBox.width / 2, logBox.y + logBox.height / 2);
+  await page.mouse.wheel(0, answerScroll);
+  await expect.poll(() => answer.evaluate(node => {
+    const text = node.firstChild!;
+    const end = text.textContent!.trimEnd().length;
+    const range = document.createRange();
+    range.setStart(text, end - 1); range.setEnd(text, end);
+    const rect = range.getBoundingClientRect();
+    const viewport = node.closest('[role=log]')!.getBoundingClientRect();
+    return { visible: rect.top >= viewport.top && rect.bottom <= viewport.bottom, hit: node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)) };
+  })).toEqual({ visible: true, hit: true });
+  await page.screenshot({ path: info.outputPath('naru-keyboard-answer-end.png') });
   await latest.click();
+  await expect(latest).toBeHidden();
   await expect.poll(() => chat.getByRole('log').evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThan(2);
+  expect((await input.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect(await input.evaluate(node => { const rect = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)); })).toBe(true);
+  await input.click();
+  await expect(input).toBeFocused();
+  await input.fill('다음 질문도 입력할 수 있어요');
+  await expect(input).toHaveValue('다음 질문도 입력할 수 있어요');
+  await input.fill('');
   await keyboard(page, 844);
   await expect(chat).toHaveAttribute('data-short-viewport', 'false');
   await expect.poll(() => chat.getByRole('log').evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThan(2);
