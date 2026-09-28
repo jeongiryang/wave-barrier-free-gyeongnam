@@ -10,24 +10,27 @@
 :global(.naru-result-list > [data-evidence-group] > p) { margin: 8px 0 0; }
 :global(html:root body .naru-panel.naru-workspace) .card {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 280px;
   align-self: stretch;
   gap: 0;
   min-width: 0;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid #dce2ee;
+  border: 1px solid #334a62;
   border-radius: 16px;
-  background: #fff;
+  background: #243951;
   box-shadow: 0 3px 12px #26375308;
 }
-.photo { position: relative; min-height: 156px; overflow: hidden; background: linear-gradient(145deg, #e2eef6, #ebe7f7); }
+.photo { position: absolute; inset: 0; overflow: hidden; background: linear-gradient(145deg, #344f6b, #29354d); }
 .photo img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
-.photo > span { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #52677e; }
-:global(html:root body .naru-panel.naru-workspace) .photo small { color: #52677e; font-size: 12px; }
-.info { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 12px; gap: 4px; }
-.city { color: #4d5c76; font-size: 12px; font-weight: 600; }
+.photo > span { display: flex; align-items: center; gap: 8px; padding: 18px; color: #edf4ff; }
+:global(html:root body .naru-panel.naru-workspace) .photo small { color: #edf4ff; font-size: 12px; }
+.info { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-width: 0; margin-top: 64px; padding: 32px 16px 16px; gap: 4px; background: linear-gradient(to bottom, #10203400, #102034d6 24px, #102034f5 100%); }
+:global(html:root body .naru-panel.naru-workspace) .city { color: #edf4ff; font-size: 12px; font-weight: 600; }
 :global(html:root body .naru-panel.naru-workspace) button.title {
   min-height: 44px;
   width: 100%;
@@ -36,17 +39,17 @@
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: #243551;
-  font-size: 16px;
+  color: #fff;
+  font-size: 18px;
   font-weight: 750;
   line-height: 1.45;
   text-align: left;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
-:global(html:root body .naru-panel.naru-workspace) .address {
+:global(html:root body .naru-panel.naru-workspace) .card .address {
   margin: 0;
-  color: #56627a;
+  color: #edf4ff;
   font-size: 12px;
   line-height: 1.6;
   overflow-wrap: anywhere;
@@ -55,9 +58,9 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.evidence { max-width: 100%; margin-top: 4px; white-space: normal; overflow-wrap: anywhere; }
+:global(html:root body .naru-panel.naru-workspace) .evidence { max-width: 100%; margin-top: 4px; white-space: normal; overflow-wrap: anywhere; color: #243551; background: #f4f7ff; border-color: #dce2ee; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; width: 100%; margin-top: auto; padding-top: 8px; }
-.hint { color: #627089; font-size: 11px; }
+:global(html:root body .naru-panel.naru-workspace) .hint { color: #edf4ff; font-size: 11px; }
 :global(html:root body .naru-panel.naru-workspace) .actions button {
   min-width: 60px;
   min-height: 44px;
@@ -67,12 +70,11 @@
   font-weight: 650;
   line-height: 1.4;
 }
-:global(html:root body .naru-panel.naru-workspace) button.add { color: #fff; background: #5461a8; border-color: #5461a8; }
-:global(html:root body .naru-panel.naru-workspace) button.add:disabled { color: #455174; background: #edf0f8; border-color: #dce2ee; opacity: 1; }
+:global(html:root body .naru-panel.naru-workspace) button.add { color: #233957; background: #fff; border-color: #fff; }
+:global(html:root body .naru-panel.naru-workspace) button.add:disabled { color: #fff; background: #233957; border-color: #8396ad; opacity: 1; }
 :global(html:root body .naru-panel.naru-workspace) button.details { color: #3e5076; background: #f1f4fa; border-color: #dce2ee; }
-:global(html:root body .naru-panel.naru-workspace) .card button:focus-visible { outline: 3px solid #2263a9; outline-offset: -3px; }
+:global(html:root body .naru-panel.naru-workspace) .card button:focus-visible { outline: 3px solid #54d9ff; outline-offset: 2px; box-shadow: 0 0 0 2px #102034; }
 @media (max-width: 420px) {
-  :global(html:root body .naru-panel.naru-workspace) .card { grid-template-columns: 76px minmax(0, 1fr); }
-  .info { padding: 10px; }
+  .info { padding: 32px 14px 14px; }
   .hint { display: none; }
 }
