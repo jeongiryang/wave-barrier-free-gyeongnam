@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import { fileURLToPath } from "node:url";
 import { devWorkerConnection } from "./scripts/vite-dev-connection.mjs";
 import { publicPreviewReads } from "./scripts/vite-public-preview.mjs";
+import { clientCssManifest } from "./scripts/vite-client-css-manifest.mjs";
 
 export default defineConfig(async () => {
   const { nitro } = await import("nitro/vite");
@@ -12,9 +13,7 @@ export default defineConfig(async () => {
     resolve: { alias: [{ find: /^three$/, replacement: fileURLToPath(new URL('./node_modules/three/src/Three.js', import.meta.url)) }] },
     // Three's math modules have shared initialization cycles (Vector3/Quaternion).
     // Size-bounded chunks must preserve their original module execution order.
-    // Keep one stylesheet so shared palette/control rules are compressed together
-    // and route hydration cannot reorder lazy component CSS after global overrides.
-    // JavaScript remains lazy; the existing 108 KiB total CSS budget is unchanged.
+    // Keep compression without dropping the client stylesheet from RSC links.
     environments: { client: { build: { cssCodeSplit: false, rolldownOptions: { output: { strictExecutionOrder: true, codeSplitting: { groups: [
       { name: 'intro-three', test: /node_modules[\\/]three[\\/]src[\\/]/, maxSize: 450_000, minSize: 60_000, priority: 30 },
     ] } } } } } },
@@ -27,7 +26,7 @@ export default defineConfig(async () => {
     // Nitro owns requests and its worker owns the RSC module runner. Keep
     // vinext's complete plugin stack, with no second standalone HTTP handler.
     rsc: { serverHandler: false },
-    plugins: [publicPreviewReads(), devWorkerConnection(), vinext(), nitro({
+    plugins: [publicPreviewReads(), devWorkerConnection(), clientCssManifest(), vinext(), nitro({
       vercel: {
         functions: {
           runtime: "nodejs22.x",

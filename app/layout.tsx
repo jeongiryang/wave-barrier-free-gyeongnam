@@ -67,6 +67,12 @@ import "./styles/photo-cards.css";
 import "./styles/wave-palette.css";
 import "./styles/ui-consistency.css";
 import "./styles/naru-friendly.css";
+// The approved landing overrides follow the shared rules in both SSR and dev.
+// Importing them from client components reordered them after hydration only.
+import "./styles/landing-restored.css";
+import "./styles/night-landing.css";
+import "./styles/award-panorama.css";
+import "../features/landing/components/landing-previews.css";
 
 const productionUrl = new URL(SITE_ORIGIN);
 const preferenceBootScript = `(()=>{try{const d=document.documentElement;const e=${process.env.NODE_ENV === "development" ? "localStorage.getItem('wave-dev-presentation')==='enabled'" : "false"};const m=matchMedia('(prefers-color-scheme: dark)').matches;const t=localStorage.getItem('wave-theme');d.dataset.theme=e?(t==='dark'||t==='light'?t:(m?'dark':'light')):'light';d.dataset.motion='full';const s=localStorage.getItem('wave-text-scale-v1');d.dataset.textScale=s==='large'||s==='larger'?s:'standard';d.dataset.colorAssist=localStorage.getItem('wave-color-assist-v1')==='on'?'on':'off';d.dataset.tone=e&&localStorage.getItem('wave-tone-v1')==='gyeongnam'?'gyeongnam':'standard';d.lang='ko';d.style.colorScheme=d.dataset.theme}catch{}})()`;

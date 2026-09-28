@@ -5,7 +5,6 @@ import NightIcon from '../../../components/NightIcon';
 import { regionShowcasePhotos } from '../region-showcase-photos';
 import { regionBoundaries } from '../region-boundaries';
 import usePreviewPlayback from './usePreviewPlayback';
-import './landing-previews.css';
 
 const regions = ['통영', '거제', '하동', ...Object.keys(regionShowcasePhotos).filter(name => !['통영', '거제', '하동'].includes(name))];
 const steps = ['여행지 고르기', '일정에 담기', '지도에서 확인'];

@@ -1,7 +1,6 @@
 'use client';
 import type { ReactNode } from 'react';
 import { PhotoPanorama } from '../features/landing/components/AwardPanorama';
-import '../app/styles/award-panorama.css';
 const sets = {
   community: ['community', 'coast', 'garden'],
   festival: ['festival', 'garden', 'coast'],

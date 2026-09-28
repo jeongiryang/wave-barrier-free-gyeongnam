@@ -130,8 +130,9 @@ html:root body .wave-night .festival-actions button:first-child{display:flex;ali
 /* Planner place cards keep photographs unobstructed and place information below a divider. */
 html:root body .wave-night .simple-place-row,html:root body .wave-night [data-place-view=grid] .simple-place-row{min-height:0;padding:0;gap:0;background:#123246;text-shadow:none}
 html:root body .wave-night .simple-place-row>.simple-place-photo,html:root body .wave-night [data-place-view=grid] .simple-place-row>.simple-place-photo{position:relative;inset:auto;order:1;width:100%;height:auto;aspect-ratio:4/3;border-radius:19px 19px 0 0}
-html:root body .wave-night .simple-place-row>.simple-place-heading{order:2;border-radius:0;color:#fff;text-shadow:none}
-html:root body .wave-night .simple-place-row>.simple-place-copy{order:3;border-radius:0;backdrop-filter:none}
+html:root body .wave-night .simple-place-row>.simple-place-heading{order:2;width:100%;max-width:none;margin:0;padding:16px 18px 8px;border-top:1px solid #8bb8ca66;border-radius:0;background:#123246!important;backdrop-filter:none;color:#fff;text-shadow:none}
+html:root body .wave-night .simple-place-row>.simple-place-copy{order:3;width:100%;max-width:none;margin:0;padding:0 18px 8px;border-radius:0;background:#123246!important;backdrop-filter:none;color:#dcecf2;text-shadow:none}
+html:root body .wave-night .simple-place-row:not(:has(.simple-place-heading))>.simple-place-copy{padding-top:16px;border-top:1px solid #8bb8ca66}
 html:root body .wave-night .simple-place-row>.place-card-actions{order:4;margin:0;padding:0;background:transparent}
 html:root body .wave-night .simple-place-row :is(.simple-place-heading,.simple-place-copy)>*{background:none!important;backdrop-filter:none;text-shadow:none}
 
