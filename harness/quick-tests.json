@@ -5,6 +5,7 @@
     {"file":"e2e/core-journeys.spec.ts","title":"landing: first arrival is readable, dismissible and remembers completion"},
     {"file":"e2e/core-journeys.spec.ts","title":"landing: reduced motion shows a dismissible intro and preserves the real planning action"},
     {"file":"e2e/core-journeys.spec.ts","title":"planner supports decision, save, route-aware schedule and focus restoration"},
+    {"file":"e2e/core-journeys.spec.ts","title":"planner preserves a manually selected route when an automatic response finishes late"},
     {"file":"e2e/core-journeys.spec.ts","title":"planner exposes honest recovery when the official plan request fails"},
     {"file":"e2e/core-journeys.spec.ts","title":"community remains readable without login and protects writing"},
     {"file":"e2e/core-journeys.spec.ts","title":"community moderation APIs fail closed without an authenticated operator"},
