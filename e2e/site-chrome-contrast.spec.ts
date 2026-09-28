@@ -25,7 +25,9 @@ async function closingTextContrast(page: Page) {
     return [...root.querySelectorAll("h2,.landing-closing-copy > p")].map(node => {
       const foreground = getComputedStyle(node), box = node.getBoundingClientRect();
       return { text: node.textContent, color: foreground.color, opacity: foreground.opacity,
-        covered: box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom };
+        // Independently rounded DOMRects can differ by a fraction of a pixel at
+        // the shared bottom edge, particularly at non-integer device scales.
+        covered: box.left >= frame.left - 1 && box.right <= frame.right + 1 && box.top >= frame.top - 1 && box.bottom <= frame.bottom + 1 };
     });
   });
   expect(samples).toHaveLength(2);

@@ -19,6 +19,8 @@ for (const width of [390, 1440]) test(`${width}px automatic search completion pr
   const theme = page.getByRole("button", { name: "자연·휴양", exact: true });
   await expect(theme).toHaveAttribute("aria-pressed", "false");
   await theme.scrollIntoViewIfNeeded();
+  await theme.focus();
+  await expect.poll(() => theme.evaluate(node => { const b = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)); })).toBe(true);
   const before = (await theme.boundingBox())!;
   await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
   await page.mouse.down();

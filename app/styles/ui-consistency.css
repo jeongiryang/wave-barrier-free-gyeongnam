@@ -50,8 +50,9 @@ html:root body .wave-night .navigation-section .workspace-heading{margin:0 0 16p
 html:root body .wave-night .simple-itinerary-map{border:0;border-radius:0;overflow:visible}
 html:root body .wave-night .simple-itinerary-map .map-panel{border:0;border-radius:18px}
 /* Form labels and fields share a baseline and a 44px control height. */
-html:root body .wave-night .simple-settings-fields .wave-date-picker{position:relative;min-width:0}
-html:root body .wave-night .simple-settings-fields .wave-date-picker>input{width:100%;padding-right:48px}
+html:root body .wave-night .simple-settings-fields .wave-date-picker{position:relative}
+html:root body .wave-night .simple-settings-fields .wave-date-picker>input{background:transparent;border:0;padding-right:8px}
+html:root body .wave-night .simple-dialog .simple-settings-fields .wave-date-picker>input{padding-right:48px}
 html:root body .wave-night .simple-dialog:not(.naru-panel) .wave-date-open{position:absolute;right:0;top:0;width:44px;height:44px;padding:10px;border:0;background:transparent;border-radius:12px;color:#85eaff}
 html:root body .wave-night .map-crowd-legend{width:min(330px,calc(100% - 24px));box-sizing:border-box;min-height:64px;grid-template-columns:32px minmax(0,1fr) 44px;gap:8px;padding:8px 10px;left:12px;bottom:12px;border-radius:14px}
 html:root body .wave-night .map-crowd-legend .crowd-visual{width:30px;height:30px}
@@ -68,6 +69,7 @@ html:root body .wave-night .simple-dialog>header h2{margin:0;font-size:22px}
 html:root body .wave-night .simple-settings-fields{gap:20px;align-items:start}
 html:root body .wave-night .simple-settings-fields>label{display:flex;flex-direction:column;gap:8px;min-width:0;font-size:14px}
 html:root body .wave-night .simple-settings-fields :is(input,.wave-select-trigger){box-sizing:border-box;width:100%;min-width:0;min-height:44px;height:44px;padding:8px 12px;border-radius:12px;font-size:16px}
+@media(max-width:480px){html:root body .wave-night .simple-settings-fields{grid-template-columns:minmax(0,1fr)}}
 html:root body .wave-night .simple-editor-footer{margin-top:24px;padding-top:16px;gap:8px}
 html:root body .wave-night .simple-dialog .simple-editor-footer button{min-height:44px;border-radius:12px;padding:8px 16px}
 html:root body .wave-night .simple-dialog:not(.naru-panel) button:is(.primary,[aria-pressed=true]){background:#0766b5;color:#fff;border-color:#85eaff;border-radius:12px}
@@ -260,7 +262,7 @@ html:root body .wave-night .travel-book-empty h2{font-size:clamp(20px,2.4vw,26px
 html:root body .wave-night .travel-book-empty>a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;width:auto;padding:8px 16px;border:0;border-radius:999px;background:linear-gradient(110deg,#078cdf,#5751e8);color:#fff;font-size:14px}
 @media(max-width:600px){html:root body .wave-night .community-detail .detail-actions{flex-direction:row;flex-wrap:wrap;align-items:center}html:root body .wave-night .comments-heading{grid-template-columns:1fr;gap:4px}html:root body .wave-night .comment-form>div{align-items:flex-start}html:root body .wave-night .comment-form>div>span{align-self:flex-end;flex-wrap:wrap}html:root body .wave-night .comment-form button{width:auto}}
 html:root[data-color-assist=on] body .status-shape{display:inline-block}
-@media(max-width:600px){html:root body :is(.planner-simple,.community-detail-page) .naru-discovery{left:8px;right:auto;flex-direction:row-reverse}html:root body :is(.planner-simple,.community-detail-page) .naru-welcome-bubble{left:0;right:auto}}
+@media(max-width:600px){html:root :is(.planner-simple,body:has(.community-detail-page)) .naru-discovery{left:8px;right:auto;flex-direction:row-reverse}html:root :is(.planner-simple,body:has(.community-detail-page)) .naru-welcome-bubble{left:0;right:auto}}
 @media(prefers-reduced-motion:reduce){html:root,html:root body *{scroll-behavior:auto!important}html:root body :is(.simple-region,.simple-region *,.community-list .community-skeleton-card,.naru-welcome-bubble *){animation:none!important;transition:none!important}}
 
 html:root body .wave-night .map-unavailable{background:#163b59}
@@ -273,3 +275,5 @@ html:root body .wave-night :is(.night-region-shortcuts button[aria-pressed=true]
 @media(min-width:901px){html:root body .wave-night .route-map-shell.drawer-open .map-controls-layout{right:396px}}
 html:root body .map-panel{container-type:inline-size}
 @container(max-width:720px){html:root body .wave-night .route-map-shell:not(.expanded,:fullscreen){&.drawer-open{grid-template-columns:minmax(0,1fr)}.map-side-drawer{grid-column:1;position:absolute;inset:auto 8px 8px;max-height:50%;border:0;border-radius:18px}&.drawer-open .map-controls-layout{right:12px;flex-direction:row}}}
+
+html:root[data-theme=dark] body .wave-night :is(.map-crowd-legend small,.crowd-forecast-label){color:#bedde8}

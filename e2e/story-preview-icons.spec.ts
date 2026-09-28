@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { pauseCurrentClock } from './landing-contract';
 import { mockPlannerApi, mockPublicShellApi } from './fixtures';
 test.use({ storageState:{cookies:[],origins:[]} });
 test.beforeEach(async({page})=>{await page.addInitScript(()=>sessionStorage.setItem('wave-arrival-session-v1','done'));});
@@ -46,7 +47,7 @@ test('conversation reveals one message each second with its link in the header',
  await page.goto('/');const chat=page.locator('.wave-chat-demo');await chat.scrollIntoViewIfNeeded();
  await expect(chat.locator('header a')).toHaveText('나루와 내 여행 만들기');
  await expect(chat.locator('header button,footer')).toHaveCount(0);
- await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
+ await pauseCurrentClock(page);
  const initial=Number(await chat.getAttribute('data-frame'));
  expect(await chat.locator('.preview-question').count()).toBe(Math.floor(initial/2)+1);
  expect(await chat.locator('.preview-answer').count()).toBe(Math.floor((initial+1)/2));

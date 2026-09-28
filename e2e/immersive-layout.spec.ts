@@ -37,7 +37,7 @@ for (const width of [1366, 2560, 3840]) test(`immersive landing and planner use 
   expect(workspaceBox.x).toBeGreaterThanOrEqual(0);
   expect(workspaceBox.x + workspaceBox.width).toBeLessThanOrEqual(width);
   await expectNoOverflow(page);
-  expect(await page.locator('.wave-night').first().evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('none');
+  expect(await page.locator('.wave-night').first().evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('wave-ambient');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect.poll(() => page.locator('.wave-night').first().evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('wave-ambient');
   await page.locator('html').evaluate(node => node.setAttribute('data-motion', 'calm'));

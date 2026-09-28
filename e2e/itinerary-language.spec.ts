@@ -3,7 +3,7 @@ import { openNaruTool, closeNaruTool, naruDialog } from './naru-tool-fixtures';
 import { openSupportMenu } from "./support-menu";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type Locator } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openItinerary, focusItineraryStop } from "./fixtures";
 
 async function setup(page: Page, options: Parameters<typeof mockPlannerApi>[1] = {}) {
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
@@ -35,6 +35,7 @@ for (const theme of ["light", "dark"] as const) test(`English preference with Ko
   await page.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동", exact: true }).click();
   expect((await records(page)).order.ids).toEqual(["1002", "1001"]);
   await expect(rows.first()).toContainText("용지호수공원");
+  await focusItineraryStop(page, "경남도립미술관");
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const stop = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   expect(await language(stop)).toBe("ko");

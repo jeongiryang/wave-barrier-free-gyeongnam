@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
 import { confirmedAlternativePlan } from "./alternative-fixtures";
 import AxeBuilder from "@axe-core/playwright";
+import { pauseCurrentClock } from './landing-contract';
 
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -155,6 +156,11 @@ test("keyboard region selection updates results without stealing input focus or 
   expect(page.url()).toBe(expectedUrl.toString());
   expect(await page.evaluate(() => history.length)).toBe(before.history);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  // Sample the current welcome message after its entry, without a new timed
+  // message fading in midway through the full-page contrast scan.
+  await page.clock.install();
+  await pauseCurrentClock(page);
+  await page.locator('.naru-welcome').screenshot({ animations: 'disabled' });
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({ path: test.info().outputPath("search-results-visible.png") });
 });

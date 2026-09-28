@@ -124,9 +124,6 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
   /* Keep a side margin for Naru so scrolling never places a trip action behind it. */
   .planner-simple .planner-journey-workspace { width: auto; max-width: 1600px; margin-left: max(var(--wave-gutter),calc((100% - 1600px) / 2)); margin-right: max(104px,calc((100% - 1600px) / 2)); }
 }
-@media(min-width:1024px) {
-  .planner-simple:has(.naru-panel.naru-compact[open]):not(:has(.naru-panel[hidden])) .planner-journey-workspace { width: auto; margin-left: var(--wave-gutter); margin-right: calc(min(440px,calc(100vw - 32px)) + var(--wave-gutter) + 28px); }
-}
 @media(max-width:767px) {
   .planner-simple .planner-journey-workspace { padding-top: 20px; }
   .simple-search-bar { gap: 8px; }
@@ -159,8 +156,8 @@ html[data-theme="dark"] .simple-facility-summary .facility-missing { color: #ffb
 .simple-initial-setup { max-width: 720px; margin: 0 auto; padding: 24px 0; }
 .simple-initial-setup h2 { font-size: 1.5rem; }
 .simple-settings-form > p { color: var(--muted); font-size: .9375rem; line-height: 1.7; }
-.simple-settings-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; margin-top: 24px; }
-.simple-settings-fields label { display: flex; flex-direction: column; gap: 8px; font-size: .875rem; color: var(--ink-soft); min-width: 0; }
+.simple-settings-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 24px; }
+.simple-settings-fields label { color: var(--ink-soft); }
 .simple-settings-fields :is(input:not([type=checkbox]),select) { display: block; width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 1rem; }
 .simple-settings-fields small { font-size: .75rem; color: var(--muted); font-weight: 400; line-height: 1.7; }
 .simple-editor-footer { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 12px; padding-top: 24px; margin-top: 24px; border-top: 1px solid var(--line); }
@@ -230,7 +227,6 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
 }
 @media(max-width:1023px) { .simple-itinerary-board[data-map=true] .simple-timeboard { display: none; } }
 @media(max-width:767px) {
-  .simple-settings-fields { gap: 16px 12px; }
   .simple-itinerary-board { margin-top: 16px; }
   .simple-stop { grid-template-columns: 44px minmax(0,1fr) auto; gap: 12px; }
   .simple-stop-copy h3 { font-size: 1rem; }

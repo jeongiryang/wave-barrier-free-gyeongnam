@@ -64,6 +64,9 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
     await expect(page.locator(".simple-stops > li")).toHaveCount(1);
     await retry.scrollIntoViewIfNeeded();
     expect(await retry.evaluate((element) => { const b = element.getBoundingClientRect(); return element.contains(document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2)); })).toBe(true);
+    // The interaction and recovery focus were tested under CPU pressure.
+    // Restore normal speed for the independent full accessibility scan.
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
     expect((await new AxeBuilder({ page }).include(".route-map-shell").analyze()).violations).toEqual([]);
     await page.locator(".map-unavailable").screenshot({ path: test.info().outputPath(`map-failure-${focus}.png`) });
   } finally { reject(); }

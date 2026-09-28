@@ -1,7 +1,7 @@
 import { chooseWaveOption } from './wave-select-fixture';
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { mockPublicShellApi, mockPlannerApi, openItinerary } from './fixtures';
+import { mockPublicShellApi, mockPlannerApi, openItinerary, focusItineraryStop } from './fixtures';
 import { alternativePlan } from './alternative-fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
@@ -165,6 +165,7 @@ test('an actual visit-date edit invalidates an older Naru proposal and a later m
   await command(page, '어느 장소를 더 담을지 추천해줘');
   await expect(panel(page).locator('.naru-change-button')).toBeEnabled();
   await closeChat(page);
+  await focusItineraryStop(page, '용지호수공원');
   await page.getByRole('button', { name: '용지호수공원 일정 수정', exact: true }).click();
   const editor = page.getByRole('dialog', { name: '용지호수공원 수정', exact: true });
   await chooseWaveOption(editor.getByRole('combobox', { name: '방문 날짜', exact: true }), '2026-10-09');

@@ -1,4 +1,4 @@
-import { test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /** Render the glyph, its actual backdrop and an opaque glyph mask. Canvas decodes
  * Playwright's PNG bytes in the browser; no PNG package or external media call.
@@ -8,6 +8,9 @@ export async function paintedContrast(page: Page, selector: string, solidText = 
   const target = page.locator(selector).first();
   await page.evaluate(() => document.fonts.ready);
   await target.scrollIntoViewIfNeeded();
+  // Entry animation can move child glyphs without moving the measured container.
+  // Finish that real entry before comparing the same pixels across three captures.
+  await expect.poll(() => target.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length)).toBe(0);
   const solidColor = solidText ? await target.evaluate(node => {
     const style = getComputedStyle(node), color = (style.color.match(/[\d.]+/g) || []).map(Number);
     if (color.length < 3 || (color[3] ?? 1) !== 1 || style.backgroundClip === 'text') throw new Error('Solid-text measurement requires an opaque text colour');

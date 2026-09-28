@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mockPlannerApi, chooseTripConditions, openFirstPlaceMap, showItineraryMap } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openFirstPlaceMap } from "./fixtures";
 
 /**
  * 지도 연결이 실패하면 배지에 "기본 지도 다시 연결" 버튼이 붙는다. 지도 명령 바가
@@ -9,18 +9,16 @@ import { mockPlannerApi, chooseTripConditions, openFirstPlaceMap, showItineraryM
  */
 const WIDTHS = [1920, 1440, 1200, 1024, 960, 820, 768];
 
-test("대체 지도 재연결 버튼을 지도 명령 바가 덮지 않는다", async ({ page }) => {
+for (const width of WIDTHS) test(`${width}px에서 대체 지도 재연결 버튼을 지도 명령 바가 덮지 않는다`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
-
-  for (const width of WIDTHS) {
+  await page.route("**/api/map-config", route => route.fulfill({ json: { provider: "kakao", javascriptKey: "e2e-stub-key" } }));
+  await page.route("**/dapi.kakao.com/**", route => route.abort());
     await page.setViewportSize({ width, height: 900 });
-    await showItineraryMap(page);
     await page.goto("/planner");
   await chooseTripConditions(page); await openFirstPlaceMap(page);
     await page.locator("nav.map-command-bar").scrollIntoViewIfNeeded();
     await expect(page.getByRole("button", { name: "기본 지도 다시 연결" })).toBeVisible();
-    await page.waitForTimeout(900);
 
     const result = await page.evaluate(() => {
       const badge = document.querySelector(".map-provider-badge") as HTMLElement;
@@ -45,5 +43,4 @@ test("대체 지도 재연결 버튼을 지도 명령 바가 덮지 않는다", 
 
     expect(result.overlapArea, `${width}px에서 배지와 명령 바가 겹친다`).toBe(0);
     expect(result.stolen, `${width}px에서 재연결 버튼의 클릭을 다른 요소가 가져간다`).toEqual([]);
-  }
 });

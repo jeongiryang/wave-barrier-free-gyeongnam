@@ -10,6 +10,10 @@ const accessibility = [
   { key: "elevator", label: "승강기", state: "negative", detail: "승강기 없음" },
 ];
 
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/community/posts?*", route => route.fulfill({ json: { posts: [] } }));
+});
+
 async function expectFacilityShapes(page: Page, visible: boolean) {
   await page.locator('.simple-place-row').first().locator('.place-card-info').click();
   const detail = page.locator('.simple-place-pane');

@@ -80,6 +80,7 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
   await share.getByRole("button", { name: "공유 닫기", exact: true }).click();
   await page.reload(); await expect(rows.first()).toContainText("용지호수공원");
   expect(await current(page)).toMatchObject({ order: { mode: "manual", ids: ["1002", "1001"] }, schedule: { dayStartTime: "08:30" } });
+  await focusItineraryStop(page, "경남도립미술관");
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   await chooseWaveOption(editor.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-09-02");
