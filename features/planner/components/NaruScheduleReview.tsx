@@ -43,9 +43,10 @@ export default function NaruScheduleReview({ visits, onAlternative, onDetails }:
   const conflicts = checks.filter(check => check.state === 'conflict').length;
   const unknown = checks.filter(check => check.state === 'unknown').length;
   return <section className="naru-schedule-review" aria-label="변경한 일정의 운영시간 확인" aria-live="polite">
-    <h3>운영시간 다시 확인</h3>
+    <h3><NightIcon name="calendar" />운영시간 다시 확인</h3>
     {loading ? <LoadingState>이후 장소의 운영시간을 확인하고 있어요.</LoadingState> : <>
       <p>{visits.length}곳 중 {conflicts}곳 일정 조정 필요 · {unknown}곳 정보 확인 필요</p>
+      <div className="naru-hours-metrics"><div><NightIcon name="search"/><strong>{visits.length}곳</strong><span>전체 방문</span></div><div><NightIcon name="check"/><strong>{checks.filter(check => check.state === 'within').length}곳</strong><span>등록 시간 안에 방문</span></div><div><NightIcon name="info"/><strong>{unknown}곳 미확인</strong><span>추가 확인 필요</span></div></div>
       <details open={conflicts > 0 || undefined}><summary>장소별 확인 내용</summary>
       <ul>{visits.map(visit => {
         const source = info[visit.place.id];
