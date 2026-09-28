@@ -96,6 +96,11 @@ export async function handleAssistant(request: Request) {
   // A separate requester per incoming conversation prevents URL-only in-flight
   // deduplication from sharing one visitor's private answer with another.
   const primaryRequester = createProviderRequester();
+  let providerRoute: 'primary' | 'fallback' = 'primary';
+  let providerStage = 'request';
+  const failureCategory = (error: unknown) => error instanceof ProviderRequestError
+    ? (['timeout', 'upstream_error', 'rate_limited', 'auth_error', 'access_restricted', 'quota_exhausted', 'malformed_response'].includes(error.failure.kind) ? error.failure.kind : 'provider_error')
+    : error instanceof SyntaxError ? 'invalid_json' : 'invalid_response';
   const requestProvider: typeof primaryRequester = async (context, url, options) => {
     const fallbackBase = process.env.WAVE_AI_FALLBACK_BASE_URL;
     const fallbackModel = process.env.WAVE_AI_FALLBACK_MODEL;
@@ -118,8 +123,10 @@ export async function handleAssistant(request: Request) {
     } catch (error) {
       if (options?.signal?.aborted) throw error;
       if (!(error instanceof ProviderRequestError) || !['timeout', 'upstream_error', 'rate_limited'].includes(error.failure.kind)) throw error;
+      console.warn('naru_provider_failover', { operation: context.operation === 'health' ? 'health' : 'chat', category: failureCategory(error) });
     } finally { clearTimeout(primaryTimer); }
     if (options?.signal?.aborted) throw new Error('cancelled');
+    providerRoute = 'fallback';
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${fallbackToken}` };
     const body = typeof options?.body === 'string'
       ? JSON.stringify({ ...JSON.parse(options.body), model: fallbackModel }) : options?.body;
@@ -202,6 +209,7 @@ export async function handleAssistant(request: Request) {
       const decoder = new TextDecoder();
       const encoder = new TextEncoder();
       const splitter = createNaruStreamReader({ limit: NARU_STREAM_LIMIT });
+      providerStage = 'stream';
       handedOff = true;
       const stream = new ReadableStream({
         async start(controller) {
@@ -238,7 +246,9 @@ export async function handleAssistant(request: Request) {
               const settled = finalize(result.reply, parsed, false);
               emit({ type: 'done', reply: settled.reply, proposal: settled.proposal, source: 'local-llm' });
             }
-          } catch {
+            console.info('naru_chat_complete', { route: providerRoute, mode: 'stream' });
+          } catch (error) {
+            console.warn('naru_chat_failed', { route: providerRoute, stage: providerStage, category: control.signal.aborted ? 'cancelled_or_deadline' : failureCategory(error) });
             // 끊긴 스트림은 done 없이 닫는다. 받은 글자는 화면에 남는다. 새 오류 코드를 만들지 않는다.
           } finally {
             try { controller.close(); } catch { /* 이미 닫힘 */ }
@@ -253,19 +263,25 @@ export async function handleAssistant(request: Request) {
     const response = await requestProvider({ provider: 'wave-local-llm', operation: 'chat' }, endpoint.href, { method: 'POST', signal: control.signal, redirect: 'error', headers, body });
     if (response.status === 429) return json({ error: '나루가 답변을 준비 중이에요. 잠시 뒤 다시 보내주세요.', code: 'AI_BUSY' }, 429);
     if (!response.ok) throw new Error('provider');
+    providerStage = 'response';
     const payload = await response.json() as { choices?: Array<{ message?: { content?: unknown } }> };
     const content = payload?.choices?.[0]?.message?.content;
     if (typeof content !== 'string' || content.length > 6000) throw new Error('output');
+    providerStage = 'model_json';
     const result = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ''));
+    providerStage = 'validation';
     // Image-derived content never enters the action pipeline, even if the
     // model disobeys its instructions and supplies an action.
     if (photo) {
       if (!record(result) || typeof result.reply !== 'string' || !result.reply.trim()) throw new Error('photo-output');
+      console.info('naru_chat_complete', { route: providerRoute, mode: 'photo' });
       return json({ reply: clean(result.reply, 1000), photoFacts: sanitizePhotoTripFacts(result.facts), proposal: null, source: 'local-vision', photoReview: true });
     }
     const { reply, proposal } = finalize(result.reply, result.proposal, true);
+    console.info('naru_chat_complete', { route: providerRoute, mode: 'buffered' });
     return json({ reply, proposal, source: 'local-llm' });
   } catch (error) {
+    console.warn('naru_chat_failed', { route: providerRoute, stage: providerStage, category: control.signal.aborted ? 'cancelled_or_deadline' : failureCategory(error) });
     if (error instanceof ProviderRequestError && error.failure.kind === 'rate_limited') return json({ error: '나루가 답변을 준비 중이에요. 잠시 뒤 다시 보내주세요.', code: 'AI_BUSY' }, 429);
     return json({ error: '나루의 답변을 받지 못했어요. 다시 보내거나 여행 도구로 계속할 수 있어요.', code: 'AI_UNAVAILABLE' }, 503);
   } finally { if (!handedOff) release(); }

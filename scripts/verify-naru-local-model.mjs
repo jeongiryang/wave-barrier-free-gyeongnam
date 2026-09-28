@@ -35,13 +35,13 @@ const {handleAssistant} = compile('../server/assistant/handler.ts', {
     if (process.env.NARU_VERIFY_LM_URL) {
       const response=await fetch(`${process.env.NARU_VERIFY_LM_URL}/v1/chat/completions`,{
         method:'POST',headers:{'Content-Type':'application/json'},signal:options.signal,
-        body:JSON.stringify({model:'gemma-4-26b-a4b-it',messages:input.messages.map(m=>({role:m.role,content:m.images?[{type:'text',text:m.content},{type:'image_url',image_url:{url:`data:image/jpeg;base64,${m.images[0]}`}}]:m.content})),stream:false,reasoning_effort:'none',temperature:0,max_tokens:photo?900:500,response_format:{type:'json_schema',json_schema:{name:'naru',strict:true,schema:schemas[photo?1:0]}}})});
+        body:JSON.stringify({model:process.env.NARU_VERIFY_MODEL || 'gemma-4-26b-a4b-it',messages:input.messages.map(m=>({role:m.role,content:m.images?[{type:'text',text:m.content},{type:'image_url',image_url:{url:`data:image/jpeg;base64,${m.images[0]}`}}]:m.content})),stream:false,reasoning_effort:'none',temperature:0,max_tokens:photo?900:500,response_format:{type:'json_schema',json_schema:{name:'naru',strict:true,schema:schemas[photo?1:0]}}})});
       const result=await response.json();metrics={finish:result.choices?.[0]?.finish_reason};
       if(!response.ok || metrics.finish!=='stop') return Response.json({error:'incomplete'},{status:503});
       return Response.json(result);
     }
     const response=await fetch('http://127.0.0.1:18764/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},signal:options.signal,
-      body:JSON.stringify({model:'gemma4:12b',messages:input.messages,stream:false,think:false,keep_alive:-1,format:schemas[photo?1:0],options:{num_gpu:999,num_ctx:8192,num_batch:256,num_predict:photo?900:320,temperature:0}})});
+      body:JSON.stringify({model:'gemma4:12b',messages:input.messages,stream:false,think:false,keep_alive:-1,format:schemas[photo?1:0],options:{num_gpu:999,num_ctx:16384,num_batch:256,num_predict:photo?900:320,temperature:0}})});
     const result=await response.json();metrics={done:result.done_reason,promptTokens:result.prompt_eval_count,outputTokens:result.eval_count,syntheticOutput:result.message?.content};
     if(!response.ok || result.done_reason==='length') return Response.json({error:'incomplete'},{status:503});
     return Response.json({choices:[{message:{content:result.message.content}}]});

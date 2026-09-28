@@ -6,6 +6,8 @@ from pathlib import Path
 from unittest.mock import patch
 import json
 import io
+import contextlib
+import urllib.error
 
 spec = importlib.util.spec_from_file_location('wave_gateway', Path(__file__).with_name('gateway.py'))
 gateway = importlib.util.module_from_spec(spec)
@@ -15,6 +17,38 @@ JPEG = bytes([255,216,255,192,0,11,8,0,20,0,20,1,1,17,0,255,218,0,2,1,255,217])
 
 
 class PhotoAdmission(unittest.TestCase):
+    def test_inference_failures_log_only_fixed_stage_category_and_http_status(self):
+        secret = 'PRIVATE_PROMPT_TOKEN_URL'
+        cases = [
+            ({'choices': [{'finish_reason': 'length', 'message': {'content': secret}}]}, None, 'completion', 'incomplete'),
+            ({'choices': [{'finish_reason': 'stop', 'message': {'content': secret}}]}, None, 'model_json', 'invalid_json'),
+            ({'choices': [{'finish_reason': 'stop', 'message': {'content': '{"reply":null}'}}]}, None, 'reply', 'invalid_response'),
+            (None, urllib.error.HTTPError('https://' + secret, 503, secret, {}, None), 'request', 'http_error'),
+        ]
+        for result, error, stage, category in cases:
+            with self.subTest(stage=stage):
+                handler = object.__new__(gateway.Handler)
+                body = json.dumps({'messages': [{'role': 'user', 'content': secret}]}).encode()
+                handler.headers = {'Authorization': 'Bearer test-token', 'Content-Type': 'application/json', 'Content-Length': str(len(body))}
+                handler.path = '/v1/chat/completions'
+                handler.rfile = io.BytesIO(body)
+                responses = []
+                handler.respond = lambda status, payload: responses.append((status, payload))
+                output = io.StringIO()
+                with patch.object(gateway, 'TOKEN', 'test-token'), patch.object(gateway, 'BACKEND', 'lmstudio'), patch.object(gateway, 'RECENT', []), patch.object(gateway.urllib.request, 'urlopen', side_effect=error, return_value=io.BytesIO(json.dumps(result).encode())), contextlib.redirect_stderr(output):
+                    handler.do_POST()
+                self.assertEqual(responses, [(503, {'error': 'model_unavailable'})])
+                lines = output.getvalue().splitlines()
+                self.assertEqual(len(lines), 1)
+                details = json.loads(lines[0].removeprefix('naru_gateway_failure '))
+                self.assertEqual(details['stage'], stage)
+                self.assertEqual(details['category'], category)
+                self.assertEqual(set(details), {'stage', 'category', 'status'} if error else {'stage', 'category'})
+                if error:
+                    self.assertEqual(details['status'], 503)
+                self.assertNotIn(secret, output.getvalue())
+                self.assertNotIn('test-token', output.getvalue())
+
     def test_photo_schema_retains_reviewable_trip_facts_without_actions(self):
         schema = gateway.PHOTO_FORMAT
         self.assertIn('facts', schema['required'])
