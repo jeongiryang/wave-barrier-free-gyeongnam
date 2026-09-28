@@ -27,6 +27,7 @@ import KakaoTaxiLink from "../kakao-travel/KakaoTaxiLink";
 import { clearTripDraft, readTripDraft, writeTripDraft } from "../../lib/account-travel/draft.js";
 import OpenTripInPlanner from './OpenTripInPlanner';
 import { tripTimingWarnings } from '../planner/trip-timing-review';
+import { providerFailureMessage, type ProviderFailure } from '../../lib/provider-failure.js';
 import { useTripTimingConfirmation } from '../planner/components/TripTimingConfirmation';
 
 function Editor({ id, userId }: { id: string; userId: string }) {
@@ -63,9 +64,9 @@ function Editor({ id, userId }: { id: string; userId: string }) {
         setNotice('이 탭에서 저장하지 못한 수정 내용을 복구했어요.');
         setConflict(recovered.revision !== data.revision);
       }
-      return travelRequest<{ places: Place[]; missing: number }>(`/${id}/places`, {}, controller.signal).then(result => {
+      return travelRequest<{ places: Place[]; missing: number; failure?: ProviderFailure }>(`/${id}/places`, {}, controller.signal).then(result => {
         if (!Array.isArray(result.places)) throw new Error("장소 응답을 확인하지 못했습니다.");
-        if (!controller.signal.aborted) { setPlaces(result.places); setPlaceNotice(result.missing ? `${result.missing}곳의 최신 정보를 확인하지 못했습니다. 저장한 장소와 순서는 유지됩니다.` : "공식 관광정보로 장소를 확인했어요."); }
+        if (!controller.signal.aborted) { setPlaces(result.places); setPlaceNotice(result.missing ? `${result.failure ? `${providerFailureMessage(result.failure)} ` : ""}${result.missing}곳의 최신 정보를 확인하지 못했습니다. 저장한 장소와 순서는 유지됩니다.` : "공식 관광정보로 장소를 확인했어요."); }
       }).catch(() => { if (!controller.signal.aborted) setPlaceNotice("장소 정보를 불러오지 못했습니다. 저장한 일정은 유지되며 아래에서 다시 확인할 수 있어요."); });
     }).catch(error => { if (!controller.signal.aborted) setNotice(error.message); });
     return () => controller.abort();
@@ -81,9 +82,9 @@ function Editor({ id, userId }: { id: string; userId: string }) {
     }).finally(() => { lock.current = false; setBusy(false); });
   }, [id, userId]);
   async function loadPlaces() {
-    const result = await travelRequest<{ places: Place[]; missing: number }>(`/${id}/places`, {});
+    const result = await travelRequest<{ places: Place[]; missing: number; failure?: ProviderFailure }>(`/${id}/places`, {});
     if (!Array.isArray(result.places)) throw new Error("장소 응답을 확인하지 못했습니다.");
-    setPlaces(result.places); setPlaceNotice(result.missing ? `${result.missing}곳의 최신 정보를 확인하지 못했습니다. 저장한 장소와 순서는 유지됩니다.` : "공식 관광정보로 장소를 확인했어요.");
+    setPlaces(result.places); setPlaceNotice(result.missing ? `${result.failure ? `${providerFailureMessage(result.failure)} ` : ""}${result.missing}곳의 최신 정보를 확인하지 못했습니다. 저장한 장소와 순서는 유지됩니다.` : "공식 관광정보로 장소를 확인했어요.");
   }
   function change(patch: Partial<AccountTripPayload>) { editVersion.current++; setDraft(current => current ? { ...current, ...patch } : current); }
   const owner = trip?.role === "owner";

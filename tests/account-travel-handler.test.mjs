@@ -41,3 +41,29 @@ test("cross-origin, oversized and invalid preference requests never mutate; clie
   assert.equal((await h.run(request("", { id: "fixture", userId: "victim", payload: { title: "trip" } }))).status, 201);
   assert.equal(h.calls[0][0], "owner");
 });
+
+test("account place lookup keeps the provider request-limit reason without inventing places", async () => {
+  const loaded = compile("../server/trips/account-handler.ts", {
+    "../../features/community/server/session": { requiredCommunityUser: async () => ({ user: { id: "owner" } }) },
+    "../../lib/server-request": serverRequest,
+    "../../lib/account-travel/database.js": { accountTravelRepository: () => ({
+      get: async () => ({ payload: { region: "창원", placeIds: ["1748884"] } }),
+      reservePlaceLookup: async () => {},
+    }) },
+    "../../lib/account-travel/model.js": { TravelError },
+    "../tourism/catalog": { profileFields: {} },
+    "../shared/env": { portableEnv: () => ({}) },
+    "../shared/provider-data": {
+      commonParams: () => ({}), fetchTourismData: async () => ({}),
+      attemptProvider: async () => ({ ok: false, failure: { provider: "KorService2", operation: "detailCommon2", kind: "rate_limited" } }),
+    },
+    "../tourism/accessibility-model": { placeFrom: () => { throw new Error("Unverified place"); } },
+  });
+  const response = await loaded.accountTravelHandler(request("/example/places", {}));
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.deepEqual(data.places, []);
+  assert.equal(data.missing, 1);
+  assert.equal(data.failure.kind, "rate_limited");
+  assert.match(response.headers.get("cache-control"), /private, no-store/);
+});

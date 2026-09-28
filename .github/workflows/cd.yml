@@ -183,6 +183,7 @@ jobs:
           printf '%s' "$response" | grep -Fq '"008_review_date_integrity.sql"'
           printf '%s' "$response" | grep -Fq '"020_judge_demo_trips.sql"'
           printf '%s' "$response" | grep -Fq '"021_judge_demo_photos.sql"'
+          printf '%s' "$response" | grep -Fq '"022_openapi_judge_account.sql"'
 
       - name: Reject stale candidate before changing Production alias
         if: ${{ !inputs.preflight_only }}
