@@ -113,7 +113,6 @@ for (const width of [390, 768, 1366]) test(`a delayed map at ${width}px keeps ro
 
 test("route selection stays under the pointer while map rendering settles", async ({ page }) => {
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await mockPlannerApi(page, { preserveView: true });
   await page.goto("/planner");
   await chooseTripConditions(page);
@@ -124,6 +123,8 @@ test("route selection stays under the pointer while map rendering settles", asyn
   await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
   const arrival = page.locator("#itinerary-stop-1001 time");
   await expect(arrival).toHaveText("10:25");
+  // Stress the route selection and settling map, after preparing the trip.
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
   await expect(arrival).toHaveText("10:40");
   const fast = page.getByRole("button", { name: /추천 자동차 경로/ });

@@ -42,7 +42,7 @@ for (const theme of ["light", "dark"] as const) test(`English preference with Ko
   await chooseWaveOption(stop.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-10-09");
   await stop.getByRole("button", { name: "적용", exact: true }).click();
   await itinerary.getByRole("button", { name: /^2일차/ }).click(); await expect(rows).toContainText("경남도립미술관");
-  await expect(rows.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true })).toBeDisabled();
+  await expect(itinerary.getByRole("button", { name: "경남도립미술관 같은 날 앞 순서로 이동", exact: true })).toBeDisabled();
   let editor = await settings(page); expect(await language(editor)).toBe("ko");
   await editor.getByLabel("하루 시작", { exact: true }).fill("08:30"); await editor.getByRole("button", { name: "적용", exact: true }).click();
   await itinerary.getByRole("button", { name: "내 여행에 저장", exact: true }).click();

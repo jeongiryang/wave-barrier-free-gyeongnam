@@ -8,7 +8,6 @@ import { chooseTripConditions, mockPlannerApi } from "./fixtures";
 for (const focus of ["panel", "outside", "pending-location"]) test(`a final map failure closes an open point panel and respects ${focus} focus`, async ({ page }) => {
   // Under CPU pressure an animation frame can run before React commits the error UI.
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
   await mockPlannerApi(page, { preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
@@ -34,6 +33,9 @@ for (const focus of ["panel", "outside", "pending-location"]) test(`a final map 
     await withRouteCoverage(page, async () => { await chooseWaveOption(page.locator(".itinerary-route-coverage select"), "car"); });
     await expect(page.locator('.itinerary-route-coverage [role="status"]')).toContainText("전체 1구간 중 1구간 확인");
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
+    // Apply CPU pressure to the panel/error transition under test, after the
+    // unrelated search, itinerary and route preparation have finished.
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
     await page.locator('.map-command-bar button[aria-controls="map-panel-route"]').click();
     const panel = page.locator("#map-panel-route");
     await expect(panel).toBeVisible();

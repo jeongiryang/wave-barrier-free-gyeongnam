@@ -120,6 +120,7 @@ export async function chooseTripConditions(page: Page) {
 
 /** Enter the schedule through the same explicit date/transport step as a visitor. */
 export async function focusItineraryStop(page: Page, name: string) {
+  await expect(page.locator('.simple-stops')).toBeVisible();
   if (await page.locator('.simple-focus-stop').isVisible()) await page.locator('.simple-stops').getByRole('button', { name, exact: true }).click();
 }
 
