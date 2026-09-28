@@ -4,8 +4,8 @@ import { expect, test, type Page } from "@playwright/test";
  * Playwright's PNG bytes in the browser; no PNG package or external media call.
  * Keep shadows in the backdrop, but never discard equal foreground/background
  * pixels: white-on-white must fail rather than disappear from the sample. */
-export async function paintedContrast(page: Page, selector: string, solidText = false) {
-  const target = page.locator(selector).first();
+export async function paintedContrast(page: Page, selector: string, solidText = false, index = 0) {
+  const target = page.locator(selector).nth(index);
   await page.evaluate(() => document.fonts.ready);
   await target.scrollIntoViewIfNeeded();
   // Scrolling starts IntersectionObserver reveals on the next frame. A parent's
