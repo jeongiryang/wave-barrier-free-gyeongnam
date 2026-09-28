@@ -54,7 +54,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
 
   useEffect(() => () => abortEnrichment(), [abortEnrichment]);
 
-  const readFiles = useCallback(async (fileList: FileList | null) => {
+  const readFiles = useCallback(async (fileList: FileList | File[] | null) => {
     if (!fileList?.length) return;
     const run = runId.current + 1;
     runId.current = run;
@@ -173,6 +173,7 @@ export function usePhotoCourse(onApply: (input: ApplyInput) => void) {
         contentId: typeof data.contentId === "string" ? data.contentId : "",
         address: typeof data.address === "string" ? data.address : "",
         query: typeof data.query === "string" ? data.query : "",
+        failure: data.failure,
       } }));
     } catch {
       if (enrichmentRequests.current.get(stop.id) !== controller || (controller.signal.aborted && !timedOut)) return;

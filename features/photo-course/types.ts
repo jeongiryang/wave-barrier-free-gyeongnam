@@ -31,6 +31,7 @@ export type PhotoCourseEnrichment = {
   contentId: string;
   address: string;
   query: string;
+  failure?: import("../../lib/provider-failure.js").ProviderFailure;
 };
 
 export type PhotoCourseApplied = {

@@ -96,7 +96,7 @@ test("fresh databases receive the complete idempotent migration chain in one tra
     ))),
     readFile(new URL("../scripts/apply-community-moderation-migration.mjs", import.meta.url), "utf8"),
   ]);
-  assert.deepEqual(sources.map((source) => splitMigrationStatements(source).length), [9, 9, 5, 1, 4, 1, 2, 1, 9, 2, 5, 6, 3, 1, 1, 2, 4, 7, 2]);
+  assert.deepEqual(sources.map((source) => splitMigrationStatements(source).length), [9, 9, 5, 1, 4, 1, 2, 1, 9, 2, 5, 6, 3, 1, 1, 2, 4, 7, 2, 2]);
   assert.ok(splitMigrationStatements(sources[10]).every(statement => /ALTER TABLE itineraries ADD COLUMN IF NOT EXISTS/.test(statement)));
   assert.ok(splitMigrationStatements(sources[11]).every(statement => /CREATE (TABLE|INDEX) IF NOT EXISTS/.test(statement)));
   assert.match(sources[12], /ADD COLUMN IF NOT EXISTS username/);
@@ -126,6 +126,9 @@ test("fresh databases receive the complete idempotent migration chain in one tra
   assert.match(sources[18], /CREATE TABLE IF NOT EXISTS judge_demo_trips/);
   assert.match(sources[18], /ON CONFLICT \(id\) DO NOTHING/);
   assert.doesNotMatch(sources[18], /UPDATE |DELETE FROM|DROP TABLE|INSERT INTO (?!judge_demo_trips)/);
+  assert.match(sources[19], /CREATE TABLE IF NOT EXISTS judge_demo_photos/);
+  assert.match(sources[19], /ON CONFLICT \(id\) DO NOTHING/);
+  assert.doesNotMatch(sources[19], /UPDATE |DELETE FROM|DROP TABLE|INSERT INTO (?!judge_demo_photos)/);
   assert.deepEqual(orderedMigrationStatements(sources), statements);
   assert.match(runner, /PRODUCTION_MIGRATION_NAMES/);
   assert.match(runner, /orderedMigrationStatements\(migrations\)/);

@@ -6,6 +6,7 @@ import communityTravelTalkMigration from "../../migrations/017_community_travel_
 import communityFieldReportKindMigration from "../../migrations/018_community_field_report_kind.sql?raw";
 import communityDemoMetadataMigration from "../../migrations/019_community_demo_metadata.sql?raw";
 import judgeDemoTripsMigration from "../../migrations/020_judge_demo_trips.sql?raw";
+import judgeDemoPhotosMigration from "../../migrations/021_judge_demo_photos.sql?raw";
 import communityMigration from "../../migrations/001_community.sql?raw";
 import moderationMigration from "../../migrations/002_community_moderation.sql?raw";
 import tripsMigration from "../../migrations/003_trips.sql?raw";
@@ -88,6 +89,7 @@ export async function handleProductionMigration(request: Request) {
     communityFieldReportKindMigration,
     communityDemoMetadataMigration,
     judgeDemoTripsMigration,
+    judgeDemoPhotosMigration,
   ]);
   await sql.transaction(statements.map((statement) => sql.query(statement)));
   return json({ ok: true, migrations: PRODUCTION_MIGRATION_NAMES, statements: statements.length });

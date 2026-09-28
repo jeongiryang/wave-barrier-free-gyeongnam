@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import type { TravelBookInput, TravelBook } from "../../lib/travel-book.js";
 import { resolveFacilityKeys, facilityLabel } from "../../lib/facility-selection.js";
+import { providerFailureMessage } from "../../lib/provider-failure.js";
 
 type DemoTrip = {
   id: string; title: string; region: string; theme: string; note: string;
   profileKeys: string[]; placeIds: string[]; dayOffsets: number[]; visitMinutes: number[]; breakMinutes: number[];
 };
+class OfficialProviderError extends Error {}
 
 function validTrip(value: unknown): value is DemoTrip {
   if (!value || typeof value !== "object") return false;
@@ -53,10 +55,10 @@ export default function JudgeDemoTrips({ onImport }: { onImport: (input: TravelB
     try {
       const params = new URLSearchParams({ action: "places", ids: trip.placeIds.join(","), profiles: trip.profileKeys.join(",") });
       const response = await fetch(`/api/wave?${params}`, { cache: "no-store" });
-      if (!response.ok) throw new Error("official-data");
       const data = await response.json();
+      if (!response.ok) throw data?.failure ? new OfficialProviderError(providerFailureMessage(data.failure)) : new Error("official-data");
       if (!Array.isArray(data.places) || !Array.isArray(data.missing) || data.missing.length
-        || data.places.length !== trip.placeIds.length) throw new Error("official-data");
+        || data.places.length !== trip.placeIds.length) throw data?.failure ? new OfficialProviderError(providerFailureMessage(data.failure)) : new Error("official-data");
       const byId = new Map<string, Record<string, unknown>>(data.places.map((place: Record<string, unknown>) => [String(place.id), place]));
       const places = trip.placeIds.map(id => byId.get(id));
       if (places.some(place => !place || typeof place.name !== "string" || !place.name || typeof place.city !== "string" || place.city !== trip.region)) throw new Error("official-data");
@@ -78,7 +80,9 @@ export default function JudgeDemoTrips({ onImport }: { onImport: (input: TravelB
     } catch (error) {
       setNotice(error instanceof Error && error.message === "storage"
         ? "이 기기에 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요."
-        : "공식 장소 정보를 모두 확인하지 못해 일정을 담지 않았습니다. 잠시 후 다시 시도해 주세요.");
+        : error instanceof OfficialProviderError
+          ? `${error.message} 공식 장소를 모두 확인할 때까지 일정 사본은 담지 않습니다.`
+          : "공식 장소 정보를 모두 확인하지 못해 일정을 담지 않았습니다. 잠시 후 다시 시도해 주세요.");
     } finally { setBusyId(""); }
   }
 
