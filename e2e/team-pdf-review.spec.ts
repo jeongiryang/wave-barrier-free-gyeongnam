@@ -8,7 +8,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test('PDF review: Naru tools and place details stay in the workspace; image paste stays a draft', async ({ page, isMobile }) => {
   await mockPlannerApi(page, { preserveView: true });
   await page.route('**/api/assistant', route => route.fulfill({ json: { available: true } }));
-  await page.goto('/planner?region=창원');
+  await page.goto('/planner?region=창원#conditions');
   await page.getByRole('button', { name: 'WAVE 여행 가이드 나루와 대화 열기', exact: true }).click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();

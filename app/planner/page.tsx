@@ -355,7 +355,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   const inspectPlace = (place: Place) => { if (assistantOpen) { window.dispatchEvent(new CustomEvent("wave:naru-place-details", { detail:place })); return; } setSelectedPlace(place); };
   const openInternalToolRef = useRef<(tool:string)=>void>(()=>{});
   useEffect(() => {
-    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'on-trip':key; const group=toolSurfaceGroup(tool); if(group && group!=='browse' && group!=='planning') openInternalToolRef.current(tool); else if (event?.type !== "wave:planner-navigation" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
+    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'on-trip':key; const group=toolSurfaceGroup(tool); if(group && group!=='browse' && group!=='planning') openInternalToolRef.current(tool); else if (event?.type === "hashchange" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
     let pending: MutationObserver | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let deliveryFrame = 0;
