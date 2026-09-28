@@ -39,7 +39,6 @@ export default function PhotoCourseRestore({ onApply }: Props) {
           사진의 촬영 순서를 따라 여행을 되살려 보세요.
           장소를 확인하고 공식 관광정보와 사진으로 코스를 채워 보세요.
         </p>
-        <button type="button" className="photo-course-help-button" onClick={() => setHelpOpen(true)}>사용 방법</button>
       </header>
 
       {helpOpen && <dialog ref={helpRef} className="simple-dialog photo-course-help" aria-labelledby="photo-course-help-title">
@@ -70,6 +69,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <label className={`photo-course-pick${clientReady ? "" : " is-disabled"}`} aria-disabled={!clientReady} htmlFor="photo-course-input">
           {clientReady ? "사진 고르기" : "사진 기능 준비 중"}
         </label>
+        <button type="button" className="photo-course-help-button" onClick={() => setHelpOpen(true)}>사용 방법</button>
         {course && <button type="button" className="photo-course-clear" onClick={clear}>지우기</button>}
         <p className="photo-course-limit">JPG · PNG · WebP · TIFF 원본 최대 {MAX_PHOTOS}장 · 촬영 정보로 여행 순서 확인</p>
       </div>

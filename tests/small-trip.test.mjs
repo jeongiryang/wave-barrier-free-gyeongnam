@@ -1,10 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {courseCandidates,outingCandidates,previewOuting,outingFingerprint} from '../lib/small-trip.js';
+import {courseCandidates,courseSearchContext,outingCandidates,previewOuting,outingFingerprint} from '../lib/small-trip.js';
 import {createTravelBookSnapshot,upsertTravelBook,travelBookRestorePayload} from '../lib/travel-book.js';
 const origin={lat:35.23,lng:128.68};
 const place=(id,x=128.68,state='confirmed',type='12')=>({id,name:'공개 관광지 '+id,city:'창원',contentTypeId:type,mapX:String(x),mapY:'35.23',accessibility:[{key:'route',state}],source:'한국관광공사'});
 const a=place('1001'),b=place('1002',128.69),c=place('1003',128.7,'unknown'),d=place('1004',128.7,'negative'),food=place('1005',128.69,'confirmed','39');
+
+test('course search follows the public anchor city across regions and supports trips without an activity selection',()=>{
+ assert.deepEqual(courseSearchContext({...a,city:'통영'},'거창','','visit'),{region:'통영',themes:'nature,history,leisure'});
+ assert.deepEqual(courseSearchContext(a,'거창','history','visit'),{region:'창원',themes:'history'});
+ assert.deepEqual(courseSearchContext(a,'거창','history','food'),{region:'창원',themes:'food'});
+ assert.deepEqual(courseSearchContext(a,'거창','history','rest'),{region:'창원',themes:'nature'});
+ assert.equal(courseSearchContext({...a,city:'알 수 없음'},'거창','','visit').region,'거창');
+});
 test('course candidates bind public anchor, distance, purpose and every requested need',()=>{
  const query={places:[a,b,c,d,food,{...b,id:'kakao:100'},place('1006',129.5),b],anchor:a,savedIds:[a.id],requiredKeys:['route'],purpose:'visit',radiusKm:5};
  assert.deepEqual(courseCandidates(query).map(row=>row.place.id),['1002']);

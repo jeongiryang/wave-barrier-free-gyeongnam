@@ -56,7 +56,7 @@ export function useRouteRequest(region: string) {
     const controller = new AbortController();
     setRouteFailed(false);
     routeRequestRef.current = controller;
-    setRouteOrigin({ point: origin, label: originLabel, isPrivate: privateOrigin });
+    setRouteOrigin(privateOrigin ? null : { point: origin, label: originLabel, isPrivate: false });
     const endpoint = supportedPlacePoint(place.mapX, place.mapY);
     if (!endpoint || !supportedPlacePoint(origin.lng, origin.lat)) {
       onNotice({ ko: "선택한 여행지에 좌표가 없어 경로를 계산할 수 없습니다. 카카오맵에서 장소 이름으로 확인해 주세요.", en: "This place has no coordinates for a route calculation. Search by its name in Kakao Maps." });
@@ -78,7 +78,7 @@ export function useRouteRequest(region: string) {
     if (privateOrigin) {
       setRouteLoading(false);
       setRouteAlternatives([]);
-      onNotice({ ko: "현재 위치 좌표는 WAVE 경로 API나 외부 링크에 넣지 않습니다. 공개 출발 거점을 선택하거나 카카오맵에서 출발지·이동수단을 직접 선택해 주세요. 지도 제공처의 처리는 개인정보처리방침을 확인해 주세요.", en: "Device coordinates are not sent to WAVE routes or external links. Choose a public departure or select departure and mode in Kakao Maps. See the privacy policy for map provider processing." });
+      onNotice({ ko: "현재 위치는 지도·경로·외부 링크에 사용하지 않습니다. 공개 출발 거점을 선택해 주세요.", en: "Current location is not used by maps, routes or external links. Choose a public departure point." });
       routeRequestRef.current = null;
       return;
     }
@@ -97,7 +97,7 @@ export function useRouteRequest(region: string) {
       setRouteAlternatives(alternatives);
       setTransportProviders(data.providers || []);
       setTransportContext(data.context || null);
-      onActiveRouteChange(alternatives.find(hasJourneyEstimate)?.id || "");
+      onActiveRouteChange(alternatives.filter(hasJourneyEstimate).sort((a, b) => a.totalTime - b.totalTime)[0]?.id || "");
       onNotice(routeResultNotice(alternatives));
     } catch {
       if (controller.signal.aborted || routeRequestRef.current !== controller) return;

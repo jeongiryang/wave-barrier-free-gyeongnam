@@ -4,7 +4,7 @@ html:root body main.scenic-page { position:relative; isolation:isolate; backgrou
 .scenic-background .award-panorama-images { z-index:0; }
 .scenic-background .award-panorama-images img { width:100%; height:100%; inset:0; object-fit:cover; animation:none; transform:none; }
 .scenic-background .award-panorama:after { display:none; }
-html:root body main.scenic-page .wave-header { background:transparent!important; border:0; box-shadow:none; backdrop-filter:none; }
+html:root body main.scenic-page .wave-header { background:#102d47d9!important; border:0; box-shadow:none; backdrop-filter:none; }
 .naru-welcome { display:grid; justify-items:center; gap:12px; padding:32px 20px 40px; text-align:center; color:#e8f5ff; }
 .naru-welcome h2 { margin:0; font-size:clamp(24px,3vw,32px); }
 .naru-welcome img { display:block; width:min(360px,80vw); height:auto; aspect-ratio:3/2; object-fit:contain; }
@@ -208,7 +208,7 @@ html:root body button[data-icon-action]{display:inline-flex;align-items:center;j
 
 html:root body .wave-night>.wave-header,html:root body .landing-page.horizon-edition.night-landing>.wave-header{position:relative;inset:auto;transform:none!important;box-shadow:none}html:root body .landing-page{padding-top:0}
 
-.naru-welcome-dialogue p:not([hidden]){animation:naru-dialogue-appear .45s cubic-bezier(.2,.7,.3,1) both}@keyframes naru-dialogue-appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}html[data-motion=calm] .naru-welcome-dialogue p:not([hidden]){animation:none}
+.naru-welcome-dialogue p:not([hidden]){animation:naru-dialogue-appear .45s cubic-bezier(.2,.7,.3,1) both}@keyframes naru-dialogue-appear{from{transform:translateY(5px)}to{transform:none}}html[data-motion=calm] .naru-welcome-dialogue p:not([hidden]){animation:none}
 
 /* Keep the planner introduction in the same compact band as community/festivals. */
 html:root body .scenic-page .naru-header-scene{position:relative;width:min(1360px,100%);margin-inline:auto;min-height:max(348px,calc(50svh - 90px),calc(33.334vw - 90px));padding:90px 32px 24px;justify-items:start;text-align:left}

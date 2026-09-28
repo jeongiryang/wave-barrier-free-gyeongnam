@@ -18,8 +18,7 @@ async function setup(page:Page){
  await page.goto('/planner');await chooseTripConditions(page);
  for(const name of ['경남도립미술관','용지호수공원'])await page.getByRole('button',{name:name+' 일정에 담기',exact:true}).click();
  await openItinerary(page, { start: '2026-10-08' });
- await openNaruTool(page, '이동 구간 확인');
- await page.getByRole('button',{name:'돌아가는 교통 확인',exact:true}).click();
+ await openNaruTool(page, '교통·귀가');
  const panel=page.getByRole('region',{name:'돌아가는 교통 확인',exact:true});await chooseWaveOption(panel.getByRole('combobox',{name:'어디에서 이동하나요?',exact:true}), '1001');return panel;
 }
 test('return transport is explicit, relates subsequent stops to a saved place and keeps the itinerary',async({page},info)=>{

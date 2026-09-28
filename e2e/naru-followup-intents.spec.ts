@@ -204,6 +204,7 @@ for (const [request, expected] of [
     expect(await snapshot(page)).toEqual(before); return;
   }
   const proposal = app.chat.getByRole('button', { name: /대안 비교/ });
+  await expect(proposal.or(comparison)).toBeVisible();
   if (await proposal.isVisible()) await proposal.click();
   await expect(comparison).toBeVisible();
   await expect(comparison.getByRole('button', { name: expected, exact: true })).toHaveAttribute('aria-pressed', 'true');

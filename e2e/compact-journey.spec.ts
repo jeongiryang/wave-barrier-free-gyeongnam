@@ -76,7 +76,8 @@ test("landing: region browsing follows ordinary scrolling and keeps focused choi
   await page.evaluate(() => scrollBy({ top: -90, behavior: "instant" }));
   const after = await region.evaluate(node => ({ top: node.getBoundingClientRect().top, scroll: scrollY }));
   expect(Math.abs(after.top - before.top + after.scroll - before.scroll)).toBeLessThanOrEqual(1);
-  expect(await region.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
+  // The approved presentation keeps its entry reveal; it must settle without looping.
+  await expect.poll(() => region.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
   await expectNoOverflow(page);
 });
 

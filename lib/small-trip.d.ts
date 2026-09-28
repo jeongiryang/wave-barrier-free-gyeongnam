@@ -1,5 +1,6 @@
 import type {Place} from '../features/planner/types';
 export type CoursePurpose='visit'|'food'|'rest';
+export function courseSearchContext(anchor:Pick<Place,'city'>|undefined,region:string,themes:string,purpose:CoursePurpose):{region:string;themes:string};
 type Point={lat:number;lng:number};
 type Candidate={place:Place;unknownKeys:string[];distanceKm:number};
 export function outingCandidates(options:{places:Place[];requiredKeys:string[];includeUnknown?:boolean;origin:Point}):Candidate[];

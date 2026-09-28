@@ -122,8 +122,15 @@ for (const entry of ['toolbar', 'panel'] as const) test(`accepted ${entry} GPS m
       return Reflect.apply(original, this, args);
     };
   });
-  // Capture the real public-place fit caused by opening this tool. Its 260ms
-  // resize debounce is separate from the GPS action under test.
+  // Expanding the map changes its real geometry on both desktop and mobile.
+  // Opening a desktop drawer alone no longer resizes the map. Establish the
+  // public-place bounds before auditing GPS, without calling the SDK directly.
+  await page.locator('.map-expand-button').click();
+  await expect(page.locator('.map-expand-button')).toHaveAttribute('aria-pressed', 'true');
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))));
+  await page.clock.runFor(300);
+  await page.locator('.map-expand-button').click();
+  await expect(page.locator('.map-expand-button')).toHaveAttribute('aria-pressed', 'false');
   await openMapTool(page, 'route');
   await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))));
   await page.clock.runFor(300);

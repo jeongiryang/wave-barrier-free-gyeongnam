@@ -26,7 +26,7 @@ html:root body .wave-night .wave-header nav a[aria-current=page]{color:var(--wav
 html:root body .wave-night :is(.journey-map-zoom,.journey-place-copy button,.place-save-action){background:#102f4bef;color:var(--wave-ice);border-color:#1199ff80}
 html:root body .wave-night :is(.journey-map-zoom,.journey-place-copy button,.place-save-action):is(:hover,:focus-visible,[aria-pressed=true]){background:var(--wave-action);color:#fff;border-color:var(--wave-cyan)}
 html:root body .scenic-page :is(.planner-journey-workspace,.community-workspace,.night-festival-workspace){background:#102d47f5}
-html:root body .wave-night :is(#landing-title em,.night-banner h1 em){width:fit-content;max-width:100%;background:linear-gradient(110deg,#b8f6ff 0%,#28d9f0 25%,#318dff 50%,#70dcff 75%,#b8f6ff 100%);background-size:180% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;animation:wave-title-flow 2.4s ease-in-out infinite alternate}
+html:root body .wave-night :is(#landing-title em,.night-banner h1 em){width:fit-content;max-width:100%;padding-bottom:.12em;margin-bottom:-.12em;background:linear-gradient(110deg,#b8f6ff 0%,#28d9f0 25%,#318dff 50%,#70dcff 75%,#b8f6ff 100%);background-size:180% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;animation:wave-title-flow 2.4s ease-in-out infinite alternate}
 html:root body .scenic-page .naru-welcome-copy{background:#eaf6ff;color:#143b5a}
 html:root body .scenic-page .naru-welcome-dialogue p:nth-child(2) .naru-welcome-copy{background:#cceeff;color:#143b5a}
 html:root body .naru-welcome-bubble{background:#e6f6ff;color:#143b5a}

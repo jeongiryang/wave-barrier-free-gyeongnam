@@ -62,7 +62,7 @@ test('the chosen car mode survives reload, archive restore, sharing and calendar
   await settled(page, 'transit');
   await chooseMode(page, 'car');
   await settled(page, 'car');
-  await expect(page.locator('.simple-stops').getByText(/이동 57분/).first()).toBeVisible();
+  await expect(page.locator('#itinerary .simple-leg-time:visible').filter({ hasText: /이동 57분/ }).first()).toBeVisible();
   calls.length = 0;
   await page.reload();
   await settled(page, 'car');

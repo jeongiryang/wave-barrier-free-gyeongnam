@@ -68,7 +68,7 @@ test('Odii 해설은 소리·전체 대본·원문 기반 쉬운 설명을 한 �
 });
 
 for (const en of [false, true]) for (const theme of ["light", "dark"]) {
-  test(`detail puts the trip action before grouped, unmodified evidence ${en ? "en" : "ko"} ${theme}`, async ({ page, isMobile }) => {
+  test(`detail puts the trip action before grouped, unmodified evidence ${en ? "en" : "ko"} ${theme}`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.addInitScript(value => localStorage.setItem("wave-theme", value), theme);
@@ -78,12 +78,6 @@ for (const en of [false, true]) for (const theme of ["light", "dark"]) {
     await expect(add).toBeEnabled();
     await expect(add).toHaveAttribute("aria-pressed", "false");
     await page.keyboard.press("Tab");
-    if (!isMobile) {
-      // The desktop details are a nonmodal side pane: natural DOM order takes
-      // the focused heading directly to Add; reverse Tab still reaches Close.
-      await expect(add).toBeFocused();
-      await page.keyboard.press("Shift+Tab");
-    }
     await expect(dialog.getByRole("button", { name: en ? "Close" : "닫기", exact: true })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(add).toBeFocused();

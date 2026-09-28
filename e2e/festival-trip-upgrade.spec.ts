@@ -46,7 +46,6 @@ async function setup(page: Page, handler?: (route: Route) => Promise<void>) {
   await expect(filters.getByLabel('언제까지', { exact: true })).toHaveValue('2026-10-12');
   await expect(page.getByRole('heading', { name: event.name, exact: true })).toBeVisible();
   const card = page.locator('.festival-card').filter({ has: page.getByRole('heading', { name: event.name, exact: true }) });
-  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   return card;
 }
 
@@ -185,6 +184,7 @@ test('축제 포스터나 제목을 누르면 포스터와 기본 정보가 나�
 test('축제의 실제 개최일을 골라 담으면 기존 방문일과 고정 약속을 유지한다', async ({ page }) => {
   const card = await setup(page);
   await expect(card).toContainText('2026-09-19 – 2026-09-22');
+  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   await card.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
   await card.getByRole('button', { name: '내 일정에 담기', exact: true }).click();
   await expect(page).toHaveURL(/\/planner\?region=.*#itinerary$/);
@@ -274,12 +274,14 @@ for (const change of ['region', 'date'] as const) test(`축제 ${change === 'reg
 
 for (const fresh of [false, true]) test(`축제 ${fresh ? '새 여행' : '일정 추가'} 저장 실패는 기존 기록을 보존하고 화면에 이유를 알린다`, async ({ page }) => {
   const card = await setup(page); const before = await records(page);
+  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   await card.getByLabel('방문 날짜', { exact: true }).fill('2026-09-21');
   await page.evaluate(() => { const native = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'wave-current-trip-v1' || key === 'wave-travel-book-v1') throw new DOMException('Synthetic quota failure', 'QuotaExceededError'); native.call(this, key, value); }; });
   await card.getByRole('button', { name: fresh ? '이 축제로 새 여행' : '내 일정에 담기', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('기기에 저장하지 못했어요. 기존 여행은 유지됩니다');
   await expect(page).toHaveURL(/\/festivals$/);
   expect(await records(page)).toEqual(before);
+  await card.getByRole('button', { name: '일정 담기', exact: true }).click();
   await expect(card.getByLabel('방문 날짜', { exact: true })).toHaveValue('2026-09-21');
 });
 
@@ -291,9 +293,14 @@ for (const width of [390, 960, 1440]) test(`festival photo cards and compact act
   const info = card.getByRole('button', { name: '행사 정보', exact: true });
   await info.click();
   await expect(info).toHaveAttribute('aria-expanded', 'true');
-  const panel = card.locator('.night-festival-more');
-  const buttonBox = await info.boundingBox(), panelBox = await panel.boundingBox();
-  expect(panelBox!.y).toBeGreaterThanOrEqual(buttonBox!.y + buttonBox!.height);
+  const panel = card.getByRole('dialog');
+  await expect(panel).toBeVisible();
+  const panelBox = (await panel.boundingBox())!;
+  expect(Math.abs(panelBox.x + panelBox.width / 2 - width / 2)).toBeLessThanOrEqual(2);
+  expect(panelBox.y).toBeGreaterThanOrEqual(0);
+  expect(panelBox.y + panelBox.height).toBeLessThanOrEqual(901);
+  await panel.getByRole('button', { name: '축제 도구 닫기', exact: true }).click();
+  await expect(info).toBeFocused();
   for (const name of ['행사 정보', '일정 담기', '현장 편의 지도']) {
     const button = card.getByRole('button', { name, exact: true });
     await button.scrollIntoViewIfNeeded();

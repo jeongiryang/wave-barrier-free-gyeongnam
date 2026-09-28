@@ -1,39 +1,37 @@
-/* A quiet cyan conversation surface; preserve the workspace's viewport handling. */
+/* Sky, lavender and mint from the Naru launcher; preserve the workspace's viewport handling. */
 html:root body .naru-panel.naru-workspace.naru-friendly {
-  --ink:#122c45;--ink-soft:#39566e;--muted:#546d83;--paper:#f5faff;--surface:#fff;--surface-deep:#e6f1fa;--white:#fff;--line:#b9d2e5;--accent:#0766b5;--blue:#0766b5;--blue-dark:#08558f;--on-blue:#fff;--on-accent:#fff;
-  background:var(--paper);color:var(--ink);
+  --ink:#293c55;--ink-soft:#4e6178;--muted:#576980;--paper:#f0f5fc;--surface:#ffffff;--surface-deep:#e4edf8;--white:#fff;--line:#c4d2e5;--accent:#565caf;--blue:#565caf;--blue-dark:#444a94;--on-blue:#fff;--on-accent:#fff;--onaccent:#fff;
+  background:var(--naru-canvas);color:var(--ink);color-scheme:light;
 }
-html:root body .naru-panel.naru-friendly :is(.naru-heading,.naru-workspace-tabs,.naru-log) { background:var(--paper); }
 html:root body .naru-panel.naru-friendly .naru-heading { min-height:72px;padding-block:10px; }
 html:root body .naru-panel.naru-friendly .naru-heading strong { font-size:22px; }
-html:root body .naru-panel.naru-friendly .naru-heading-actions>button { background:transparent; }
-html:root body .naru-panel.naru-friendly .naru-workspace-tabs { border-bottom-color:#cce3e5;padding-bottom:8px; }
+html:root body .naru-panel.naru-friendly .naru-workspace-tabs { border-bottom-color:#c4d2e5;padding-bottom:8px; }
 html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button { min-height:44px;background:transparent; }
-html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button[aria-selected=true] { color:#12465d;background:#ccebee;border-color:#8ebfc9; }
-html:root body .naru-panel.naru-friendly .naru-message.assistant { background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:none; }
-html:root body .naru-panel.naru-friendly .naru-message.user { background:#e0efff;color:#173e50;border:1px solid #a9c8e3;box-shadow:none; }
-html:root body .naru-panel.naru-friendly :is(.naru-workspace-sidebar,.naru-workspace-content) { background:#eaf3fb; }
-html:root body .naru-panel.naru-friendly .naru-workspace-sidebar { padding:18px;border-left-color:#c6dfe2; }
-html:root body .naru-panel.naru-friendly .naru-workspace-summary>div { padding:10px 0;border:0;border-bottom:1px solid #cce2e4;border-radius:0;background:transparent; }
+html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button[aria-selected=true] { color:#334b75;background:linear-gradient(110deg,#ceeafa,#ddd6f4);border-color:transparent; }
+html:root body .naru-panel.naru-friendly .naru-message.assistant { color:var(--ink);box-shadow:none; }
+html:root body .naru-panel.naru-friendly .naru-message.user { background:#dce7fa;color:#293c55;box-shadow:none; }
+html:root body .naru-panel.naru-friendly :is(.naru-workspace-sidebar,.naru-workspace-content) { background:#f5f7fd; }
+html:root body .naru-panel.naru-friendly .naru-workspace-sidebar { padding:18px;border-left-color:#c4d2e5; }
+html:root body .naru-panel.naru-friendly .naru-workspace-summary>div { padding:10px 0;border:0;border-bottom:1px solid #c4d2e5;border-radius:0;background:transparent; }
 html:root body .naru-panel.naru-friendly .naru-next-actions { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px; }
-html:root body .naru-panel.naru-friendly .naru-next-actions>button { flex:0 1 auto;justify-content:center;border-radius:99px;padding:8px 14px;font-size:14px;background:#d6edef;color:#164b5e;border-color:#b0d1d6; }
+html:root body .naru-panel.naru-friendly .naru-next-actions>button { flex:0 1 auto;justify-content:center;border-radius:99px;padding:8px 14px;font-size:14px; }
 html:root body .naru-panel.naru-friendly :is(.naru-suggestions,.naru-extra-help) { margin:6px 0;border:0;background:transparent;box-shadow:none; }
-html:root body .naru-panel.naru-friendly :is(.naru-suggestions,.naru-extra-help)>summary { width:fit-content;padding:8px 10px;background:transparent;color:#326473;font-size:14px; }
-html:root body .naru-panel.naru-friendly details[open]>summary { background:#d5edef;color:#184e60; }
-html:root body .naru-panel.naru-friendly :is(button.primary,button[aria-pressed=true],.naru-input button[type=submit],.naru-work-request>button[type=submit]) { background:#0766b5;color:#fff;border-color:#0766b5; }
-html:root body .naru-panel.naru-friendly .naru-input { display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;background:#f3fbfb;border-color:#a9ccd2;box-shadow:0 4px 18px #174b6009; }
+html:root body .naru-panel.naru-friendly :is(.naru-suggestions,.naru-extra-help)>summary { width:fit-content;padding:8px 10px;background:transparent;color:#475e88;font-size:14px; }
+html:root body .naru-panel.naru-friendly details[open]>summary { background:#dce7fa;color:#293c55; }
+html:root body .naru-panel.naru-friendly :is(button.primary,button[aria-pressed=true],.naru-input button[type=submit],.naru-work-request>button[type=submit]) { background:#565caf;color:#fff;border-color:#565caf; }
+html:root body .naru-panel.naru-friendly .naru-input { display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center; }
 html:root body .naru-panel.naru-friendly .naru-input>textarea { grid-column:2;grid-row:1;min-width:0;background:transparent; }
 html:root body .naru-panel.naru-friendly .naru-input>div { grid-column:3;grid-row:1; }
 html:root body .naru-panel.naru-friendly .naru-add-menu { display:contents; }
 html:root body .naru-panel.naru-friendly .naru-add-menu::details-content { display:contents; }
 html:root body .naru-panel.naru-friendly .naru-add-menu:not([open])>.naru-attachment-options { display:none; }
-html:root body .naru-panel.naru-friendly .naru-add-menu>summary { grid-column:1;grid-row:1;background:#e0f1f2; }
+html:root body .naru-panel.naru-friendly .naru-add-menu>summary { grid-column:1;grid-row:1;background:#e4edf8; }
 html:root body .naru-panel.naru-friendly .naru-attachment-options>div { display:block;width:auto;min-width:0;padding:0; }
 html:root body .naru-panel.naru-friendly .naru-attachment-options :is(button,button:first-child) { width:100%;height:auto;min-height:44px;display:flex;white-space:nowrap; }
 html:root body .naru-panel.naru-friendly .naru-more[open]>div { top:100%;right:0;max-height:min(420px,60dvh);overflow:auto; }
 html:root body .naru-panel.naru-friendly .naru-more { position:relative; }
 html:root body .naru-panel.naru-friendly .naru-more[open]::before { display:none; }
-html:root body .naru-panel.naru-friendly .naru-workspace-notice { background:#d4edef;color:#204e60; }
+html:root body .naru-panel.naru-friendly .naru-workspace-notice { background:#e4edf8;color:#354f70; }
 @media(max-width:800px) {
   html:root body .naru-panel.naru-friendly .naru-heading { min-height:60px; }
   html:root body .naru-panel.naru-friendly .naru-heading strong { font-size:20px; }
@@ -41,33 +39,33 @@ html:root body .naru-panel.naru-friendly .naru-workspace-notice { background:#d4
 }
 html:root body .naru-panel.naru-friendly[data-short-viewport=true] .naru-heading { min-height:52px; }
 
-html:root body .naru-panel.naru-friendly .naru-tool-search{align-items:center;gap:8px;border:1px solid #a9ccd2;border-radius:24px;padding:0 14px;background:#f3fbfb}
+html:root body .naru-panel.naru-friendly .naru-tool-search{align-items:center;gap:8px;border:1px solid #c4d2e5;border-radius:24px;padding:0 14px;background:#ffffff}
 html:root body .naru-panel.naru-friendly .naru-tool-search:focus-within{box-shadow:0 0 0 2px #68a9bc55}
 html:root body .naru-panel.naru-friendly .naru-tool-search input{border:0;border-radius:24px;background:transparent;color:var(--ink);outline:0!important;box-shadow:none;min-height:44px}
 html:root body .naru-panel.naru-friendly :is(.naru-tools,.naru-tools>div,.naru-tool-catalog){background:transparent;border:0;box-shadow:none;padding:0}
-html:root body .naru-panel.naru-friendly .naru-tools{gap:28px}
+html:root body .naru-panel.naru-workspace.naru-friendly .naru-tools{position:static;inset:auto;max-height:none;overflow:visible;gap:24px;border-radius:0;background:transparent}
 html:root body .naru-panel.naru-friendly .naru-tools>div>div{display:flex;flex-wrap:wrap;gap:8px}
-html:root body .naru-panel.naru-friendly .naru-tools button{width:auto;flex:0 1 auto;min-height:44px;padding:10px 16px;border:0;border-radius:24px;background:#d4eaed;color:#244e5e}
+html:root body .naru-panel.naru-friendly .naru-tools button{width:auto;flex:0 1 auto;min-height:44px;padding:10px 16px;border:0;border-radius:24px;background:#e4edf8;color:#354f70}
 html:root body .naru-panel.naru-friendly .naru-tools h3{font-size:15px;margin:0 0 12px}
-html:root body .naru-panel.naru-friendly .wave-select-trigger{background:#f3fbfb;color:#193f50;border-color:#a9ccd2}
-.naru-friendly .wave-select-menu{background:#eaf7f7;color:#193f50;border-color:#a9ccd2}.naru-friendly .wave-select-menu [data-active=true]{background:#d4eaed}
+html:root body .naru-panel.naru-friendly .wave-select-trigger{background:#ffffff;color:#293c55;border-color:#c4d2e5}
+.naru-friendly .wave-select-menu{background:#ffffff;color:#293c55;border-color:#c4d2e5}.naru-friendly .wave-select-menu [data-active=true]{background:#e4edf8}
 
 /* One compact toolbar and a composer that never expands into a second toolbar. */
 html:root body .naru-panel.naru-friendly .naru-heading{gap:12px;padding:12px 20px}
 html:root body .naru-panel.naru-friendly .naru-heading-actions{gap:6px}
-html:root body .naru-panel.naru-friendly .naru-heading-actions>:is(button,details)>summary,html:root body .naru-panel.naru-friendly .naru-heading-actions>button{display:grid;place-items:center;width:44px;min-width:44px;height:44px;padding:10px;border:0;border-radius:12px;color:var(--ink);background:transparent}
+html:root body .naru-panel.naru-friendly .naru-heading-actions>:is(button,details)>summary,html:root body .naru-panel.naru-friendly .naru-heading-actions>button{display:grid;place-items:center;width:44px;min-width:44px;height:44px;padding:10px;border:0;border-radius:50%;color:var(--ink);background:transparent}
 html:root body .naru-panel.naru-friendly .naru-heading-actions svg{width:20px;height:20px;flex-shrink:0}
 html:root body .naru-panel.naru-friendly .naru-workspace-tabs{gap:8px;padding:0 20px 12px}
 html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button{gap:8px;font-size:14px}
 html:root body .naru-panel.naru-friendly .naru-workspace-body{grid-template-columns:minmax(0,1fr) 280px}
+html:root body .naru-panel.naru-friendly.naru-compact .naru-workspace-body{grid-template-columns:minmax(0,1fr)}
 html:root body .naru-panel.naru-friendly .naru-starter{max-width:none;margin:8px 0 16px;padding:18px;gap:14px}
 html:root body .naru-panel.naru-friendly .naru-starter>div{gap:10px}
 html:root body .naru-panel.naru-friendly .naru-input{position:relative;margin:12px 20px 16px;padding:8px;gap:8px}
 html:root body .naru-panel.naru-friendly .naru-input>div{display:flex;gap:6px}
-html:root body .naru-panel.naru-friendly .naru-add-menu[open]>.naru-attachment-options{position:absolute;inset:auto auto calc(100% + 8px) 0;grid-column:auto;grid-row:auto;display:grid;grid-template-columns:1fr;width:220px;max-width:calc(100vw - 32px);margin:0;padding:8px;background:#fff;border:1px solid var(--line);box-shadow:0 8px 24px #122c4520;z-index:5}
+html:root body .naru-panel.naru-friendly .naru-add-menu[open]>.naru-attachment-options{position:absolute;inset:auto auto calc(100% + 8px) 0;grid-column:auto;grid-row:auto;display:grid;grid-template-columns:1fr;width:220px;max-width:calc(100vw - 32px);margin:0;padding:8px;background:#ffffff;border:1px solid var(--line);box-shadow:0 8px 24px #53688a20;z-index:5}
 html:root body .naru-panel.naru-friendly .naru-attachment-options :is(button,button:first-child){justify-content:flex-start;padding:10px;gap:10px}
-html:root body .naru-panel.naru-friendly .naru-more[open]>div{background:#fff;border-color:var(--line)}
-html:root body .naru-panel.naru-friendly.naru-compact .naru-workspace-body{grid-template-columns:minmax(0,1fr)}
+html:root body .naru-panel.naru-friendly .naru-more[open]>div{background:#ffffff;border-color:var(--line)}
 @media(max-width:800px){
  html:root body .naru-panel.naru-friendly .naru-heading{padding:8px;gap:4px}
  html:root body .naru-panel.naru-friendly .naru-heading-actions{gap:0}
@@ -78,3 +76,50 @@ html:root body .naru-panel.naru-friendly.naru-compact .naru-workspace-body{grid-
  html:root body .naru-panel.naru-friendly .naru-input{margin:8px 8px max(8px,env(safe-area-inset-bottom));gap:4px;padding:6px}
  html:root body .naru-panel.naru-friendly .naru-starter{padding:14px}
 }
+
+/* Soft surfaces keep the character palette without losing text contrast. */
+html:root body .naru-panel.naru-friendly :is(.naru-heading,.naru-workspace-tabs,.naru-log){background:transparent}
+html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button{border:0;border-radius:999px;color:var(--ink-soft)}
+html:root body .naru-panel.naru-friendly .naru-heading{border:0}
+html:root body .naru-panel.naru-friendly .naru-heading-actions>:is(button,details)>summary:hover,html:root body .naru-panel.naru-friendly .naru-heading-actions>button:hover{background:#dbe7f5}
+html:root body .naru-panel.naru-friendly .naru-next-actions>button{background:#e0f0eb;border:0;color:#305b54}
+html:root body .naru-panel.naru-friendly :is(.naru-message.assistant,.naru-starter){background:#ffffffbd;border:0;border-radius:20px}
+html:root body .naru-panel.naru-friendly .naru-message.user{border:0;border-radius:20px 20px 6px 20px}
+html:root body .naru-panel.naru-friendly .naru-input{background:#ffffffd9;border:1px solid #bfcee4;box-shadow:0 6px 24px #53688a0d}
+html:root body .naru-panel.naru-friendly button[data-icon-action]{background:#e5eafa;color:#445783;border:0}
+html:root body .naru-panel.naru-friendly :is(button,summary,a):focus-visible{outline:2px solid #565caf;outline-offset:3px}
+
+html:root body .naru-panel.naru-friendly .naru-place-tools{display:grid;gap:20px;margin-top:16px}
+html:root body .naru-panel.naru-friendly .naru-place-tools>label{display:grid;gap:8px;font-size:14px}
+html:root body .naru-panel.naru-friendly .naru-place-tools select{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:inherit}
+html:root body .naru-panel.naru-friendly .naru-place-tools :is(.place-inquiry-entry,.place-arrival-preview,.place-audio-guide){background:#ffffffb8;border-color:var(--line);color:var(--ink)}
+@media(max-width:600px){html:root body .naru-panel.naru-friendly .naru-workspace-tabs>button{padding:8px 6px;gap:4px;white-space:nowrap;font-size:12px}html:root body .naru-panel.naru-friendly .naru-workspace-tabs svg{width:18px;height:18px}}
+
+html:root body .naru-panel.naru-friendly .wave-loading{background:#e7edf8;border:0;color:var(--ink)}
+html:root body .naru-panel.naru-friendly .wave-loading>p{color:var(--ink)}
+html:root body .naru-panel.naru-friendly .wave-skeleton-lines i{background:linear-gradient(100deg,#d5e2f3 25%,#eeebfa 45%,#d5e2f3 65%);background-size:200% 100%}
+
+html:root body .naru-panel.naru-friendly .naru-welcome{max-width:440px;margin:clamp(24px,6vh,64px) auto 24px;text-align:center;color:var(--ink)}
+html:root body .naru-panel.naru-friendly .naru-welcome>.naru-character{display:block;width:72px;height:72px;margin:0 auto 16px}
+html:root body .naru-panel.naru-friendly .naru-welcome h2{font-size:20px;margin:0 0 12px}
+html:root body .naru-panel.naru-friendly .naru-welcome p{font-size:14px;line-height:1.7;color:var(--ink-soft)}
+html:root body .naru-panel.naru-friendly .naru-welcome button{min-height:44px;padding:10px 16px;border:0;border-radius:999px;background:var(--naru-mint);color:var(--naru-mint-ink)}
+html:root body .naru-panel.naru-friendly .naru-selected-tool[hidden]{display:none}
+html:root body .naru-panel.naru-friendly .naru-live-tools{margin-top:16px;padding-top:0;border-top:0}
+html:root body .naru-panel.naru-friendly .simple-more-trip-tools>summary{display:none}
+html:root body .naru-panel.naru-friendly .naru-suggestions>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 14px;border-radius:14px;background:#e4edf8;color:#354f70;font-size:13px}
+html:root body .naru-panel.naru-friendly .naru-suggestions>summary::after{content:'+';font-size:20px}
+html:root body .naru-panel.naru-friendly .naru-suggestions[open]>summary::after{content:'−'}
+html:root body .naru-panel.naru-friendly .naru-live-tools :is(.account-settings,.simple-readiness,.trip-comfort,.trip-decision-body,.weather-panel,.reference-info-card){background:#ffffffb8;color:#293c55;border-color:#c4d2e5;box-shadow:none}
+html:root body .naru-panel.naru-friendly .naru-live-tools .account-settings{padding:16px;border:0;border-radius:16px}
+html:root body .naru-panel.naru-friendly .naru-live-tools :is(h2,h3,h4,label,legend){color:#293c55;text-shadow:none}
+html:root body .naru-panel.naru-friendly .naru-live-tools :is(input,textarea,select){color:#293c55;background-color:#fff;border-color:#c4d2e5}
+/* Controls follow the surrounding Naru surface, including nested dialogs. */
+html:root body .naru-panel.naru-friendly input[type=checkbox]{box-sizing:border-box;flex:0 0 20px;width:20px;height:20px;min-height:20px;padding:0;background:#fff;border:1px solid #8193b3;border-radius:6px;color:#fff;color-scheme:light}
+html:root body .naru-panel.naru-friendly input[type=checkbox]:checked{background:#6564aa;border-color:#6564aa}
+html:root body .naru-panel.naru-friendly input[type=checkbox]:focus-visible{outline:2px solid #6564aa;outline-offset:3px}
+html:root body .naru-panel.naru-friendly .naru-guidance-settings label{background:#ffffffa8;border:0}
+html:root body .naru-panel.naru-friendly .naru-guidance-settings label:has(:checked){background:#e7e5f7}
+html:root body .naru-panel.naru-friendly .naru-tool-catalog>.naru-tools{grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));margin-top:20px}
+html:root body .naru-panel.naru-friendly .naru-tools>div{min-width:0;margin:0}
+@media(forced-colors:active){html:root body .naru-panel.naru-friendly input[type=checkbox]{appearance:auto}}

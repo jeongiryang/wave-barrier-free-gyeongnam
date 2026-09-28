@@ -36,7 +36,7 @@ async function setup(page: Page, haptics?: "on" | "off") {
   await chooseTripConditions(page);
   for (const name of ["경남도립미술관", "용지호수공원", "시민문화쉼터"]) await page.getByRole("button", { name: name + " 일정에 담기", exact: true }).click();
   await openItinerary(page);
-  await openNaruTool(page, '이동 구간 확인');
+  await openNaruTool(page, '여행 당일 안내');
 }
 
 const guide = (page: Page) => page.getByRole("region", { name: "여행 당일 진행", exact: true });
@@ -92,7 +92,6 @@ test("an unsupported browser never shows the vibration preference", async ({ pag
 
 test("with the preference off nothing vibrates and the on-screen wording is unchanged", async ({ page }) => {
   await setup(page, "off");
-  await page.getByRole("button", { name: "여행 당일 진행", exact: true }).click();
   const panel = guide(page);
   await panel.getByRole("button", { name: "여행 시작하기", exact: true }).click();
   await panel.getByRole("button", { name: "이곳 방문 완료", exact: true }).click();
@@ -104,7 +103,6 @@ test("with the preference off nothing vibrates and the on-screen wording is unch
 
 test("with the preference on only the recorded visit vibrates, once, for 40ms", async ({ page }) => {
   await setup(page, "on");
-  await page.getByRole("button", { name: "여행 당일 진행", exact: true }).click();
   const panel = guide(page);
   // 배경 갱신과 화면 전환에는 진동하지 않는다.
   expect(await vibrations(page)).toEqual([]);
@@ -130,7 +128,6 @@ test("a failed save vibrates twice and still explains itself on screen", async (
     const write = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key, value) { if (key === "wave-on-trip-v1") throw new DOMException("Full", "QuotaExceededError"); write.call(this, key, value); };
   });
-  await page.getByRole("button", { name: "여행 당일 진행", exact: true }).click();
   const panel = guide(page);
   await panel.getByRole("button", { name: "여행 시작하기", exact: true }).click();
   await panel.getByRole("button", { name: "이곳 방문 완료", exact: true }).click();

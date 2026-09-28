@@ -46,7 +46,7 @@ const TARGETS = [
   [".preference-row small", "설정 상태"],
   [".preference-row select", "언어 선택"],
   [".preference-row em", "설정 값"],
-  [".preference-panel > p", "운영체제 설정 안내"],
+  [".preference-panel-heading small", "설정 안내"],
 ] as const;
 
 for (const theme of ["light", "dark"] as const) {

@@ -33,9 +33,9 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator(".simple-naru-example")).toHaveAttribute("aria-label", "대화 예시");
       await expect(page.locator(".simple-naru-example .example-undo")).toHaveAccessibleName("예시 일정에 적용");
       await page.locator(".simple-naru-example .example-undo").click();
-      await expect(page.locator(".simple-naru-example .example-duration strong")).toHaveText("90분");
+      await expect(page.locator(".simple-naru-example .example-duration strong:not(.example-proposed)")).toHaveText("90분");
       await page.getByRole("button", { name: "되돌리기", exact: true }).click();
-      await expect(page.locator(".simple-naru-example .example-duration strong")).toHaveText("60분");
+      await expect(page.locator(".simple-naru-example .example-duration strong:not(.example-proposed)")).toHaveText("60분");
       for (const selector of ['.night-hero-search > button[type="submit"]', "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
         await expectUsableTarget(page.locator(selector));
       }
@@ -71,7 +71,7 @@ for (const locale of ["ko", "en"] as const) {
     for (const selector of [".wave-wordmark", "#story .night-journey-input > .night-primary", "#naru .simple-text-link[href*=assistant]"]) {
       await expectUsableTarget(page.locator(selector));
     }
-    await openSupportMenu(page); await expectUsableTarget(page.locator(".wave-support-menu .mobile-menu-link[href='/travel-book']"));
+    await openSupportMenu(page); await expectUsableTarget(page.locator(".wave-support-menu .support-shortcuts a[href='/travel-book']"));
     await expectNoOverflow(page);
     await page.keyboard.press('Escape'); await region.focus(); await region.press('ArrowDown');
     await page.keyboard.press('Home'); await page.keyboard.press('Enter');

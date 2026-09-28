@@ -112,7 +112,7 @@ export async function openFacilityPanel(page: Page, english = false) {
   await openItinerary(page, { start: "2026-10-08" });
   await ensureMapView(page);
   await expect(page.locator(".map-provider-badge.kakao")).toBeVisible();
-  await page.getByRole("button", { name: english ? "Map options" : "지도 도구", exact: true }).click();
+  if (!await page.locator('.map-command-bar button[aria-controls="map-panel-facility"]').isVisible()) await page.getByRole("button", { name: english ? "Map options" : "지도 도구", exact: true }).click();
   await page.locator('.map-command-bar button[aria-controls="map-panel-facility"]').click();
   const panel = page.locator("#map-panel-facility");
   await expect(panel).toBeVisible();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { pauseCurrentClock } from './landing-contract';
 import { mockPlannerApi, mockPublicShellApi } from './fixtures';
 test.use({ storageState:{cookies:[],origins:[]} });
 test.beforeEach(async({page})=>{await page.addInitScript(()=>sessionStorage.setItem('wave-arrival-session-v1','done'));});
@@ -26,9 +27,9 @@ for (const width of [390,960,1440]) test(`story controls and common icons ${widt
  await page.screenshot({path:testInfo.outputPath(`story-${width}.png`)});
  const example=page.locator('.simple-naru-example');
  await example.getByRole('button',{name:'예시 일정에 적용',exact:true}).click();
- await expect(example.locator('.example-duration strong')).toHaveText('90분');
+ await expect(example.locator('.example-duration strong:not(.example-proposed)')).toHaveText('90분');
  await example.getByRole('button',{name:'되돌리기',exact:true}).click();
- await expect(example.locator('.example-duration strong')).toHaveText('60분');
+ await expect(example.locator('.example-duration strong:not(.example-proposed)')).toHaveText('60분');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.goto('/planner');
  const gallery=page.locator('.simple-region-discovery');
@@ -46,7 +47,7 @@ test('conversation reveals one message each second with its link in the header',
  await page.goto('/');const chat=page.locator('.wave-chat-demo');await chat.scrollIntoViewIfNeeded();
  await expect(chat.locator('header a')).toHaveText('나루와 내 여행 만들기');
  await expect(chat.locator('header button,footer')).toHaveCount(0);
- await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
+ await pauseCurrentClock(page);
  const initial=Number(await chat.getAttribute('data-frame'));
  expect(await chat.locator('.preview-question').count()).toBe(Math.floor(initial/2)+1);
  expect(await chat.locator('.preview-answer').count()).toBe(Math.floor((initial+1)/2));
@@ -69,7 +70,7 @@ test('festival icon sort still opens below and keeps selected option',async({pag
  await expect(menu).toHaveCount(0);await expect(sort).toBeFocused();
  const filters=page.getByRole('button',{name:'축제 검색 조건',exact:true});
  if(await filters.isVisible() && await filters.getAttribute('aria-expanded')==='false') await filters.click();
- await expect(page.getByRole('button',{name:'축제 검색하기',exact:true})).toHaveAttribute('data-icon-action','');
+ await expect(page.getByRole('searchbox',{name:'행사명 검색',exact:true})).toBeVisible();
 });
 
 test('all regions share the illustrated map and scroll does not change selection',async({page})=>{

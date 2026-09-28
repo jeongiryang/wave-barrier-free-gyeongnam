@@ -91,6 +91,7 @@ html[data-theme="dark"] .place-community-empty { background: #0e3748; }html[data
   font-size: .74rem;
   font-weight: 700;
   max-width: 7.5em;
+  overflow-wrap: anywhere;
   white-space: normal;
   text-align: right;
 }

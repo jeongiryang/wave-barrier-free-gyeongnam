@@ -65,6 +65,6 @@ test('festival facility choices retain names and selection through keyboard clos
   await expect(panel.getByRole('button', { name: label!, exact: true })).toHaveAttribute('aria-pressed', selected === 'true' ? 'false' : 'true');
   await choices.last().focus();
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: '축제 검색하기', exact: false })).toBeFocused();
+  await expect(page.getByRole('group', { name: '축제 키워드', exact: true }).getByRole('button').first()).toBeFocused();
   await expect(trigger).toHaveAttribute('aria-expanded', 'false');
 });

@@ -1,0 +1,279 @@
+:root{--naru-canvas:linear-gradient(145deg,#e7f3fb,#f2effb 68%,#e9f6f1);--naru-ink:#293c55;--naru-muted:#576980;--naru-user:#dce7fa;--naru-mint:#e0f0eb;--naru-mint-ink:#305b54}
+/* Shared control geometry. Keep hit targets usable without oversized painted surfaces. */
+html:root body .wave-night .wave-header .wave-wordmark{opacity:1;filter:none;text-shadow:none;color:#eef7ff;font-weight:850}
+html:root body .wave-night .wave-header .wave-wordmark>span{color:#eef7ff;text-shadow:none;filter:none}
+html:root body .wave-night .wave-header .wave-wordmark>small{color:#d6e8f7;text-shadow:none;filter:none;font-weight:600;border-left-color:#52728c}
+html:root body .wave-night :is(button[data-icon-action],.simple-edit-stop){box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-width:44px;height:44px;min-height:44px;padding:10px;border:1px solid #3986ad;border-radius:50%;background:#163b59;color:#a6ecff;box-shadow:none;line-height:1;vertical-align:middle}
+html:root body .wave-night button[data-icon-action]:is(:hover,:focus-visible,[aria-pressed=true]){background:#0766b5;color:#fff;border-color:#85eaff}
+html:root body .wave-night :is(.simple-itinerary-heading-actions,.simple-trip-actions,.simple-stop-controls){display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+html:root body .wave-night .simple-itinerary-top{align-items:center;gap:8px;margin-bottom:24px}
+html:root body .wave-night .simple-itinerary-heading{gap:16px}
+html:root body .wave-night .simple-itinerary-heading-actions [data-itinerary-settings]{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 12px;background:#163b59;border:1px solid #3986ad;border-radius:12px;font-size:14px;white-space:nowrap}
+html:root body .wave-night :is(.simple-timeboard,.simple-day-tabs,.simple-trip-tools,.simple-trip-actions){background:transparent;box-shadow:none}
+html:root body .wave-night .simple-day-tabs{margin:0 0 16px;gap:8px;flex-wrap:wrap}
+html:root body .wave-night .simple-day-tabs button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 12px;border-radius:12px;font-size:14px}
+html:root body .wave-night .simple-day-tabs button span{margin:0;font-size:12px}
+html:root body .wave-night .simple-itinerary-attention{padding:14px 16px;border-radius:16px;margin:0 0 16px}
+html:root body .wave-night .simple-itinerary-attention :is(h3,p){margin:0 0 8px;font-size:14px}
+html:root body .wave-night .simple-itinerary-attention li{padding-block:8px}
+/* Itinerary photography fills the whole card, with one soft contrast layer. */
+html:root body .wave-night .simple-focus-stop{position:relative;isolation:isolate;overflow:hidden;background:#163b59}
+html:root body .wave-night .simple-focus-stop>.simple-focus-photo{position:absolute;inset:0;height:100%;z-index:-2}
+html:root body .wave-night .simple-focus-stop::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(transparent,#102d47eb 75%);pointer-events:none}
+html:root body .wave-night .simple-focus-stop>.simple-focus-copy{position:relative;inset:auto;margin-top:220px;background:transparent;padding:20px 18px 8px}
+html:root body .wave-night .simple-focus-stop>.simple-focus-details{background:transparent;padding:8px 18px 18px}
+html:root body .wave-night .simple-stops>li{position:relative;isolation:isolate;overflow:hidden;background:#163b59}
+html:root body .wave-night .simple-stop-card{position:static;background:transparent}
+html:root body .wave-night .simple-stop-card>.night-stop-photo{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;z-index:-2;border:0}
+html:root body .wave-night .simple-stops>li::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#102d47bd,#102d47a6);pointer-events:none}
+html:root body .wave-night :is(.simple-stop-copy,.simple-stop-details,.simple-stop>time){background:transparent}
+html:root body .wave-night .simple-stop>time{padding:16px 8px}
+html:root body .wave-night .simple-timeboard .simple-stop-card>.night-stop-photo{display:block}
+html:root body .wave-night .simple-timeboard .simple-stop-card{display:block}
+html:root body .wave-night .simple-timeboard .simple-stop-copy{padding:14px 12px}
+/* Map controls must not squeeze Korean labels into vertical columns. */
+html:root body .wave-night .map-controls-layout{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;inset:12px 12px auto;pointer-events:none}
+html:root body .wave-night .map-controls-layout>.map-provider-badge{position:static;flex:1 1 160px;max-width:100%;font-size:12px;padding:8px 10px;pointer-events:auto}
+html:root body .wave-night .map-controls-layout>.map-command-bar{position:static;flex:0 1 auto;margin-left:auto;min-width:0;max-width:100%;display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;pointer-events:auto}
+html:root body .wave-night .map-command-primary{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;min-width:0}
+html:root body .wave-night .map-advanced-controls{grid-column:1/-1;flex-wrap:wrap;overflow:visible;justify-content:flex-end;max-width:300px}
+html:root body .wave-night .map-advanced-controls[hidden]{display:none}
+html:root body .wave-night .map-command-bar button{white-space:nowrap;overflow-wrap:normal;min-height:44px;font-size:13px}
+html:root body .wave-night .map-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px;align-items:center;gap:10px;padding:12px;background:#102d47}
+html:root body .wave-night .map-toolbar>i{display:none}
+html:root body .wave-night .map-toolbar>.point-button,html:root body .wave-night .map-toolbar>.point-active{min-width:0;min-height:58px;padding:8px 12px;border-radius:12px;background:#163b59}
+html:root body .wave-night .map-toolbar strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+html:root body .wave-night :is(.reference-transport-details,.reference-route-details){margin:0 0 12px;border:1px solid #365d7a;border-radius:12px;background:transparent}
+html:root body .wave-night :is(.reference-transport-details,.reference-route-details)>summary{padding:10px 14px;min-height:44px;box-sizing:border-box;background:#163b59;color:#e8f5ff;font-size:14px}
+html:root body .wave-night .navigation-section{min-width:0;background:transparent}
+html:root body .wave-night .navigation-section .workspace-heading{margin:0 0 16px}
+html:root body .wave-night .simple-itinerary-map{border:0;border-radius:0;overflow:visible}
+html:root body .wave-night .simple-itinerary-map .map-panel{border:0;border-radius:18px}
+/* Form labels and fields share a baseline and a 44px control height. */
+html:root body .wave-night .simple-settings-fields .wave-date-picker{position:relative}
+html:root body .wave-night .simple-settings-fields .wave-date-picker>input{background:transparent;border:0;padding-right:8px}
+html:root body .wave-night .simple-dialog .simple-settings-fields .wave-date-picker>input{padding-right:48px}
+html:root body .wave-night .simple-dialog:not(.naru-panel) .wave-date-open{position:absolute;right:0;top:0;width:44px;height:44px;padding:10px;border:0;background:transparent;border-radius:12px;color:#85eaff}
+html:root body .wave-night .map-crowd-legend{width:min(330px,calc(100% - 24px));box-sizing:border-box;min-height:64px;grid-template-columns:32px minmax(0,1fr) 44px;gap:8px;padding:8px 10px;left:12px;bottom:12px;border-radius:14px}
+html:root body .wave-night .map-crowd-legend .crowd-visual{width:30px;height:30px}
+html:root body .wave-night .map-crowd-legend small{font-size:12px;color:#3c5e70}
+html:root body .wave-night .map-crowd-legend strong{font-size:16px}
+html:root body .wave-night .crowd-forecast-label{font-size:12px;color:#3c5e70}
+html:root body .wave-night .map-crowd-details>summary{display:grid;place-items:center;width:44px;height:44px;padding:0;list-style:none;color:#235574;background:transparent;cursor:pointer}
+.map-crowd-details>summary::-webkit-details-marker{display:none}
+.map-crowd-details .map-crowd-evidence{position:absolute;bottom:calc(100% + 8px);left:0;right:0;padding:14px;border:1px solid #91b0c4;border-radius:12px;background:#fff;color:#21425b;box-shadow:0 4px 20px #102d4726;font-size:12px}
+.map-crowd-details .map-crowd-evidence a{display:flex;align-items:center;min-height:44px;text-decoration:underline;color:#095b98}
+html:root body .wave-night .simple-dialog{padding:24px;max-width:calc(100vw - 24px)}
+html:root body .wave-night .simple-dialog>header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 20px;padding:0;background:transparent}
+html:root body .wave-night .simple-dialog>header h2{margin:0;font-size:22px}
+html:root body .wave-night .simple-settings-fields{gap:20px;align-items:start}
+html:root body .wave-night .simple-settings-fields>label{display:flex;flex-direction:column;gap:8px;min-width:0;font-size:14px}
+html:root body .wave-night .simple-settings-fields :is(input,.wave-select-trigger){box-sizing:border-box;width:100%;min-width:0;min-height:44px;height:44px;padding:8px 12px;border-radius:12px;font-size:16px}
+@media(max-width:480px){html:root body .wave-night .simple-settings-fields{grid-template-columns:minmax(0,1fr)}}
+html:root body .wave-night .simple-editor-footer{margin-top:24px;padding-top:16px;gap:8px}
+html:root body .wave-night .simple-dialog .simple-editor-footer button{min-height:44px;border-radius:12px;padding:8px 16px}
+html:root body .wave-night .simple-dialog:not(.naru-panel) button:is(.primary,[aria-pressed=true]){background:#0766b5;color:#fff;border-color:#85eaff;border-radius:12px}
+/* Filters update immediately; the search icon belongs to the search field. */
+html:root body .scenic-page .festival-filters{align-items:stretch;gap:12px}
+html:root body .scenic-page .festival-filters>:is(label,div){background:transparent;padding:0;min-width:0;align-items:stretch;gap:8px}
+html:root body .scenic-page .festival-filters>:is(label,div)>svg{display:none}
+html:root body .wave-night .festival-name-field{flex:1 1 220px;display:flex;flex-direction:column;justify-content:flex-end}
+html:root body .wave-night .festival-name-field>label{font-size:13px;color:#bad0e2}
+html:root body .wave-night .festival-name-input{position:relative;display:flex;align-items:center}
+html:root body .wave-night .festival-name-input input{box-sizing:border-box;width:100%;min-width:0;height:44px;padding:10px 42px 10px 12px;border:1px solid #365d7a;border-radius:12px;background:#163b59;color:#eef7ff;font-size:16px}
+html:root body .wave-night .festival-name-input svg{position:absolute;right:12px;pointer-events:none;color:#85eaff}
+html:root body .wave-night .festival-name-input input::placeholder{color:#bad0e2}
+html:root body .wave-night .festival-preferences{display:flex;align-items:stretch}
+html:root body .wave-night .festival-preference-disclosure{width:100%;display:flex;align-items:flex-end}
+html:root body .wave-night .festival-preference-trigger{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;padding:0;border:0;background:transparent;color:#bad0e2;font-size:13px;text-align:left}
+html:root body .wave-night .festival-preference-trigger>span{display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;min-height:44px;padding:10px 12px;border:1px solid #365d7a;border-radius:12px;background:#163b59;color:#eef7ff;font-size:16px}
+html:root body .wave-night .festival-preference-trigger>span::after{content:'⌄';color:#85eaff}
+/* Fit previews to their column instead of introducing a tiny horizontal rail. */
+html:root body .wave-night .night-festival-preview-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row;grid-auto-columns:auto;overflow:visible;gap:12px;padding:0}
+html:root body .wave-night .night-festival-preview-cards>a{width:auto;min-width:0;height:260px;padding:0}
+html:root body .wave-night .night-festival-preview-copy strong{overflow-wrap:normal;word-break:keep-all}
+html:root body .wave-night .night-festival-preview-copy small{font-size:12px;line-height:1.5}
+html:root body .scenic-page .night-discover-festival{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:32px}
+html:root body .region-picker-preview .region-photo-preview{width:320px;overflow:auto;scrollbar-width:thin;scrollbar-color:#6687a4 transparent}
+html:root body .region-picker-preview .region-photo-preview>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;flex-shrink:0}
+html:root body .region-picker-preview .region-photo-preview>div{position:relative;margin-top:96px;padding:40px 16px 16px;background:linear-gradient(transparent,#0c2437 42%);text-shadow:0 1px 3px #082237}
+html:root body .region-picker-preview .region-photo-preview :is(p,span,small){font-size:12px;line-height:1.5;margin-top:4px}
+/* Dialogs and editors use the same surfaces as the controls around them. */
+html:root body .wave-night .simple-dialog.festival-tools-dialog{position:fixed;inset:0;margin:auto;width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 32px);overflow:auto;text-shadow:none}
+html:root body .wave-night .festival-tools-dialog .festival-actions{display:flex;flex-wrap:wrap;gap:8px}
+html:root body .wave-night .festival-tools-dialog .festival-actions button{width:auto;min-height:44px;padding:8px 12px;font-size:14px}
+html:root body .wave-night .simple-place-pane[open]{position:fixed;inset:0;margin:auto;width:min(760px,calc(100vw - 24px));height:auto;max-height:calc(100dvh - 32px);border-radius:22px;overflow:auto;display:block}
+html:root body .wave-night .simple-place-pane .modal-visual{height:240px}
+html:root body .wave-night .region-change-dialog .travel-book-actions{display:flex;flex-wrap:wrap;align-items:center}
+html:root body .wave-night .region-change-dialog .travel-book-actions>button{width:auto;flex:0 1 auto}
+html:root body .wave-night .simple-day-tabs button{height:44px;min-height:44px;flex-direction:row}
+html:root body .wave-night .region-change-dialog{position:fixed;inset:0;margin:auto;box-sizing:border-box;max-width:calc(100vw - 24px);max-height:calc(100dvh - 32px);padding:24px;border:0}
+html:root body .wave-night .region-change-dialog>header{display:flex;gap:16px}
+html:root body .wave-night .region-change-dialog>header>h2{min-width:0;flex:1}
+html:root body .wave-night .simple-place-pane .modal-body{padding:24px;display:block}
+html:root body .wave-night .simple-place-pane .modal-body>h2{padding-right:52px;font-size:22px;line-height:1.4;margin:0 0 8px}
+html:root body .wave-night .simple-place-pane .modal-close{position:absolute;inset:16px 16px auto auto;float:none;margin:0;border-radius:12px;background:#163b59;color:#85eaff}
+html:root body .wave-night .simple-place-pane .modal-close-end{display:flex;justify-content:flex-end}
+html:root body .wave-night .simple-place-pane :is(.place-inquiry-entry,.modal-data){padding:16px;border-radius:14px;background:#163b59}
+html:root body .wave-night .support-shortcuts{display:flex;gap:8px;flex-wrap:wrap}
+html:root body .wave-night .support-shortcuts>a{display:grid;place-items:center;width:44px;min-height:44px;padding:0;border-radius:12px;background:#163b59;color:#85eaff;border:1px solid #365d7a}
+html:root body .wave-night .support-settings{display:flex;align-items:flex-start;gap:8px;border-top:1px solid #365d7a;margin-top:12px;padding-top:12px}
+html:root body .wave-night .support-settings .preference-controls{flex:1;min-width:0}
+html:root body .wave-night .support-settings :is(.help-button,.preference-trigger){display:grid;place-items:center;box-sizing:border-box;width:44px;min-height:44px;padding:10px;border-radius:12px;background:#163b59;color:#85eaff;border:1px solid #365d7a}
+/* Reading pages use a consistent width and avoid nested dark boxes. */
+html:root body .wave-night.community-detail-page>section,html:root body .wave-night.community-form-page>section{padding:32px 20px 64px;max-width:1000px;margin:auto}
+html:root body .wave-night .community-detail{padding:clamp(20px,4vw,40px);border-radius:22px}
+html:root body .wave-night .community-detail h1{font-size:clamp(24px,3vw,36px);line-height:1.35;letter-spacing:-.025em;word-break:keep-all;overflow-wrap:break-word}
+html:root body .wave-night .community-detail .detail-place{background:#163b59;margin-top:20px;padding:12px 16px}
+html:root body .wave-night .community-detail .detail-content{min-height:0;padding:24px 0;margin-block:24px;font-size:16px;line-height:1.85}
+html:root body .wave-night .community-detail .detail-actions{gap:12px;justify-content:flex-end;padding-top:16px}
+html:root body .wave-night.travel-book-page{background:radial-gradient(ellipse at top,#214b6d,#102d47 70%)}
+html:root body .wave-night.travel-book-page :is(.travel-book-task-heading,.travel-book-collection-heading,.travel-book-list,.region-record-list,.travel-book-empty){box-sizing:border-box;width:min(1200px,calc(100% - 40px));margin-inline:auto}
+html:root body .wave-night .travel-book-task-heading{padding:28px;border-radius:24px;min-height:220px}
+html:root body .wave-night .travel-book-task-heading h1{font-size:32px;margin:0 0 8px}
+html:root body .wave-night .travel-book-task-heading>button{min-height:44px;padding:10px 16px;border-radius:12px;background:#0766b5;color:#fff;border:1px solid #85eaff}
+html:root body .wave-night .region-record-list{margin-top:28px;padding:24px;background:#163b5966}
+html:root body .wave-night .region-record-list>header{align-items:center}
+html:root body .wave-night .region-record-list>header>strong{font-size:16px;color:#bad0e2;white-space:nowrap}
+.region-record-list>header>strong>b{font-size:32px;color:#85eaff}
+.region-record-list>progress{width:100%;height:6px;border:0;border-radius:999px;overflow:hidden;margin-top:18px;accent-color:#1199ff}.region-record-list>progress::-webkit-progress-bar{background:#365d7a}.region-record-list>progress::-webkit-progress-value{background:#1199ff}
+html:root body .wave-night .region-record-list ul{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+html:root body .wave-night .region-record-list li{grid-template-columns:20px 1fr;min-height:44px;padding:8px;font-size:13px;background:#163b59}
+html:root body .wave-night .region-record-list li[data-visited=true]{background:#195c79;border-color:#85eaff}
+.region-record-list>details{margin-top:12px;font-size:12px;color:#bad0e2}.region-record-list>details>summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+html:root body .wave-night .region-change-dialog>header{align-items:center;background:transparent;padding:0;margin-bottom:16px}
+html:root body .wave-night .region-change-dialog h2{margin:0;font-size:22px}
+html:root body .wave-night .region-change-dialog .travel-book-actions{gap:8px}
+html:root body .wave-night .region-change-dialog .travel-book-actions button{padding:8px 12px;min-height:44px;border-radius:12px;font-size:14px;background:#163b59;color:#eef7ff;border:1px solid #365d7a}
+html:root body .wave-night .region-change-dialog button[aria-pressed=true]{background:#0766b5;color:#fff;border-color:#85eaff}
+html:root body .wave-night .place-comparison-scroll :is(th,td){padding:12px;font-size:13px;word-break:keep-all;overflow-wrap:break-word;line-height:1.6}
+html:root body .wave-night .place-comparison-scroll th:first-child{width:112px;background:#163b59}
+html:root body .wave-night .place-comparison-scroll thead th{background:#163b59;font-size:14px}
+html:root body .wave-night .community-editor :is(input:not([type=checkbox]),textarea){box-sizing:border-box;width:100%;max-width:100%;padding:12px 14px;border:1px solid #537590;border-radius:12px;background:#163b59;color:#eef7ff;font-size:16px}
+html:root body .wave-night .community-editor textarea{min-height:180px;resize:vertical}
+/* A conversation preview with an explicit, reversible proposal. */
+html:root body .wave-night.scenic-page .simple-naru-example{padding:24px;border-radius:24px;background:var(--naru-canvas);color:var(--naru-ink);border:0;box-shadow:0 12px 32px #061d3026}
+html:root body .wave-night.scenic-page .simple-naru-example-title{gap:12px;margin-bottom:24px;align-items:center}
+html:root body .wave-night.scenic-page .simple-naru-example-title>.naru-character{width:56px;height:56px;flex:0 0 56px}
+.simple-naru-example-title>div{display:grid;gap:4px}.simple-naru-example-title>div>span{font-size:12px;color:var(--naru-muted)}
+html:root body .wave-night.scenic-page .simple-naru-example-title>small{padding:4px 8px;border:0;border-radius:999px;margin-left:auto;white-space:nowrap;font-size:11px}
+html:root body .wave-night.scenic-page .simple-naru-example .example-user{padding:12px 16px;margin:0 0 20px 32px;border:0;border-radius:16px 16px 4px 16px;background:var(--naru-user);color:var(--naru-ink);font-size:15px;line-height:1.6}
+html:root body .wave-night.scenic-page .simple-naru-example .example-duration{display:grid;gap:12px;margin:20px 0;padding:16px 20px;border-radius:16px;background:#ffffffb8;border:0}
+.example-duration>span{font-size:12px;color:var(--naru-muted)}.example-duration>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.example-duration strong{font-size:28px}.example-duration strong small{font-size:14px;margin-left:4px}.example-duration .example-proposed{color:#456b64}
+html:root body .wave-night.scenic-page .simple-naru-example button.example-undo{display:flex;align-items:center;justify-content:center;gap:8px;width:auto;min-height:44px;padding:10px 16px;border:0;border-radius:999px;background:var(--naru-mint);color:var(--naru-mint-ink);font-size:14px}
+html:root body .wave-night.scenic-page .simple-naru-example :is(p,strong,small){color:var(--naru-ink);text-shadow:none}
+html:root body .naru-panel.naru-workspace .naru-workspace-tabs>button{min-height:44px;font-size:15px;padding:8px 12px}
+html:root body .naru-panel.naru-workspace .naru-input{gap:8px;padding:8px;background:var(--surface)}
+html:root body .naru-panel.naru-workspace .naru-input textarea{box-sizing:border-box;min-width:0;border-radius:14px;font-size:1rem;line-height:1.65}
+html:root body .naru-panel.naru-workspace button[data-icon-action]{width:44px;min-width:44px;height:44px;min-height:44px;flex:0 0 44px;padding:10px;border-radius:50%;background:var(--surface-deep);color:var(--ink);border:0}
+/* Loading, empty and error states share a calm surface, never a black rectangle. */
+html:root body .wave-night :is(.wave-loading,.community-state,.travel-book-empty,.travel-workspace-error,.route-empty,.map-load-placeholder){box-sizing:border-box;min-width:0;padding:24px;border:1px solid #365d7a;border-radius:18px;background:#163b5966;color:#d6e8f7;box-shadow:none}
+html:root body .wave-night .wave-loading>p{gap:10px;margin:0 0 16px;color:#d6e8f7;font-size:14px}
+html:root body .wave-night :is(.wave-skeleton-lines i,.place-card-skeleton .skeleton-visual){background:linear-gradient(100deg,#21445f 25%,#355f7b 45%,#21445f 65%);background-size:200% 100%;border-radius:8px}
+html:root body .wave-night :is(.smart-image-fallback,.simple-search-photo-placeholder,.festival-photo-fallback){background:linear-gradient(145deg,#234b65,#163b59);color:#bdddEE;justify-content:center;text-align:center;font-size:13px}
+html:root body .wave-night :is(.community-state,.travel-book-empty,.travel-workspace-error,.route-empty) button{min-height:44px;padding:8px 16px;border:1px solid #65b8e4;border-radius:12px;background:#0766b5;color:#fff;font-size:14px}
+html:root body .route-state-page{box-sizing:border-box;min-height:100dvh;padding:clamp(24px,8vw,96px);background:radial-gradient(ellipse at top,#214b6d,#102d47 70%);color:#eef7ff;text-align:center}
+html:root body .route-state-page .route-state-mark{display:grid;place-items:center;width:80px;height:80px;margin:0 auto 24px;border:1px solid #6bbada;border-radius:24px;background:#163b59;color:#85eaff;font-size:28px}
+html:root body .route-state-page>div:last-child{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:24px}
+html:root body .route-state-page :is(button,a){min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;border:1px solid #65b8e4;border-radius:12px;background:#163b59;color:#eef7ff}
+@media(max-width:960px){html:root body .scenic-page .night-discover-festival{grid-template-columns:1fr}html:root body .wave-night .region-record-list ul{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){html:root body .wave-night .simple-dialog{padding:18px}html:root body .wave-night .simple-itinerary-heading{flex-basis:100%}html:root body .wave-night .simple-itinerary-heading-actions{width:auto}html:root body .wave-night .simple-itinerary-top .simple-trip-tools{margin-left:auto}html:root body .wave-night .night-festival-preview-cards{grid-template-columns:1fr}html:root body .wave-night .festival-name-field{flex-basis:100%}}
+
+html:root body .wave-night .festival-filters>:is(label,.night-festival-dates)>span{display:flex;flex-direction:column;justify-content:flex-end;gap:8px;width:100%;font-size:13px;line-height:20px;color:#bad0e2}
+html:root body .wave-night .festival-preference-trigger{justify-content:flex-end;line-height:20px}
+html:root body .wave-night .festival-preference-trigger>span{height:44px;line-height:24px}
+html:root body .wave-night .festival-filters .wave-date-picker{height:44px;box-sizing:border-box}
+html:root body .wave-night .festival-filters .night-date-pair{margin:0}
+html:root body .wave-night :is(.place-card-actions,.festival-card-tools,.community-bookmark) :is(.place-card-info,.simple-place-add,.festival-icon-action,button[data-icon-action]){border-radius:50%;background:#163b59e8;border-color:#3986ad}
+html:root body .wave-night .simple-place-pane button:is([aria-pressed=true],.primary){border-radius:12px;background:#0766b5;color:#fff}
+html:root body .wave-night .wave-select-trigger[data-icon-action]{border-radius:50%;background:#163b59;color:#85eaff}
+html:root body .wave-night .information-guide-link{display:inline-flex;align-items:center;min-height:44px;font-size:12px;color:#85eaff}
+html:root body .wave-night .smart-image-skeleton{background:linear-gradient(110deg,#21445f 25%,#355f7b 45%,#21445f 65%);background-size:200% 100%;border-radius:inherit}
+
+/* Photo interactions share the community reveal treatment. Keep controls reachable. */
+html:root body .wave-night :is(.festival-card-photo,.simple-place-photo,.simple-focus-photo,.night-stop-photo) img{transition:filter .24s ease,transform .3s ease}
+html:root body .wave-night .simple-focus-photo :is(.smart-spot-image,img){width:100%;height:100%;object-fit:cover}
+@media(hover:hover) and (pointer:fine){
+html:root body .wave-night .festival-list:not([data-layout=list]) .festival-card:is(:hover,:focus-within) .festival-card-photo img,
+html:root body .wave-night .simple-place-row:is(:hover,:focus-within) .simple-place-photo img,
+html:root body .wave-night .simple-focus-stop:is(:hover,:focus-within) .simple-focus-photo img,
+html:root body .wave-night .simple-stops>li:is(:hover,:focus-within) .night-stop-photo img{filter:blur(5px) brightness(.76);transform:scale(1.04)}
+}
+
+html:root body .wave-night .simple-dialog button[data-icon-action]{width:44px;min-width:44px;height:44px;min-height:44px;padding:10px;border-radius:50%;background:#163b59;color:#a6ecff;border:1px solid #3986ad}
+html:root body .wave-night .simple-stops>li .simple-stop{position:static}
+html:root body .wave-night .simple-stops>li .night-stop-photo :is(.smart-spot-image,img){height:100%;width:100%;object-fit:cover}
+html:root body .wave-night .itinerary-next-tools{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+html:root body .wave-night .itinerary-next-tools button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border:1px solid #3986ad;border-radius:999px;background:#163b59;color:#eef7ff;font-size:14px}
+
+html:root body .wave-night .map-travel-modes{display:flex;align-items:center;gap:6px;padding:10px 12px;background:#12324c;flex-wrap:wrap}
+html:root body .wave-night .map-travel-modes button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;flex:1 1 auto;padding:8px 10px;border:0;border-radius:999px;background:transparent;color:#bad0e2;font-size:13px}
+html:root body .wave-night .map-travel-modes button[aria-pressed=true]{background:linear-gradient(110deg,#078cdf,#5751e8);color:#fff}
+html:root body .wave-night .map-travel-modes small{font-size:11px;color:inherit;white-space:nowrap}
+html:root body .wave-night .wave-map-icon.place .map-place-name{position:absolute;top:100%;left:50%;transform:translateX(-50%);display:block;width:max-content;max-width:160px;padding:5px 8px;border:0;border-radius:8px;background:#163b59f5;color:#fff;font-size:12px;font-weight:700;line-height:1.35;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;text-align:center;text-shadow:none;box-shadow:0 2px 8px #102d4733}
+html:root body .wave-night .wave-map-icon .photo-pin{border-width:2px;box-shadow:0 3px 12px #102d4744}
+html:root body .wave-night :is(.navigation-workspace,.map-panel,.simple-focus-stop,.region-record-list,.community-post-detail){border-color:transparent;box-shadow:none}
+html:root body .wave-night .naru-panel .naru-tools>div{border:0;box-shadow:none}
+
+html:root body .wave-night :is(.simple-focus-stop,.simple-itinerary-map,.simple-itinerary-board>.navigation-section){position:relative;top:auto;align-self:start}
+html:root body .wave-night .simple-timeboard{max-height:none;overflow:visible}
+html:root body .wave-night .simple-itinerary-board{align-items:start}
+
+html:root body .wave-night .transport-mode-filter{display:flex;gap:6px;flex-wrap:wrap;padding:12px}
+html:root body .wave-night .transport-mode-filter button{display:inline-flex;align-items:center;gap:6px;width:auto;min-height:44px;padding:8px 12px;border:0;border-radius:999px;background:#163b59;color:#c3d8e9;font-size:13px}
+html:root body .wave-night .transport-mode-filter button[aria-pressed=true]{background:#0766b5;color:#fff}
+html:root body .wave-night .route-scope-note{padding:8px 12px;margin:0;font-size:12px;color:#bad0e2;line-height:1.6}
+
+/* Naru entry points carry the same sky/lavender/mint palette as the dialog. */
+html:root body .wave-night.scenic-page .landing-naru-usecases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+html:root body .wave-night.scenic-page .landing-naru-usecases button{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 14px;background:var(--naru-canvas);color:var(--naru-ink);border:0;border-radius:16px;text-align:left;font-size:14px;line-height:1.5;box-shadow:none}
+html:root body .wave-night.scenic-page .landing-naru-usecases button>svg{flex-shrink:0;color:#566c95}
+html:root body .wave-night.scenic-page .landing-naru-usecases button>span{flex:1;min-width:0}
+html:root body .wave-night.scenic-page .landing-naru-usecases button:hover{background:#dceaf8}
+html:root body .wave-night .trip-storage-notice{box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:fit-content;max-width:min(960px,calc(100% - 40px));margin:24px auto;padding:14px 18px;border:0;border-radius:16px;background:#21445f;color:#eef7ff;box-shadow:none}
+html:root body .wave-night .trip-storage-notice p{flex:1 1 300px;margin:0;font-size:14px;line-height:1.65;color:inherit}
+html:root body .wave-night .trip-storage-notice button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;width:auto;margin:0;padding:8px 14px;border:0;border-radius:999px;background:#cde7f5;color:#254964;font-size:14px;white-space:nowrap}
+@media(max-width:600px){html:root body .wave-night.scenic-page .landing-naru-usecases{grid-template-columns:1fr}html:root body .wave-night .trip-storage-notice{margin:16px auto;max-width:calc(100% - 32px);padding:16px}}
+
+html:root body .wave-night #account-travel .account-settings{background:#163b59;border:0;border-radius:18px;padding:24px;line-height:1.8;box-shadow:none}
+html:root body .wave-night #account-travel .account-settings>h2{margin:0 0 16px;font-size:24px}
+html:root body .wave-night :is(.guide-start,.travel-book-actions){gap:8px}
+html:root body .wave-night .guide-start a{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border:0;border-radius:999px;background:#214862;color:#eef7ff;font-size:14px}
+html:root body .wave-night #account-travel .naru-help-examples{background:var(--naru-canvas);color:var(--naru-ink)}
+html:root body .wave-night .naru-help-examples :is(p,h2,h3){color:var(--naru-ink);text-shadow:none}
+html:root body .wave-night .naru-help-examples article{background:#ffffffa8;border:0;border-radius:16px;padding:16px}
+html:root body .wave-night .naru-help-examples button{min-height:44px;padding:10px 14px;border:0;border-radius:12px;background:var(--naru-user);color:var(--naru-ink);text-align:left;font-size:14px;line-height:1.6}
+
+html:root body .wave-night .policy-summary>div>p{color:#8bdcef}
+html:root body .landing-page #closing{height:auto;min-height:0;overflow:visible}
+html:root body .landing-page #closing .landing-closing-copy{padding-block:24px}
+html:root body .wave-night .place-modal .modal-body>button{min-height:48px}
+
+/* Reading and writing share the same restrained spacing and blue surfaces. */
+html:root body .wave-night .community-detail{border:0}
+html:root body .wave-night .community-detail .community-card-meta{margin-top:20px}
+html:root body .wave-night .community-detail .comments{margin-top:32px;padding-top:24px}
+html:root body .wave-night .comments-heading{gap:16px;align-items:center}
+html:root body .wave-night .comments-heading h2{font-size:22px;line-height:1.4;margin:0}
+html:root body .wave-night .comment-form{background:#163b59;margin:20px 0;padding:16px}
+html:root body .wave-night :is(.comment-form,.comment-edit) textarea{box-sizing:border-box;background:#21445f;color:#eef7ff;border:1px solid #52728b;border-radius:12px;font-size:16px}
+html:root body .wave-night .comment-form textarea::placeholder{color:#c1d4e4}
+html:root body .wave-night .travel-book-empty h2{font-size:clamp(20px,2.4vw,26px);line-height:1.5;margin:12px 0}
+html:root body .wave-night .travel-book-empty>a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;width:auto;padding:8px 16px;border:0;border-radius:999px;background:linear-gradient(110deg,#078cdf,#5751e8);color:#fff;font-size:14px}
+@media(max-width:600px){html:root body .wave-night .community-detail .detail-actions{flex-direction:row;flex-wrap:wrap;align-items:center}html:root body .wave-night .comments-heading{grid-template-columns:1fr;gap:4px}html:root body .wave-night .comment-form>div{align-items:flex-start}html:root body .wave-night .comment-form>div>span{align-self:flex-end;flex-wrap:wrap}html:root body .wave-night .comment-form button{width:auto}}
+html:root[data-color-assist=on] body .status-shape{display:inline-block}
+@media(max-width:600px){html:root :is(.planner-simple,body:has(.community-detail-page)) .naru-discovery{left:8px;right:auto;flex-direction:row-reverse}html:root :is(.planner-simple,body:has(.community-detail-page)) .naru-welcome-bubble{left:0;right:auto}}
+@media(prefers-reduced-motion:reduce){html:root,html:root body *{scroll-behavior:auto!important}html:root body :is(.simple-region,.simple-region *,.community-list .community-skeleton-card,.naru-welcome-bubble *){animation:none!important;transition:none!important}}
+
+html:root body .wave-night .map-unavailable{background:#163b59}
+
+html:root body .wave-night .route-mode-sections button{grid-template-columns:auto minmax(72px,1fr) minmax(0,auto)}
+html:root body .scenic-page .night-festival-preview-cards>a>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+html:root body .scenic-page .simple-region-link>div>span{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+
+html:root body .wave-night :is(.night-region-shortcuts button[aria-pressed=true],.region-picker-list button[aria-pressed=true] span){color:#fff;opacity:1}
+@media(min-width:901px){html:root body .wave-night .route-map-shell.drawer-open .map-controls-layout{right:396px}}
+html:root body .map-panel{container-type:inline-size}
+@container(max-width:720px){html:root body .wave-night .route-map-shell:not(.expanded,:fullscreen){&.drawer-open{grid-template-columns:minmax(0,1fr)}.map-side-drawer{grid-column:1;position:absolute;inset:auto 8px 8px;max-height:50%;border:0;border-radius:18px}&.drawer-open .map-controls-layout{right:12px;flex-direction:row}}}
+
+html:root[data-theme=dark] body .wave-night :is(.map-crowd-legend small,.crowd-forecast-label){color:#bedde8}

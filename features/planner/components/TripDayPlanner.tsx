@@ -2,6 +2,7 @@
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { lazy, Suspense, useSyncExternalStore } from "react";
 import TripShareMenu from "./TripShareMenu";
+import { buildItinerarySchedule } from '../optimization/itinerary-schedule.js';
 import LoadingState from "../../../components/LoadingState";
 import type { useAudioGuide } from "../hooks/useAudioGuide";
 import type { usePlannerParticipation } from "../hooks/usePlannerParticipation";
@@ -21,11 +22,12 @@ export default function TripDayPlanner({ tripSelection: trip, participation, arc
   audioGuide: ReturnType<typeof useAudioGuide>; participation: ReturnType<typeof usePlannerParticipation>; archiveContext: { region: string; theme: string; profiles: string[]; guidancePreferences?: import('../../../lib/guidance-preferences.js').GuidancePreferences };
 }) {
   useSyncExternalStore(subscribeVisitInfo, visitInfoVersion, serverVisitInfoVersion);
+  const calendarSchedule = buildItinerarySchedule({ places: trip.orderedSavedPlaces, days: trip.tripDays, assignments: trip.scheduleAssignments, startTime: trip.dayStartTime, origin: route.origin, routeMinutesByPlaceId: itineraryRouteMinutes, visitMinutesByPlaceId: trip.visitMinutesByPlaceId, breakMinutesByPlaceId: trip.breakMinutesByPlaceId, fixedVisits: trip.fixedVisits });
   const timingWarnings = tripTimingWarnings({ places: trip.orderedSavedPlaces, travelStart: trip.travelStart, travelEnd: trip.travelEnd, dayStartTime: trip.dayStartTime, scheduleAssignments: trip.scheduleAssignments, visitMinutesByPlaceId: trip.visitMinutesByPlaceId, fixedVisits: trip.fixedVisits, breakMinutesByPlaceId: trip.breakMinutesByPlaceId, origin: route.origin, routeMinutesByPlaceId: itineraryRouteMinutes });
   return <div className="simple-trip-tools">
     <div className="simple-trip-actions">
       <Suspense fallback={<LoadingState>저장을 준비하고 있어요.</LoadingState>}><TravelBookArchiveAction timingWarnings={timingWarnings} compact places={trip.orderedSavedPlaces} region={archiveContext.region} theme={archiveContext.theme} profiles={archiveContext.profiles} guidancePreferences={archiveContext.guidancePreferences} travelStart={trip.travelStart} travelEnd={trip.travelEnd} dayStartTime={trip.dayStartTime} travelMode={trip.travelMode} scheduleAssignments={trip.scheduleAssignments} visitMinutesByPlaceId={trip.visitMinutesByPlaceId} fixedVisits={trip.fixedVisits} dayDeadlines={trip.dayDeadlines} comfort={trip.comfort} breakMinutesByPlaceId={trip.breakMinutesByPlaceId} restPurposeByPlaceId={trip.restPurposeByPlaceId} /></Suspense>
-      <TripShareMenu trip={trip} participation={participation} region={archiveContext.region} timingWarnings={timingWarnings}/>
+      <TripShareMenu trip={trip} participation={participation} region={archiveContext.region} timingWarnings={timingWarnings} schedule={calendarSchedule}/>
     </div>
 
   </div>;

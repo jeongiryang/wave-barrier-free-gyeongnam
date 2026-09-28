@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, useSyncExternalStore, type FocusEvent } from "react";
+import NightIcon from "../../../components/NightIcon";
 import type { MapProvider, MapToolPanel } from "../types";
 import { useSitePreferences } from "../../../components/SitePreferences";
 import { mapStatusParts } from "../map-status-copy";
@@ -84,11 +85,11 @@ export default function MapCommandBar({
       toolsTrigger.current?.focus();
     }}>
       <div className="map-command-scroll map-command-primary" onFocusCapture={revealFocusedControl}>
-        <button type="button" aria-expanded={toolPanel === "route"} aria-controls="map-panel-route" className={toolPanel === "route" ? "active" : ""} onClick={(event) => togglePanel("route", event.currentTarget)} disabled={!interactive || provider === "error"}>{english ? "⇄ Route points" : "⇄ 출발·도착"}</button>
-        <button type="button" onClick={onCurrentLocation} disabled={!interactive || provider === "error"}>{english ? "Distance on this device" : "기기에서 거리 확인"}</button>
-        <button ref={toolsTrigger} type="button" className="map-tools-toggle" aria-expanded={toolsOpen} aria-controls={toolsId} disabled={!interactive} onClick={() => setToolsOpen(value => !value)}>{english ? "Map options" : "지도 도구"} <span aria-hidden="true">{toolsOpen ? "−" : "+"}</span></button>
+        <button type="button" data-icon-action="" title={english ? "Route points" : "출발·도착"} aria-label={english ? "⇄ Route points" : "⇄ 출발·도착"} aria-expanded={toolPanel === "route"} aria-controls="map-panel-route" className={toolPanel === "route" ? "active" : ""} onClick={(event) => togglePanel("route", event.currentTarget)} disabled={!interactive || provider === "error"}><NightIcon name="route"/></button>
+        <button type="button" data-icon-action="" title={english ? "Distance on this device" : "기기에서 거리 확인"} aria-label={english ? "Distance on this device" : "기기에서 거리 확인"} onClick={onCurrentLocation} disabled={!interactive || provider === "error"}><NightIcon name="locate"/></button>
+        <button ref={toolsTrigger} type="button" className="map-tools-toggle" data-icon-action="" title={english ? "Map options" : "지도 도구"} aria-label={english ? "Map options" : "지도 도구"} aria-expanded={toolsOpen} aria-controls={toolsId} disabled={!interactive} onClick={() => setToolsOpen(value => !value)}><NightIcon name={toolsOpen ? "close" : "map"}/></button>
       </div>
-      <button type="button" className="map-expand-button" aria-label={expanded ? (english ? "× Close expanded map" : "× 닫기") : (english ? "⛶ Expand map" : "⛶ 전체보기")} aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}>{expanded ? "× " : "⛶ "}<span className="map-expand-label">{expanded ? (english ? "Close expanded map" : "닫기") : (english ? "Expand map" : "전체보기")}</span></button>
+      <button type="button" className="map-expand-button" data-icon-action="" title={expanded ? (english ? "Close" : "닫기") : (english ? "Expand map" : "전체보기")} aria-label={expanded ? (english ? "× Close expanded map" : "× 닫기") : (english ? "⛶ Expand map" : "⛶ 전체보기")} aria-pressed={expanded} aria-controls="route-map-canvas" onClick={(event) => onToggleExpanded(event.currentTarget)} disabled={!interactive}><NightIcon name={expanded ? "close" : "expand"}/></button>
       <div id={toolsId} className="map-command-scroll map-advanced-controls" role="group" aria-label={english ? "Additional map options" : "추가 지도 도구"} hidden={!toolsOpen} onFocusCapture={revealFocusedControl}>
         <div className="map-type-switch" aria-label={english ? "Map type" : "지도 유형"}>
           <button type="button" aria-pressed={baseMap === "roadmap"} className={baseMap === "roadmap" ? "active" : ""} onClick={() => onBaseMapChange("roadmap")} disabled={!interactive || provider !== "kakao"}>{english ? "Map" : "지도"}</button>

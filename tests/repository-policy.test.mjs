@@ -507,8 +507,9 @@ test("planner state is divided into testable feature hooks without overwriting s
   assert.match(routePlanning, /useRouteView\(routeAlternatives, transportContext, journey\)/);
   assert.match(routePlanning, /useRouteOrigin\(clearRouteAlternatives\)/);
   assert.match(routeOrigin, /navigator\.geolocation\.getCurrentPosition/);
-  assert.match(routeOrigin, /WAVE 경로 API로 좌표를 보내거나 저장하지 않습니다/);
-  assert.match(routeOrigin, /지도 제공처/);
+  assert.match(routeOrigin, /localDistanceKilometres\(position\.coords, origin\)/);
+  const gpsCallback = routeOrigin.split('navigator.geolocation.getCurrentPosition')[1];
+  assert.doesNotMatch(gpsCallback.split('const resetOrigin')[0], /setOrigin\(|setOriginLabel\(|fetch\(|localStorage|sessionStorage/);
   assert.doesNotMatch(routePlanning, /navigator\.geolocation/);
   assert.match(routePlanning, /nextOriginLabel/);
   assert.doesNotMatch(planner, /routeRequestRef|setRouteAlternatives\(/);

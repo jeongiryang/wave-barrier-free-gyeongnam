@@ -47,3 +47,9 @@ test("ID-bound catalog coordinates repair an incomplete recommendation without c
   assert.equal(repaired.score, 10); assert.equal(repaired.knownFields, 2);
   assert.equal(resolveSavedPlaces([place.id], [incomplete], [{ ...place, id: "9999" }])[0].mapX, "0");
 });
+
+test("private device coordinates cannot reach route or crowd providers", async () => {
+ const app = requestFixture();
+ await app.run({ place, privateOrigin: true });
+ assert.deepEqual(app.calls, []);
+});

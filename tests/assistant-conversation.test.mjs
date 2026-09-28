@@ -16,6 +16,14 @@ test('asking about a possible edit does not authorize the edit itself', () => {
     assert.equal(canRunConversationAction(text, action, '1001', places), false, text);
   }
 });
+
+test('a requested change preview requires review before applying', () => {
+  const visit = { action: 'visit', placeId: '1001', minutes: 60 };
+  for (const text of ['경남도립미술관 체류 시간을 60분으로 바꾸는 제안을 보여줘', '경남도립미술관 60분 변경안을 준비해줘', '경남도립미술관 적용 전에 확인하고 싶어']) {
+    assert.equal(canRunConversationAction(text, visit, '1001', places), false, text);
+  }
+  assert.equal(canRunConversationAction('경남도립미술관 체류 시간을 60분으로 바꿔줘', visit, '1001', places), true);
+});
 test('specific positive edits and displayed references remain usable without broad affirmative guessing', () => {
   assert.equal(canRunConversationAction('경남도립미술관을 일정에 담아줘.', add, '1001', places), true);
   assert.equal(canRunConversationAction('경남도립미술관의 휴식을 30분으로 바꿔줘.', { action: 'break', placeId: '1001', minutes: 30 }, '1001', places), true);

@@ -16,6 +16,15 @@ export function PlannerToolProvider({children}:{children:ReactNode}) {
 }
 export function usePlannerTools(){ const value=useContext(Context); if(!value) throw new Error('PlannerToolProvider missing'); return value; }
 export function PlannerToolPortal({group,children}:{group:Group;children:ReactNode}) { const {hosts}=usePlannerTools(); return hosts[group] ? createPortal(children,hosts[group]) : null; }
+export function PlannerToolSection({tools,children}:{tools:string[];children:ReactNode}) {
+ const {request}=usePlannerTools();
+ const active=tools.includes(request.id);
+ const [visited,setVisited]=useState(active);
+ if(active && !visited)setVisited(true);
+ // Keep local drafts mounted when moving between tools, while exposing only
+ // the selected task to sighted and screen-reader users.
+ return visited ? <div className="naru-selected-tool" hidden={!active}>{children}</div> : null;
+}
 function Host({group,active}:{group:Group;active:boolean}) { const {register}=usePlannerTools(); const [visited,setVisited]=useState(active); if(active && !visited)setVisited(true); const ref=useCallback((node:HTMLDivElement|null)=>register(group,node),[group,register]); return visited ? <div ref={ref} hidden={!active} data-naru-tool-surface={group}/> : null; }
 export function PlannerToolSurfaces({visible}:{visible:boolean}) {
  const {request,hosts}=usePlannerTools(); const group=toolSurfaceGroup(request.id);

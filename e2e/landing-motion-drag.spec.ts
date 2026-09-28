@@ -112,6 +112,8 @@ test('lower stories follow a vertical reading order, festival copy overlays phot
   const cards = page.locator('.night-festival-preview-cards > a');
   await expect(cards).toHaveCount(3);
   for (const card of await cards.all()) {
+    await card.scrollIntoViewIfNeeded();
+    await expect.poll(() => card.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running' && animation.effect?.getTiming().iterations !== Infinity).length)).toBe(0);
     const image = (await card.locator('img').boundingBox())!;
     const copy = (await card.locator('.night-festival-preview-copy').boundingBox())!;
     expect(copy.x).toBeGreaterThanOrEqual(image.x - 1);

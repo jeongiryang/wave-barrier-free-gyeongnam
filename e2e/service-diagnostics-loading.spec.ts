@@ -23,13 +23,12 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   expect(JSON.parse(before["wave-saved-places"] || "[]")).toEqual(["1001"]);
 
   const tools = page.locator(".simple-more-trip-tools");
-  const toolsSummary = tools.locator(":scope > summary");
   const details = tools.locator(".planner-service-status");
   const summary = details.locator(":scope > summary");
   await expect(tools).toHaveCount(0);
   await expect(summary).toBeHidden();
   expect(requests).toHaveLength(0);
-  await openNaruTool(page, "이동 구간 확인");
+  await openNaruTool(page, "일정 선정 근거");
   await expect(summary).toHaveAccessibleName("정보 연결 상태");
   await expect(summary).toBeVisible();
   // Opening the tools drawer still must not download its optional diagnostics.
@@ -51,10 +50,8 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   expect(requests).toHaveLength(1);
   await summary.focus();
   await page.keyboard.press("Enter");
-  await toolsSummary.focus();
-  await page.keyboard.press("Enter");
-  await expect(tools).not.toHaveAttribute("open");
-  await expect(toolsSummary).toBeFocused();
+  await page.getByRole('button', { name: '모든 여행 도구', exact: true }).click();
+  await expect(summary).toBeHidden();
   expect(await tripValues(page)).toEqual(before);
 
   await closeNaruTool(page);

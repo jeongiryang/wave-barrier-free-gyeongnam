@@ -41,7 +41,8 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
         const control = target.getBoundingClientRect(), floating = launcher.getBoundingClientRect();
         const bubble = launcher.querySelector(".naru-welcome-bubble")?.getBoundingClientRect();
         const top = Math.min(floating.top, bubble?.top ?? floating.top), left = Math.min(floating.left, bubble?.left ?? floating.left);
-        if (control.bottom > top && control.top < floating.bottom && control.right > left && control.left < floating.right) {
+        const right = Math.max(floating.right, bubble?.right ?? floating.right), bottom = Math.max(floating.bottom, bubble?.bottom ?? floating.bottom);
+        if (control.bottom > top && control.top < bottom && control.right > left && control.left < right) {
           target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
         }
       });
@@ -52,8 +53,13 @@ export default function NaruLauncher({ onOpen, context = '여행 설계', disabl
     window.addEventListener('blur', endPointer);
     document.addEventListener('focusin', revealFocusedControl);
     window.addEventListener('resize', revealFocusedControl);
-    return () => { cancelAnimationFrame(frame); document.removeEventListener('pointerdown', beginPointer, true); window.removeEventListener('pointerup', endPointer, true); window.removeEventListener('pointercancel', endPointer, true); window.removeEventListener('blur', endPointer); document.removeEventListener('focusin', revealFocusedControl); window.removeEventListener('resize', revealFocusedControl); };
-  }, []);
+    // Loaded photos and changing hints can move over a control after focus lands.
+    const observer = new ResizeObserver(revealFocusedControl);
+    observer.observe(document.body);
+    const bubble = discovery.current?.querySelector('.naru-welcome-bubble');
+    if (bubble) observer.observe(bubble);
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener('pointerdown', beginPointer, true); window.removeEventListener('pointerup', endPointer, true); window.removeEventListener('pointercancel', endPointer, true); window.removeEventListener('blur', endPointer); document.removeEventListener('focusin', revealFocusedControl); window.removeEventListener('resize', revealFocusedControl); };
+  }, [showHint]);
   return <aside ref={discovery} className="naru-discovery" aria-label="나루 여행 도움">
     {showHint && <div className="naru-welcome-bubble" aria-live="off" onMouseEnter={() => setReading(true)} onMouseLeave={() => setReading(false)} onFocusCapture={() => setReading(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setReading(false); }}>
       <button className="naru-welcome-message" type="button" onClick={() => onOpen()}><span key={hint}>{hints[hint]}</span></button>

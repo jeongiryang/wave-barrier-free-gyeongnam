@@ -1,3 +1,4 @@
+import { focusItineraryStop } from './fixtures';
 import { chooseWaveOption } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { openSupportMenu } from "./support-menu";
@@ -77,7 +78,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     // This round trip enters three full documents and verifies both rejected and corrected sharing.
     test.setTimeout(90_000);
     const itinerary = await prepare(page, english, "2026-10-08", theme);
-    await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
+    await focusItineraryStop(page, "용지호수공원"); await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
     const stop = page.getByRole("dialog", { name: "용지호수공원 수정", exact: true });
     await chooseWaveOption(stop.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-10-08");
     await stop.getByRole("button", { name: "적용", exact: true }).click();

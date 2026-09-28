@@ -28,7 +28,10 @@ async function samples(page: Page, selector: string) {
       while (walker) { layers.push(parse(getComputedStyle(walker).backgroundColor)); walker = walker.parentElement; }
       // Composite translucent content panels over the brightest possible photo.
       const background = layers.reverse().reduce((behind, color) => behind.map((v, i) => color[i] * (color[3] ?? 1) + v * (1 - (color[3] ?? 1))), [255, 255, 255]);
-      return { background, color: parse(getComputedStyle(node).color), text: node.textContent?.replace(/\s+/g, " ").trim().slice(0, 80) || node.tagName.toLowerCase() };
+      // The Naru example uses an opaque pastel gradient. backgroundColor alone
+      // is transparent there, so compositing it would compare dark text with the
+      // navy section hidden behind that gradient. Measure its actual pixels.
+      return { background, color: parse(getComputedStyle(node).color), painted: Boolean(node.closest(".simple-naru-example")), index: nodes.indexOf(node), text: node.textContent?.replace(/\s+/g, " ").trim().slice(0, 80) || node.tagName.toLowerCase() };
     });
   });
 }
@@ -105,7 +108,9 @@ for (const theme of ["dark", "light"] as const) {
       await info.attach(`contrast-threshold-${selector}`, { body: JSON.stringify({ selector, requirement }), contentType: 'application/json' });
       expect(measured, `${selector}을 찾지 못했다`).not.toEqual([]);
       for (const sample of measured) {
-        const ratio = contrastRatio(sample.color, sample.background);
+        const painted = sample.painted ? await paintedContrast(page, selector, true, sample.index) : null;
+        if (painted) expect(painted.pixels, `${selector} · ${sample.text} glyphs`).toBeGreaterThan(0);
+        const ratio = painted ? painted.minimum : contrastRatio(sample.color, sample.background);
         expect(ratio, `${selector} · ${sample.text} 대비 ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(requirement.minimum);
       }
     }

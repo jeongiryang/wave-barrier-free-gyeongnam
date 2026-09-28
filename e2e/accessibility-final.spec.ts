@@ -21,7 +21,7 @@ test("OS 동작 줄이기와 관계없이 full을 유지하고 부분 번역 중
   await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
   await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   await expect(page.locator(".motion-toggle")).toHaveCount(0);
-  await expect(page.locator(".preference-panel > p")).toContainText("기기 설정과 관계없이 애니메이션을 재생합니다.");
+  await expect(page.locator(".preference-panel")).toContainText("읽기 편한 화면으로 조정합니다.");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
 });
 
@@ -38,7 +38,7 @@ test("320px 공개 화면의 네 메뉴와 내 여행은 키보드로 접근할 
   }
   await expect(header.getByRole("link", { name: "WAVE 홈", exact: true })).toHaveAttribute("href", "#top");
   await openSupportMenu(page);
-  const archive = header.locator(".mobile-menu-link[href='/travel-book']");
+  const archive = header.locator(".support-shortcuts a[href='/travel-book']");
   await expect(archive).toBeVisible(); await archive.focus(); await expect(archive).toBeFocused();
   const archiveBox = (await archive.boundingBox())!; expect(archiveBox.width).toBeGreaterThanOrEqual(44); expect(archiveBox.height).toBeGreaterThanOrEqual(44);
   await header.getByRole("button", { name: "WAVE 이용 안내 메뉴", exact: true }).click();

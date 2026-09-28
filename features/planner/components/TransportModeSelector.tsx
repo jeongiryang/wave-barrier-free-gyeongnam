@@ -1,3 +1,4 @@
+import NightIcon from "../../../components/NightIcon";
 import LoadingState from "../../../components/LoadingState";
 import { lazy, Suspense } from "react";
 import { transportModes } from "../constants";
@@ -21,7 +22,7 @@ export default function TransportModeSelector({ route }: { route: ReturnType<typ
   const { transportContext, transportMode, setTransportMode } = route;
   return <>
     <div className="transport-mode-filter" role="group" aria-label={english ? "Filter transport information" : "교통수단별 결과 필터"}>
-      {transportModes.map((mode) => <button type="button" aria-pressed={transportMode === mode.id} key={mode.id} className={transportMode === mode.id ? "active" : ""} onClick={() => setTransportMode(mode.id)}><b>{english ? englishModes[mode.id][0] : mode.label}</b><small>{english ? englishModes[mode.id][1] : mode.description}</small></button>)}
+      {transportModes.map((mode) => <button type="button" aria-pressed={transportMode === mode.id} key={mode.id} className={transportMode === mode.id ? "active" : ""} onClick={() => { setTransportMode(mode.id); if (mode.id !== "all") route.setRouteTravelMode(mode.id === "car" ? "car" : "transit"); }}><NightIcon name={mode.id === "rail" ? "train" : mode.id === "car" ? "car" : mode.id === "all" ? "route" : "bus"} size={18}/><b>{english ? englishModes[mode.id][0] : mode.label}</b></button>)}
     </div>
     {transportContext && (transportContext.nearbyStops.length > 0 || transportContext.arrivals.length > 0 || transportContext.korail.length > 0) && <Suspense fallback={<LoadingState skeleton={false}>{english ? "Opening transport summary…" : "교통 요약을 여는 중입니다…"}</LoadingState>}><TransportLiveSummary transportContext={transportContext} english={english} /></Suspense>}
   </>;

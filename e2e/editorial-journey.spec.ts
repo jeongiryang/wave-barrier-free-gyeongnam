@@ -8,6 +8,10 @@ import { mockAwardHero } from './landing-photo-fixture';
 
 
 for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editorial introduction and working pages remain readable in ${theme}, size ${size}`, async ({ page }) => {
+  // Eight landing chapters plus planner/facility/community axe scans and full
+  // screenshots form one journey. CI completed its assertions but exhausted
+  // 45s in the final capture; keep per-action expectations and all scans intact.
+  test.setTimeout(60_000);
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { plannerView: "guided" });
   await page.addInitScript(theme => {
@@ -30,6 +34,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
       const scene = page.locator(`#${id}`);
       await scene.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
       await expect(scene).toBeVisible();
+      await expect.poll(() => scene.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length)).toBe(0);
       expect((await new AxeBuilder({ page }).include(`#${id}`).analyze()).violations).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await scene.screenshot({ path: test.info().outputPath(`${id}-${theme}-${width}.png`) });

@@ -106,3 +106,16 @@ test("늦은 출발은 자정 뒤 종료 시각으로 계산하고 위험한 공
     travelStart: "2026-09-01", travelEnd: "2026-09-01", dayStartTime: "10:00", shareUrl: "javascript:alert(1)",
   }), /HTTP\(S\)/);
 });
+
+test('캘린더는 실제 일정의 종료 시각과 자정 이후 휴식까지 반영한다', () => {
+  const input = { travelStart: '2026-09-28', travelEnd: '2026-09-28', dayStartTime: '10:00' };
+  const schedule = [{ day: '2026-09-28', entries: [{ endsAt: 761 }, { endsAt: 889 }, { endsAt: 1111 }] }];
+  assert.match(buildTripCalendarIcs({ ...input, schedule }), /DTEND;TZID=Asia\/Seoul:20260928T183100/);
+  assert.match(buildTripCalendarIcs({ ...input, schedule: [{ day: '2026-09-28', entries: [{ endsAt: 1500 }] }] }), /DTEND;TZID=Asia\/Seoul:20260929T010000/);
+  assert.match(buildTripCalendarIcs({ ...input, schedule: [{ day: '2026-09-28', entries: [{ endsAt: 720 }] }] }), /DTEND;TZID=Asia\/Seoul:20260928T120000/);
+});
+
+test('존재하지 않는 날짜로 캘린더가 만들어지지 않는다', () => {
+  assert.throws(() => buildTripCalendarIcs({ travelStart: '2026-02-30', travelEnd: '2026-02-30' }), /올바른 여행 날짜/);
+  assert.doesNotThrow(() => buildTripCalendarIcs({ travelStart: '2028-02-29', travelEnd: '2028-02-29' }));
+});

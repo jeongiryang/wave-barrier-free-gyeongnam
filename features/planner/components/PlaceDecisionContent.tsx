@@ -42,7 +42,7 @@ export default function PlaceDecisionContent(props: PlaceDecisionDialogProps & {
         <Suspense fallback={<LoadingState>{en ? "Loading visitor links and correction form…" : "후기 링크와 제보 양식을 불러오는 중…"}</LoadingState>}><PlaceParticipationActions place={place} location={location} feedbackText={props.feedbackText} feedbackState={props.feedbackState} onFeedbackChange={props.onFeedbackChange} onSubmitFeedback={props.onSubmitFeedback} /></Suspense>
         </details>
         <Suspense fallback={<LoadingState>{en ? "Preparing visitor questions…" : "방문 전 문의를 준비하고 있어요…"}</LoadingState>}><PlaceInquiryCard key={place.id} place={place} en={en} /></Suspense>
-        <small className="modal-note">{en ? "Facility records are not a safety certification. Missing information does not mean a facility is absent. Confirm current conditions with the venue before visiting." : "공식 시설 정보는 안전 인증이나 접근 가능성 보장이 아닙니다. 미확인은 시설이 없다는 뜻이 아닙니다. 방문 전 시설에 현재 운영 상태를 확인해 주세요."}</small>
+        <a className="information-guide-link" href="/policies#travel-information-policy" target="_blank" rel="noreferrer">{en ? "Information guide (new tab)" : "정보 이용 안내 (새 창)"}</a>
   </>;
 }
 

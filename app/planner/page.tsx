@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { PlannerToolProvider, PlannerToolPortal, usePlannerTools, toolSurfaceGroup } from "../../features/planner/components/PlannerToolSurface";
+import { PlannerToolProvider, PlannerToolPortal, PlannerToolSection, usePlannerTools, toolSurfaceGroup } from "../../features/planner/components/PlannerToolSurface";
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
 import { getTabStorage } from '../../lib/session-storage.js';
 import { saveSessionProfiles } from '../../lib/session-travel-profiles.js';
@@ -87,7 +87,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const resumeAssistant = useRef(false);
   const closeSelectedPlace = useCallback(() => { setSelectedPlace(null); if (resumeAssistant.current) { resumeAssistant.current = false; setAssistantOpen(true); } }, []);
-  const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace, true);
+  const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace);
 
   const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
   const canSaveSelectedPlace = planController.resultCurrent && activePlaces.some(place => place === selectedPlace);
@@ -355,7 +355,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   const inspectPlace = (place: Place) => { if (assistantOpen) { resumeAssistant.current = true; setAssistantOpen(false); } setSelectedPlace(place); };
   const openInternalToolRef = useRef<(tool:string)=>void>(()=>{});
   useEffect(() => {
-    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'experience':key; if(toolSurfaceGroup(tool)) openInternalToolRef.current(tool); else if (event?.type !== "wave:planner-navigation" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
+    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'on-trip':key; if(toolSurfaceGroup(tool)) openInternalToolRef.current(tool); else if (event?.type !== "wave:planner-navigation" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
     let pending: MutationObserver | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let deliveryFrame = 0;
@@ -450,9 +450,9 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
     </div>
     <div hidden={browsing} className="simple-itinerary-view">
       <TripReplacementNotice alternatives={alternatives} />
-      <PlannerItineraryWorkspace active={!browsing || assistantMounted}
+      <PlannerItineraryWorkspace active={!browsing || assistantMounted} onTool={openAssistantTool}
                 onStart={() => stageView.changeStep("conditions", true)}
-                alternativeTools={<><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={inspectPlace}/></Suspense><button type="button" onClick={showAssistant}>나루에게 일정 변경 요청하기</button><PlannerServiceStatus locale={locale} keyHealth={keyHealth} effectiveProviders={effectiveProviders} transportProviders={transportProviders} providerErrors={providerErrors} liveCount={liveCount} dataErrors={dataErrors} plan={plan}/></>}
+                alternativeTools={<><PlannerToolSection tools={["alternatives"]}><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /></PlannerToolSection><PlannerToolSection tools={["course"]}><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={inspectPlace}/></Suspense></PlannerToolSection><PlannerToolSection tools={["receipt"]}><button type="button" onClick={showAssistant}>나루에게 일정 변경 요청하기</button><PlannerServiceStatus locale={locale} keyHealth={keyHealth} effectiveProviders={effectiveProviders} transportProviders={transportProviders} providerErrors={providerErrors} liveCount={liveCount} dataErrors={dataErrors} plan={plan}/></PlannerToolSection></>}
                 mapView={itineraryMapView}
                 onMapViewChange={value => { setItineraryMapView(value); if (assistantOpen) { setAssistantOpen(false); stageView.changeStep("itinerary", true); if (embedded) router.push("/planner#itinerary"); } }}
                 canAddPlaces={planController.resultCurrent}

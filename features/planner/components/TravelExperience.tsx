@@ -69,7 +69,6 @@ export default function TravelExperience(props: ExperienceProps) {
             ) : tab === "passport" ? (
               <TravelPassport
                 places={props.trip.orderedSavedPlaces}
-                region={props.region}
               />
             ) : (
               null

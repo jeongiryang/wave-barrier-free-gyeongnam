@@ -8,6 +8,17 @@ const user = content => ({ role: 'user', content });
 const proposal = patch => ({ action: 'create-itinerary', region: '통영', ...patch });
 const ground = (value, said, ctx = context) => groundAssistantProposal(value, Array.isArray(said) ? said : [user(said)], ctx);
 
+test('a trailing date preservation sentence allows only the requested visit proposal', () => {
+  const visit = { action: 'visit', placeId: '1622623', minutes: 60 };
+  for (const ending of ['장소와 날짜는 유지해줘.', '날짜는 그대로 유지해 주세요.', '날짜와 고정 방문은 모두 보존해줘.']) {
+    const text = `통영시립도서관의 체류 시간만 60분으로 바꾸는 제안을 보여줘. ${ending}`;
+    assert.deepEqual(ground(visit, text), visit);
+    assert.equal(ground({ action: 'set-dates', start: '2027-01-01', end: '2027-01-01' }, text), null);
+    assert.equal(ground({ action: 'create-itinerary' }, text), null);
+  }
+  assert.equal(ground(visit, '날짜는 유지해줘. 날짜를 내일로 바꿔줘.'), null);
+});
+
 test('fatigue today does not move a saved future period to today', () => {
   const actual = ground({ action: 'adapt-itinerary', reason: 'fatigue', pace: 'relaxed', start: context.today, end: context.today }, '오늘 피곤해. 방문 수를 줄이고 쉬는 시간을 늘려줘');
   assert.equal(actual.start, undefined); assert.equal(actual.end, undefined);

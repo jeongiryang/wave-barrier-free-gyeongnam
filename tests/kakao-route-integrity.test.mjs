@@ -9,9 +9,9 @@ import * as coordinates from "../lib/map-coordinates.js";
 const source=readFileSync(new URL("../server/transport/kakao-route.ts",import.meta.url),"utf8");
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const valid=()=>({routes:[{result_code:0,summary:{duration:420,distance:2300,fare:{toll:0}},sections:[{roads:[{vertexes:[128.6819,35.2281,128.692,35.2384]}]}]}]});
-async function run(body,{status=200,throwRequest=false,invalidJson=false,key="fixture-not-a-real-key",start=[35.228,128.6818],end=[35.2385,128.6921]}={}){
+async function run(body,{status=200,throwRequest=false,invalidJson=false,key="fixture-not-a-real-key",start=[35.228,128.6818],end=[35.2385,128.6921],inspect=()=>{}}={}){
   const mod={exports:{}};
-  new Function("module","exports","require","fetch",code)(mod,mod.exports,name=>{if(name.endsWith("provider-failure.js"))return failures;if(name.endsWith("provider-request.js"))return {requestProvider:createProviderRequester()};if(name.endsWith("map-coordinates.js"))return coordinates;if(name.endsWith("request-budget.js"))return {UPSTREAM_TIMEOUT_MS:{transport:6000}};throw Error(name);},async()=>{if(throwRequest)throw Error("controlled timeout");return {ok:status>=200&&status<300,status,json:async()=>{if(invalidJson)throw Error("controlled malformed JSON");return body;}};});
+  new Function("module","exports","require","fetch",code)(mod,mod.exports,name=>{if(name.endsWith("provider-failure.js"))return failures;if(name.endsWith("provider-request.js"))return {requestProvider:createProviderRequester()};if(name.endsWith("map-coordinates.js"))return coordinates;if(name.endsWith("request-budget.js"))return {UPSTREAM_TIMEOUT_MS:{transport:6000}};throw Error(name);},async(url)=>{inspect(new URL(url));if(throwRequest)throw Error("controlled timeout");return {ok:status>=200&&status<300,status,json:async()=>{if(invalidJson)throw Error("controlled malformed JSON");return body;}};});
   return mod.exports.fetchKakaoRoute({KAKAO_REST_API_KEY:key},...start,...end);
 }
 
@@ -130,4 +130,10 @@ test("API composition cannot mark inconsistent road measurements as confirmed",a
 });
 for(const body of [{routes:[{result_code:1}]},{routes:[{result_code:0}]},{routes:[{}]}])test(`API composition keeps ${JSON.stringify(body)} as an unconfirmed preview`,async()=>{
   const result=await api(body);assert.equal(result.configured,false);assert.equal(result.alternatives.length,1);assert.equal(result.alternatives[0].configured,false);assert.equal(result.alternatives[0].mode,"preview");assert.notEqual(result.providers[0].state,"connected");
+});
+
+test("car directions ask the provider for shortest time by default", async () => {
+ let priority;
+ await run(valid(), { inspect: url => { priority = url.searchParams.get('priority'); } });
+ assert.equal(priority, 'TIME');
 });

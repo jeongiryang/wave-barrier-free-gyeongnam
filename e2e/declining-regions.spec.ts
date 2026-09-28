@@ -34,7 +34,8 @@ test("planner filter reorders all regions without hiding or requesting data and 
   await discovery.getByRole("button", { name: "전체 18개 지역", exact: true }).click();
   await expect(discovery.locator(".simple-region")).toHaveCount(18);
   const apiRequests: string[] = [];
-  page.on("request", request => { if (/\/api\//.test(request.url())) apiRequests.push(request.url()); });
+  // Reordering can reveal a lazy photo. It must not refetch tourism results.
+  page.on("request", request => { const url = new URL(request.url()); if (url.pathname.startsWith('/api/') && !(url.pathname === '/api/wave' && url.searchParams.get('action') === 'photo')) apiRequests.push(request.url()); });
   const filter = discovery.getByRole("button", { name: "인구감소지역 우선 보기", exact: true });
   await filter.click();
   await expect(discovery.getByRole("button", { name: "인구감소지역 먼저 보는 중", exact: true })).toHaveAttribute("aria-pressed", "true");

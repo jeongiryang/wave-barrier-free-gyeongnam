@@ -10,6 +10,24 @@ const accessibility = [
   { key: "elevator", label: "승강기", state: "negative", detail: "승강기 없음" },
 ];
 
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/community/posts?*", route => route.fulfill({ json: { posts: [] } }));
+});
+
+async function expectFacilityShapes(page: Page, visible: boolean) {
+  await page.locator('.simple-place-row').first().locator('.place-card-info').click();
+  const detail = page.locator('.simple-place-pane');
+  for (const state of ['negative', 'unknown', 'confirmed']) {
+    const icon = detail.locator(`.facility-evidence-list [data-state="${state}"] .status-shape`).first();
+    if (visible) await expect(icon).toBeVisible();
+    else await expect(icon).toBeHidden();
+  }
+  await expect(detail.locator('.facility-evidence-list [data-state="negative"]')).toContainText('승강기');
+  await expect(detail.locator('.facility-evidence-list [data-state="negative"]')).toContainText('없음으로 기록');
+  await expect(detail.locator('.facility-evidence-list [data-state="unknown"]')).toContainText('미확인');
+  await detail.locator('.modal-close').click();
+}
+
 async function toggleColorAssist(page: Page) {
   await openSupportMenu(page);
   const details = page.locator(".preference-controls");
@@ -33,23 +51,21 @@ test("색 구분 보조를 켜면 편의 상태에 글자와 모양이 함께 �
   const card = page.locator(".simple-place-row").first();
   // 끈 상태에서도 색 없이 이해할 수 있어야 한다: 상태마다 글자가 이미 붙어 있다.
   await expect(card.locator(".facility-missing")).toHaveText("승강기 없음");
-  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 없음");
+  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 미확인");
   await expect(page.locator("html")).toHaveAttribute("data-color-assist", "off");
-  await expect(card.locator(".facility-missing .status-shape")).toBeHidden();
+  await expectFacilityShapes(page, false);
 
   await toggleColorAssist(page);
   await expect(page.locator("html")).toHaveAttribute("data-color-assist", "on");
-  await expect(card.locator(".facility-missing .status-shape")).toBeVisible();
-  await expect(card.locator(".facility-unknown .status-shape")).toBeVisible();
-  await expect(card.locator(".facility-confirmed .status-shape")).toBeVisible();
+  await expectFacilityShapes(page, true);
   await expect(card.locator(".facility-missing")).toHaveText("승강기 없음");
-  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 없음");
+  await expect(card.locator(".facility-unknown")).toHaveText("장애인 화장실 정보 미확인");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-color-assist", "on");
-  await expect(page.locator(".simple-place-row").first().locator(".facility-missing .status-shape")).toBeVisible();
+  await expectFacilityShapes(page, true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 
   await toggleColorAssist(page);
@@ -76,7 +92,7 @@ test("저장소가 막혀도 화면이 동작하고 색 구분 보조는 기본�
   // 저장하지 못해도 이번 탭에서는 설정이 즉시 반영돼야 한다.
   await toggleColorAssist(page);
   await expect(page.locator("html")).toHaveAttribute("data-color-assist", "on");
-  await expect(card.locator(".facility-missing .status-shape")).toBeVisible();
+  await expectFacilityShapes(page, true);
   expect(errors).toEqual([]);
 });
 

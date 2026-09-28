@@ -23,6 +23,7 @@ test("두 탭에서 날짜 없는 탐색부터 일정 편집·지도·저장·�
   await page.getByRole('button', { name: '용지호수공원 일정에 담기', exact: true }).click();
   await openItinerary(page);
   await expect(page.locator('.simple-stops > li')).toHaveCount(2);
+  if ((page.viewportSize()?.width || 0) >= 1280) await page.locator('.simple-stops').getByRole('button', { name: '용지호수공원', exact: true }).click();
   await page.getByRole('button', { name: '용지호수공원 같은 날 앞 순서로 이동', exact: true }).click();
   await expect(page.locator('.simple-stops > li h3').first()).toHaveText('용지호수공원');
   await page.getByRole('button', { name: '여행 설정', exact: true }).click();

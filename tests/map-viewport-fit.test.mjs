@@ -1,3 +1,4 @@
+import { mapRouteLines } from "../lib/map-route-lines.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -356,6 +357,7 @@ function rendererHarness(provider, { deferredMarkers = false } = {}) {
   };
   document.createElement = node;
   const require = name => {
+    if (name === "../../lib/map-route-lines.js") return { mapRouteLines };
     if (name === "../../lib/gyeongnam-map-viewport.js")
       return { GYEONGNAM_MAP_BOUNDS, constrainedGyeongnamViewport };
     if (name === "./kakao-map-viewport") {
@@ -465,7 +467,8 @@ for (const provider of ["kakao", "leaflet"]) {
     assert.deepEqual(f.focusCalls.at(-1), { preventScroll: true });
     currentNode.listeners.click(); assert.equal(f.chosen.at(-1), refreshedPlaces[0]);
     const lines = f.layers.filter(item => item.map === map && item.options.path);
-    assert.equal(lines.length, 1);
+    assert.equal(lines.length, 2, "one route uses a contrast casing and a colored path");
+    assert.deepEqual(lines.map(line => line.options.strokeWeight ?? line.options.weight), [9, 5]);
     const path = lines[0].options.path.map(point => Array.isArray(point) ? point : [point.getLat(), point.getLng()]);
     assert.deepEqual(path, route.geometry.map(point => [point.lat, point.lng]));
 

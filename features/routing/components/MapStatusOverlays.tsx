@@ -83,12 +83,13 @@ export function MapCanvasStatusOverlays({ provider, roadviewOpen, roadviewMessag
     </div>}
     {crowdVisual && crowdText && crowd && crowdPlace && !roadviewOpen && <aside lang={locale} className={`map-crowd-legend crowd-${crowdVisual.level}`} style={{ "--crowd-color": crowdVisual.color, "--crowd-soft": crowdVisual.soft } as CSSProperties} aria-label={english ? "Crowd forecast" : "혼잡 예측"}>
       <span className="crowd-visual"><i /></span>
-      <div><small><span lang={locale}>{english ? "30-day crowd forecast" : "30일 혼잡 예측"}</span> · <span lang={mapTextLanguage(crowdPlace.name, english)}>{crowdPlace.name}</span></small><strong lang={mapTextLanguage(crowdText.label, english)}>{crowdText.label}</strong><p lang={mapTextLanguage(crowdText.message, english)}>{crowdText.message}</p></div>
-      <em>{crowd.rate.toFixed(1)}%</em>
-      <span className="map-crowd-evidence">
+      <div><small lang={mapTextLanguage(crowdPlace.name, english)}>{crowdPlace.name}</small><strong lang={mapTextLanguage(crowdText.label, english)}>{crowdText.label}</strong><span className="crowd-forecast-label">{english ? "Forecast" : "혼잡 예측"}</span></div>
+      <details className="map-crowd-details"><summary aria-label={english ? "About this forecast" : "혼잡도 예측 정보"} title={english ? "About this forecast" : "혼잡도 예측 정보"}><NightIcon name="info" size={20}/></summary><div className="map-crowd-evidence">
+        <span>{english ? "30-day crowd forecast" : "30일 혼잡 예측"} · {crowd.rate.toFixed(1)}%</span>
         <span>{english ? "Korea Tourism Organization forecast" : "한국관광공사 예측"} · {crowdDate ? <>{english ? "Reference date " : "기준일 "}<time dateTime={crowdDate}>{crowdDate}</time></> : english ? "Reference date unavailable" : "기준일 미확인"}</span>
         <span>{english ? "Not a live headcount or waiting time" : "실시간 인원·대기시간 아님"}</span>
-      </span>
+        <a href="/policies#crowd-information" target="_blank" rel="noreferrer">{english ? "Information guide (new tab)" : "정보 이용 안내 (새 창)"}</a>
+      </div></details>
     </aside>}
     {provider === "loading" && <div lang={locale} className="map-loading-skeleton" role="status" aria-label={english ? "Connecting map" : "지도 연결 중"}><div><i /><i /><i /><span /></div><p><b />{english ? "Connecting to Kakao Maps." : "카카오 지도를 안전하게 연결하고 있습니다."}</p></div>}
     {roadviewOpen && <section id="map-roadview-panel" onFocusCapture={revealKeyboardControl} className="map-roadview-panel" aria-label={english ? "Kakao Roadview" : "카카오 로드뷰"} tabIndex={-1}>

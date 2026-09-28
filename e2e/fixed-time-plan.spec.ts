@@ -22,6 +22,9 @@ async function startTime(page: Page, value: string) {
 }
 
 test("fixed visits keep their date and order, and return deadlines follow the live schedule", async ({ page }, info) => {
+  // This full save/reload/restore/share journey also scans two viewport sizes.
+  // The trace completed its assertions within 45s but timed out in teardown.
+  test.setTimeout(60_000);
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
   await mockPublicShellApi(page); await mockPlannerApi(page, { preserveView: true });
   await page.emulateMedia({ reducedMotion: "reduce" });

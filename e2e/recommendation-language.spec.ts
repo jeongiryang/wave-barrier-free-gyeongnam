@@ -85,11 +85,15 @@ for (const theme of ["light", "dark"] as const) {
     await page.keyboard.press("Shift+Tab");
     await expect(arrivalSummary).toBeFocused();
     await page.keyboard.press("Shift+Tab");
+    await expect(dialog.getByRole('link', { name: 'Information guide (new tab)', exact: true })).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
     await expect(dialog.getByRole('button', { name: /Make an inquiry card/ })).toBeFocused();
     await page.keyboard.press("Shift+Tab");
     await expect(dialog.getByRole("textbox")).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(dialog.getByRole('button', { name: /Make an inquiry card/ })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(dialog.getByRole('link', { name: 'Information guide (new tab)', exact: true })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(arrivalSummary).toBeFocused();
     await page.keyboard.press("Tab");

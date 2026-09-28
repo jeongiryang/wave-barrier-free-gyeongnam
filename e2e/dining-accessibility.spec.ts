@@ -111,10 +111,10 @@ test("편의 태그는 요청한 조건부터 최대 3개까지 보이고 나머
 test("미확인은 없음으로 표시되지 않고, 색을 빼고도 글자로 구분된다", async ({ page }) => {
   const list = await openFacilitiesStep(page, available);
   const tags = list.getByRole("list", { name: "미확인 해물탕 편의시설", exact: true });
-  await expect(tags).toContainText("접근로 정보 없음");
+  await expect(tags).toContainText("접근로 정보 미확인");
   await expect(tags).not.toContainText("접근로 없음");
   const confirmed = list.getByRole("list", { name: "확인된 국숫집 편의시설", exact: true });
-  // 확인됨은 시설 이름만, 명시적 부재는 `없음`, 미확인은 `정보 없음`으로 적는다.
+  // 확인됨은 시설 이름만, 명시적 부재는 `없음`, 미확인은 `정보 미확인`으로 적는다.
   await expect(confirmed).toContainText("장애인 화장실 없음");
   await expect(confirmed).toContainText("접근로");
   // 상한을 넘겨 접힌 미확인 항목이 `없음`으로 새어나오지 않는다.
@@ -126,7 +126,7 @@ test("편의 확인이 실패해 모두 미확인이어도 목록은 남는다",
   const allUnknown = { ...available, items: [{ ...confirmedPlace, facilities: confirmedPlace.facilities.map(item => ({ ...item, state: "unknown" as const })) }] };
   const list = await openFacilitiesStep(page, allUnknown);
   await expect(list).toContainText("확인된 국숫집");
-  await expect(list).toContainText("접근로 정보 없음");
+  await expect(list).toContainText("접근로 정보 미확인");
   await expect(list).not.toContainText("접근로 없음");
 });
 

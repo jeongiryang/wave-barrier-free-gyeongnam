@@ -6,7 +6,7 @@ export default function ErrorPage() {
   const { locale } = useSitePreferences();
   const en = locale === "en";
   return (
-    <main className="route-state-page" lang={en ? "en" : "ko"} aria-labelledby="route-error-title">
+    <main className="route-state-page wave-night" lang={en ? "en" : "ko"} aria-labelledby="route-error-title">
       <div className="route-state-mark" aria-hidden="true">!</div>
       <p>CONNECTION PAUSE</p>
       <h1 id="route-error-title">{en ? "Please reload this page." : "화면을 다시 불러와 주세요."}</h1>

@@ -24,8 +24,7 @@ test("visiting hours load on request, compare changed times and reuse the same r
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-10-07" });
-  const board = page.locator(".simple-stops");
-  const hours = board.locator(".visit-hours");
+  const hours = page.locator("#itinerary .visit-hours:visible");
   await expect(hours.locator("summary")).toBeVisible();
   expect(requests).toEqual([]);
   await hours.locator("summary").click();
@@ -35,7 +34,7 @@ test("visiting hours load on request, compare changed times and reuse the same r
   await expect(hours).toContainText("예상 도착이 개장 전이에요.");
   await startTime(page, "16:00");
   await expect(hours).toContainText("머무는 동안 이용시간이 끝나요.");
-  await board.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
+  await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const stop = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   await chooseWaveOption(stop.getByRole("combobox", { name: "경남도립미술관 머무는 시간", exact: true }), "30");
   await stop.getByRole("button", { name: "적용", exact: true }).click();
@@ -66,7 +65,7 @@ test("provider failure retries explicitly and conditional hours remain unconfirm
   await chooseTripConditions(page);
   await page.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
   await openItinerary(page, { start: "2026-10-07" });
-  const hours = page.locator(".simple-stops .visit-hours");
+  const hours = page.locator("#itinerary .visit-hours:visible");
   await hours.locator("summary").click();
   await expect(hours.getByRole("alert")).toContainText("불러오지 못했어요");
   expect(calls).toBe(1);

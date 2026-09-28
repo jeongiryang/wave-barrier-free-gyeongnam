@@ -7,7 +7,6 @@ html:root body .header-dropdown .preference-panel { position:static;inset:auto;w
 html:root body .color-assist-preview { display:flex;flex-wrap:wrap;gap:12px;padding:12px;color:inherit; }
 .color-assist-preview small { flex-basis:100%; }
 html:root body .wave-night :is(.simple-footer,.simple-section,.landing-finale,.night-photo-footer) { border-top:0;border-bottom:0; }
-html:root body .wave-night :is(.planner-welcome-header,.naru-conversation-footer) { background:#061725 url('/naru/night-coast.webp') center/cover no-repeat;color:#e9f3ff; }
 html:root body .naru-launcher { background:#102b40;border:1px solid #416680;box-shadow:0 4px 20px #0005; }
 html:root body :is(form[role=search],.night-hero-search,.naru-tool-search):focus-within { box-shadow:0 0 0 2px #6dcad080; }
 html:root body :is(form[role=search],.night-hero-search,.naru-tool-search) :is(input,select):focus { outline:none;box-shadow:none;border-color:transparent; }

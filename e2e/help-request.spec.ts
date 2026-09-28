@@ -18,6 +18,9 @@ async function setup(page: Page) {
   for (const name of ['경남도립미술관', '용지호수공원', '시민문화쉼터']) await page.getByRole('button', { name: name + ' 일정에 담기', exact: true }).click();
   await openItinerary(page);
   await openNaruTool(page, '이동 구간 확인');
+  await expect(page.locator('.coverage-notice')).toContainText('조회가 끝났습니다.');
+  await expect(page.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
+  await openNaruTool(page, '여행 당일 안내');
 }
 
 const openHelpFromDayTools = async (page: Page) => {
@@ -36,8 +39,6 @@ test('help dialog opens immediately with the intended first focus and default me
   await page.getByRole('button', { name: '도움이 필요해요', exact: true }).scrollIntoViewIfNeeded();
   // Route checks start after a 650ms debounce, beyond networkidle's 500ms window.
   // Wait for the itinerary's completed state before auditing this local-only tool.
-  await expect(page.locator('.coverage-notice')).toContainText('조회가 끝났습니다.');
-  await expect(page.locator('.coverage-actions > button').first()).toHaveAttribute('aria-busy', 'false');
   await page.waitForLoadState('networkidle');
   const apiCallUrls: string[] = [];
   await page.route('**/api/**', route => { apiCallUrls.push(route.request().url()); return route.fulfill({ status: 503, json: { error: 'must not be called by help request' } }); });

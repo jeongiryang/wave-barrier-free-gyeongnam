@@ -4,7 +4,7 @@ import { writeFile } from "node:fs/promises";
 import { findLowContrastText, formatFindings } from "./contrast";
 import { mockPlannerApi } from "./fixtures";
 import { prepareLandingMedia, storyReady } from "./landing-contract";
-import { paintedContrast } from "./painted-contrast";
+import { paintedContrast, waitForRenderedEntry } from "./painted-contrast";
 
 /**
  * 화면 어디에나 있는 공통 요소(환경설정 토글, 지역 칩)와 주요 공개 화면의 글자가
@@ -17,6 +17,7 @@ async function closingTextContrast(page: Page) {
   const closing = page.locator("#closing");
   await closing.scrollIntoViewIfNeeded();
   await expect(closing).toBeVisible();
+  await waitForRenderedEntry(closing.locator('.landing-closing-copy'));
   await expect(page.locator(".landing-finale img,.landing-finale .award-panorama")).toHaveCount(0);
   await expect(closing.locator("img,figcaption,a,button")).toHaveCount(0);
   const samples = await closing.evaluate(root => {
@@ -24,7 +25,9 @@ async function closingTextContrast(page: Page) {
     return [...root.querySelectorAll("h2,.landing-closing-copy > p")].map(node => {
       const foreground = getComputedStyle(node), box = node.getBoundingClientRect();
       return { text: node.textContent, color: foreground.color, opacity: foreground.opacity,
-        covered: box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom };
+        // Independently rounded DOMRects can differ by a fraction of a pixel at
+        // the shared bottom edge, particularly at non-integer device scales.
+        covered: box.left >= frame.left - 1 && box.right <= frame.right + 1 && box.top >= frame.top - 1 && box.bottom <= frame.bottom + 1 };
     });
   });
   expect(samples).toHaveLength(2);

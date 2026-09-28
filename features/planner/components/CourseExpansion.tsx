@@ -6,7 +6,7 @@ import {useRef,useState} from 'react';
 import type {Place,PlanData} from '../types';
 import type {useTripSelection} from '../hooks/useTripSelection';
 import {useSmallTripSearch} from '../hooks/useSmallTripSearch';
-import {courseCandidates,type CoursePurpose} from '../../../lib/small-trip.js';
+import {courseCandidates,courseSearchContext,type CoursePurpose} from '../../../lib/small-trip.js';
 import {courseCard,courseGrid,courseActions,courseLabel,courseInput,courseCopy,coursePrimary} from './small-trip-styles';
 import {useSitePreferences} from '../../preferences/context';
 import {courseGuideTones} from '../course-copy';
@@ -22,9 +22,9 @@ export default function CourseExpansion({trip,region,themes,profiles,plan,curren
  const constraints=JSON.stringify([trip.fixedVisits,trip.travelStart,trip.travelEnd,trip.dayStartTime]);
  const previewHeading=useRef<HTMLHeadingElement>(null);
  const anchor=trip.orderedSavedPlaces.find(place=>place.id===anchorId)||trip.orderedSavedPlaces.at(-1);
- const requestedThemes=purpose==='food'?'food':purpose==='rest'?'nature':themes;
- const search=useSmallTripSearch(region,requestedThemes,profiles);
- const data=search.data||(current&&requestedThemes===themes?plan:null),keys=data?.criteria?.facilityKeys||[];
+ const query=courseSearchContext(anchor,region,themes,purpose),requestedThemes=query.themes;
+ const search=useSmallTripSearch(query.region,requestedThemes,profiles);
+ const data=search.data||(current&&query.region===region&&requestedThemes===themes?plan:null),keys=data?.criteria?.facilityKeys||[];
  const candidates=anchor&&keys.length?courseCandidates({places:[...(data?.places||[]),...(data?.explorationPlaces||[])],anchor,savedIds:trip.saved,requiredKeys:keys,includeUnknown:unknown,purpose,radiusKm:radius}):[];
  const selected=candidates.find(row=>row.place.id===chosenId);
  function apply(){

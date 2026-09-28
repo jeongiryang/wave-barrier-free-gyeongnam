@@ -21,13 +21,15 @@ export function useRouteOrigin(onPrivateOrigin?: () => void) {
 
   const updateOrigin = useCallback((point: RoutePoint, label: string, isPrivate = false) => {
     locationGeneration.current++;
+    // Reject private coordinates at the shared-state boundary, including legacy callers.
+    if (isPrivate) {
+      setRouteNotice({ ko: "현재 위치는 기기 안에서만 확인합니다. 지도와 경로에는 직접 선택한 공개 출발지를 사용해 주세요.", en: "Current location stays on this device. Choose a public departure for maps and routes." });
+      return;
+    }
     setOrigin(point);
     setOriginLabel(label);
     setPrivateOrigin(isPrivate);
     onPrivateOrigin?.();
-    if (isPrivate) {
-      setRouteNotice({ ko: "현재 위치를 표시했습니다. WAVE 경로 API로 좌표를 보내거나 저장하지 않습니다. 지도 제공처에는 화면 영역·접속 정보가 전달될 수 있습니다.", en: "Your location is displayed. Coordinates are not sent to or stored by the WAVE route service. Map providers may receive the visible map area and connection information." });
-    }
   }, [onPrivateOrigin]);
 
   const requestCurrentLocation = useCallback(() => {

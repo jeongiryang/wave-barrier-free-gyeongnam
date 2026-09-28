@@ -29,6 +29,17 @@ function fixture(locale = "ko") {
 }
 const position = { coords: { latitude: 35.3, longitude: 128.7 } };
 
+test("legacy private-origin updates cannot enter map or shared journey state", () => {
+  const app = fixture(), initial = app.render();
+  initial.updateOrigin({lat:35.3,lng:128.7}, "device location", true);
+  const current = app.render();
+  assert.deepEqual(current.origin, initial.origin);
+  assert.equal(current.originLabel, initial.originLabel);
+  assert.equal(current.privateOrigin, false);
+  assert.deepEqual(app.privateChanges, []);
+  assert.doesNotMatch(JSON.stringify(current.routeNotice), /35\.3|128\.7/);
+});
+
 for (const locale of ["ko", "en"]) for (const outcome of ["success", "failure"]) test(`${locale} new-trip reset rejects a late location ${outcome} and clears the previous live notice`, () => {
   const app = fixture(locale);
   const initial = app.render();

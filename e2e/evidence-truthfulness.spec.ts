@@ -45,7 +45,7 @@ test("교통·요금·미확인 이동값은 확인 범위를 그대로 말한�
   await expect(page.getByText(/확인되지 않은 시간을 임의로 표시하지 않습니다/)).toBeVisible();
   await expect(page.getByRole("link", { name: /카카오맵에서 도보 확인/ })).toBeVisible();
   await expect(page.locator('.route-options .route-option')).toHaveCount(0);
-  await expect(page.locator('.route-scope-note')).toHaveText('현재 출발지 → 도착지 한 구간의 예상 시간입니다.');
+  await expect(page.locator('.route-scope-note')).toHaveText('이 이동수단의 경로를 확인하지 못했어요. 아래 경로 비교에서 확인해 주세요.');
   // The approved map keeps its leg scope here; the full access limitation is
   // available through the public policy link rather than duplicated on the map.
   const policyLink = page.getByRole('link', { name: '데이터·사진 출처', exact: true });

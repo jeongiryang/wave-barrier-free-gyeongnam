@@ -51,12 +51,12 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
     if (dismissed.current) return;
     if (!regionBoundaries.some(region => region.name === name) || !root.current) { setPreview(null); return; }
     const rect = target.getBoundingClientRect(), parent = root.current.getBoundingClientRect();
-    const half = Math.min(140, (parent.width - 16) / 2);
+    const half = Math.min(160, (parent.width - 16) / 2);
     const belowSpace = window.innerHeight - rect.bottom - 18;
     const aboveSpace = rect.top - 18;
     // Scrolling can move a region under a stationary pointer. Its hover must
     // never undo a keyboard user's scroll/focus; fit the preview to the viewport.
-    const below = belowSpace >= 180 || belowSpace >= aboveSpace;
+    const below = belowSpace >= 300 || belowSpace >= aboveSpace;
     setPreview({ name, x: Math.max(half + 8, Math.min(parent.width - half - 8, rect.left + rect.width / 2 - parent.left)), y: (below ? rect.bottom + 10 : rect.top - 10) - parent.top, below, maxHeight: Math.max(0, below ? belowSpace : aboveSpace) });
   };
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function GyeongnamRegionPicker({ value, onChange, includeAll = fa
     {compact && <details className="region-map-disclosure"><summary>{en ? 'See regions on the map' : '지도에서 지역 위치 보기'}</summary>{map}</details>}
     {preview && <div id={previewId} role="tooltip" tabIndex={0} onFocus={event => { previewOpener.current = event.relatedTarget instanceof HTMLButtonElement && root.current?.contains(event.relatedTarget) ? event.relatedTarget : null; }} className="region-photo-preview" data-below={preview.below} style={{ left: preview.x, top: preview.y, maxHeight: preview.maxHeight, transform: preview.below ? undefined : 'translate(-50%,-100%)' }}>
       {photo && !failedPhotos.includes(photo.image) && <img src={photo.image} alt={photo.title} onError={() => setFailedPhotos(previous => [...previous, photo.image])} />}
-      <div><strong>{label(preview.name)}</strong>{photo ? <><p>{photo.title}</p><span>{photo.location}</span>{displayedPhotos[preview.name]?.representative && <small>{en ? 'Regional cover photo · Korea Tourism Organization' : '지역 대표 사진 · 한국관광공사'}</small>}{photo.description && <span>{photo.description}</span>}{failedPhotos.includes(photo.image) && <small>{en ? 'Photo unavailable' : '사진을 불러오지 못했어요'}</small>}</> : <p>{!photos[preview.name] ? (en ? 'Loading photo…' : '관광사진을 불러오는 중…') : photos[preview.name].state === 'empty' ? (en ? 'No photo provided.' : '제공된 관광사진이 없어요.') : (en ? 'Photo temporarily unavailable.' : '관광사진을 불러오지 못했어요.')}</p>}</div>
+      <div><strong>{label(preview.name)}</strong>{photo ? <><p>{photo.title}</p><span>{photo.location}</span>{displayedPhotos[preview.name]?.representative && <small>{en ? 'Regional cover photo · Korea Tourism Organization' : '지역 대표 사진 · 한국관광공사'}</small>}{failedPhotos.includes(photo.image) && <small>{en ? 'Photo unavailable' : '사진을 불러오지 못했어요'}</small>}</> : <p>{!photos[preview.name] ? (en ? 'Loading photo…' : '관광사진을 불러오는 중…') : photos[preview.name].state === 'empty' ? (en ? 'No photo provided.' : '제공된 관광사진이 없어요.') : (en ? 'Photo temporarily unavailable.' : '관광사진을 불러오지 못했어요.')}</p>}</div>
     </div>}
   </div>;
 }

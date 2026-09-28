@@ -28,7 +28,7 @@ for (const en of [false, true]) for (const theme of ['light', 'dark']) {
     const card = page.locator('.simple-place-row').first();
     await expect(card).toHaveAccessibleName('경남도립미술관');
     await expect(card.locator('.simple-facility-summary > span')).toHaveCount(5);
-    await expect(card.locator('.facility-unknown')).toHaveText(en ? 'Accessible toilet not reported' : '장애인 화장실 정보 없음');
+    await expect(card.locator('.facility-unknown')).toHaveText(en ? 'Accessible toilet not reported' : '장애인 화장실 정보 미확인');
     await expect(card.locator('.facility-missing')).toHaveText(en ? 'Lift unavailable' : '승강기 없음');
     await expect(card).not.toContainText(/\d+%/);
     const title = card.getByRole('button', { name: '경남도립미술관', exact: true });
@@ -55,7 +55,7 @@ for (const en of [false, true]) for (const theme of ['light', 'dark']) {
     const unknown = page.locator('.simple-exploration .simple-place-row');
     await expect(unknown.locator('.simple-place-add')).toHaveAccessibleName(`용지호수공원 ${en ? 'review facilities' : '편의 확인'}`);
     await expect(unknown.locator('.simple-place-add')).toHaveText('');
-    await expect(unknown.locator('.facility-unknown')).toContainText(en ? 'Access path not reported' : '접근로 정보 없음');
+    await expect(unknown.locator('.facility-unknown')).toContainText(en ? 'Access path not reported' : '접근로 정보 미확인');
     for (const button of await card.getByRole('button').all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await card.scrollIntoViewIfNeeded();
     expect((await new AxeBuilder({ page }).include('.simple-results').analyze()).violations).toEqual([]);

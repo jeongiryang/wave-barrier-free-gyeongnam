@@ -73,7 +73,7 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
     const screenshotPath = testInfo.outputPath("planner-" + width + "px.png");
     await page.screenshot({ path: screenshotPath });
     await testInfo.attach("planner-" + width + "px", { path: screenshotPath, contentType: "image/png" });
-    await itinerary.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
+    await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
     await page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
     await expect(page.locator("#itinerary-stop-1001")).toHaveCount(0);
     await expect(page.locator("#conditions")).toBeVisible();
@@ -126,6 +126,7 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
   await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   const itineraryAction = page.locator(".wave-header").locator(".wave-my-trips");
+  await itineraryAction.focus();
   await expect(itineraryAction).toBeInViewport();
   await itineraryAction.click();
   await expect(page.locator("#itinerary")).toBeVisible();

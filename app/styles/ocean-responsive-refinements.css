@@ -23,21 +23,16 @@
 .landing-cta h2 { line-height: 1.14; }
 .landing-cta h2 em { line-height: inherit; }
 
-/* 카피 뒤에 옅은 수면을 깔아 물결 위에서도 글이 또렷하게 읽히도록 한다. */
+/* Keep the title readable over bright rotating photos without a bordered panel. */
 .landing-hero-copy { position: relative; z-index: 1; }
 .landing-hero-copy::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none;
-  inset: -28px -56px -28px -40px;
+  inset: -40px;
   border-radius: 36px;
-  background: radial-gradient(120% 100% at 22% 50%, var(--surface) 0, rgba(238,247,252,.92) 52%, transparent 100%);
+  background: #091e34e6; filter: blur(20px);
 }
 .landing-hero-copy > span { color: var(--ink-soft); }
 
-@media (max-width: 1100px) {
-  /* 한 단으로 접히면 카피가 화면 전체를 쓰므로 가로 마스크를 걷고 세로로만 페이드한다. */
-
-  .landing-hero-copy::before { inset: -20px -24px; }
-}
 
 /* 세로 장식 레일은 물결 위에서 잘린 글자처럼 보여 걷어낸다. */
 

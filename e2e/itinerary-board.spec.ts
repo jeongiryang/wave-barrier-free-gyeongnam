@@ -2,7 +2,7 @@ import { chooseWaveOption } from './wave-select-fixture';
 import { acceptTripTimingWarning } from './trip-timing-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { mockPlannerApi, chooseTripConditions, openItinerary, plan, showItineraryMap } from "./fixtures";
+import { mockPlannerApi, chooseTripConditions, openItinerary, plan, showItineraryMap, focusItineraryStop } from "./fixtures";
 
 async function setup(page: Page) {
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
@@ -35,7 +35,7 @@ test("기본 지도 일정은 장소 핀과 일정 위치 버튼의 선택을 �
   await expect(lakePin).toHaveAttribute("aria-current", "location"); await expect(museum).toHaveAttribute("data-selected", "false");
   await timeboard(page); await expect(lake).toBeVisible();
   // This explicit row action must remain reachable on a narrow screen too.
-  await museum.getByRole("button", { name: "경남도립미술관 지도에서 보기", exact: true }).click();
+  await focusItineraryStop(page, "경남도립미술관"); await page.getByRole("button", { name: "경남도립미술관 지도에서 보기", exact: true }).click();
   await expect(museum).toHaveAttribute("data-selected", "true");
   await expect(museumPin).toBeVisible(); await expect(museumPin).toHaveAttribute("aria-current", "location");
   await expect(lake).toHaveAttribute("data-selected", "false");
@@ -65,8 +65,10 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
   const itinerary = page.locator("#itinerary"), rows = itinerary.locator(".simple-stops > li");
   await page.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동", exact: true }).click();
   await expect(rows.first()).toContainText("용지호수공원");
-  await expect(rows.first().getByRole("button", { name: /같은 날 앞 순서로 이동/ })).toBeDisabled();
-  await expect(rows.last().getByRole("button", { name: /같은 날 뒤 순서로 이동/ })).toBeDisabled();
+  await focusItineraryStop(page, "용지호수공원");
+  await expect(page.getByRole("button", { name: "용지호수공원 같은 날 앞 순서로 이동", exact: true })).toBeDisabled();
+  await focusItineraryStop(page, "경남도립미술관");
+  await expect(page.getByRole("button", { name: "경남도립미술관 같은 날 뒤 순서로 이동", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "여행 설정", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
   await settings.getByLabel("하루 시작", { exact: true }).fill("08:30"); await settings.getByRole("button", { name: "적용", exact: true }).click();
@@ -78,6 +80,7 @@ test("일정 보드는 버튼 편집·날짜 이동·로컬 복원·공유 순�
   await share.getByRole("button", { name: "공유 닫기", exact: true }).click();
   await page.reload(); await expect(rows.first()).toContainText("용지호수공원");
   expect(await current(page)).toMatchObject({ order: { mode: "manual", ids: ["1002", "1001"] }, schedule: { dayStartTime: "08:30" } });
+  await focusItineraryStop(page, "경남도립미술관");
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });
   await chooseWaveOption(editor.getByRole("combobox", { name: "방문 날짜", exact: true }), "2026-09-02");
@@ -102,7 +105,7 @@ test("한 장소 일정은 불가능한 순서 동작을 모두 비활성화한�
   // The fixture has counts but no per-facility evidence: never manufacture a confirmed percentage.
   await expect(itinerary.locator(".simple-stop-copy")).not.toContainText("%");
   await expect(itinerary.locator(".simple-facility-summary")).toHaveCount(0);
-  await itinerary.getByRole("button", { name: "경남도립미술관", exact: true }).click();
+  await itinerary.getByRole("button", { name: "경남도립미술관", exact: true }).last().click();
   const detail = page.getByRole("dialog", { name: "경남도립미술관", exact: true });
   await expect(detail).toContainText(/방문 전|재확인|확인 필요/);
 });
@@ -139,19 +142,25 @@ for (const width of [1440, 960, 390]) test(`${width}px에서 일정 편집 조�
   await expect(cards).toHaveCount(2);
   await expect(cards.nth(0)).toBeVisible();
   await expect(cards.nth(1)).toBeVisible();
-  const layout = await cards.evaluateAll(items => items.map(item => {
-    const card = item.getBoundingClientRect(), copy = item.querySelector(".simple-stop-copy")!.getBoundingClientRect();
-    const edit = item.querySelector(".simple-edit-stop")!.getBoundingClientRect(), controls = item.querySelector(".simple-stop-controls")!.getBoundingClientRect();
-    return { card: { left: card.left, right: card.right }, copy: { right: copy.right, bottom: copy.bottom }, edit: { left: edit.left, right: edit.right }, controls: { left: controls.left, right: controls.right, top: controls.top }, targets: [...item.querySelectorAll(".simple-edit-stop,.simple-stop-controls button")].map(target => { const rect = target.getBoundingClientRect(); return { width: rect.width, height: rect.height }; }) };
-  }));
-  expect(layout).toHaveLength(2);
-  for (const item of layout) {
-    expect(item.edit.left, "수정 버튼이 설명과 겹치지 않는다").toBeGreaterThanOrEqual(item.copy.right - 1);
-    expect(item.edit.right).toBeLessThanOrEqual(item.card.right);
-    expect(item.controls.top, "순서 조작은 설명 아래에 놓인다").toBeGreaterThanOrEqual(item.copy.bottom - 1);
-    expect(item.controls.left).toBeGreaterThanOrEqual(item.card.left); expect(item.controls.right).toBeLessThanOrEqual(item.card.right);
-    for (const target of item.targets) { expect(target.height).toBeGreaterThanOrEqual(44); expect(target.width).toBeGreaterThanOrEqual(44); }
+  for (const name of ["경남도립미술관", "용지호수공원"]) {
+    await focusItineraryStop(page, name);
+    const panel = width >= 1280 ? itinerary.locator('.simple-focus-stop') : cards.filter({ has: page.getByRole('button', { name, exact: true }) });
+    const layout = await panel.evaluate(item => {
+      const card = item.getBoundingClientRect(), copy = item.querySelector('.simple-focus-copy,.simple-stop-copy')!.getBoundingClientRect();
+      const edit = item.querySelector('.simple-edit-stop')!.getBoundingClientRect(), controls = item.querySelector('.simple-stop-controls')!.getBoundingClientRect();
+      const overlapsText = [...item.querySelectorAll('.simple-focus-copy h3,.simple-stop-copy h3,.simple-focus-copy > p,.simple-stop-copy > p')].some(text => {
+        const range = document.createRange(); range.selectNodeContents(text);
+        return [...range.getClientRects()].some(rect => Math.min(rect.right,edit.right)-Math.max(rect.left,edit.left)>1 && Math.min(rect.bottom,edit.bottom)-Math.max(rect.top,edit.top)>1);
+      });
+      return { card: { left: card.left, right: card.right }, copy: { bottom: copy.bottom }, edit: { right: edit.right }, controls: { left: controls.left, right: controls.right, top: controls.top }, overlapsText, targets: [...item.querySelectorAll('.simple-edit-stop,.simple-stop-controls button')].map(target => { const rect=target.getBoundingClientRect(); return {width:rect.width,height:rect.height}; }) };
+    });
+    expect(layout.overlapsText, '수정 버튼이 실제 제목·설명 글자를 가리지 않는다').toBe(false);
+    expect(layout.edit.right).toBeLessThanOrEqual(layout.card.right);
+    expect(layout.controls.top).toBeGreaterThanOrEqual(layout.copy.bottom - 1);
+    expect(layout.controls.left).toBeGreaterThanOrEqual(layout.card.left); expect(layout.controls.right).toBeLessThanOrEqual(layout.card.right);
+    for (const target of layout.targets) { expect(target.height).toBeGreaterThanOrEqual(44); expect(target.width).toBeGreaterThanOrEqual(44); }
   }
+  await focusItineraryStop(page, '경남도립미술관');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await page.getByRole("button", { name: "경남도립미술관 일정 수정", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "경남도립미술관 수정", exact: true });

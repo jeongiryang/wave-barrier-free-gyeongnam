@@ -63,8 +63,8 @@ export default function AccountMenu({ loginHref = "/login", initialOpen = false,
         event.preventDefault(); setOpen(false); entry.current?.focus();
       }
     }}>
-      <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(value => !value)} ref={(element) => { entry.current = element; }} role="button" aria-label={en ? `${label} account menu` : `${label} 계정 메뉴`}>{iconOnly ? <ProfileIcon /> : <><span>{label}</span></>}</button>
-      {open && <div id={panelId} ref={panel} popover="auto" className="account-popover header-dropdown">
+      <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(value => !value)} ref={(element) => { entry.current = element; }} role="button" aria-label={session?.user ? en ? `${label} account menu` : `${label} 계정 메뉴` : en ? "Account" : "계정 관리"}>{iconOnly ? <ProfileIcon /> : <><span>{label}</span></>}</button>
+      {open && <div id={panelId} ref={panel} popover="auto" className="account-popover header-dropdown account-actions-menu">
         {isPending ? <p role="status">{en ? "Loading account status" : "계정 상태를 불러오는 중"}</p> : !session?.user ? <>
           <a href={loginHref}>{en ? "Log in" : "로그인"}</a>
           <a href="/register">{en ? "Create account" : "회원가입"}</a>

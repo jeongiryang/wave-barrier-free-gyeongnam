@@ -5,6 +5,11 @@ import { startNaruGuide, advanceNaruGuide } from '../lib/naru-guided-start.js';
 import { validateAssistantAction } from '../lib/assistant-actions.js';
 import { sanitizeStopPurposes } from '../lib/trip-comfort.js';
 const places = [{ id: '1234', name: '정원' }];
+test('a preview request never takes the immediate direct-command path', () => {
+  assert.equal(naruDirectCommand('정원 체류 60분으로 변경안을 보여줘', places), null);
+  assert.equal(naruDirectCommand('정원 체류 60분으로 바꿔줘. 적용 전에 확인하고 싶어', places), null);
+  assert.deepEqual(naruDirectCommand('정원 체류 60분으로 바꿔줘', places), { action: 'visit', placeId: '1234', minutes: 60 });
+});
 test('explicit undo uses the current command receipt without waiting for a model response', () => {
   for (const text of ['되돌려줘', '되돌려 주세요', '마지막 변경 되돌려줘', '실행 취소해줘']) assert.deepEqual(naruDirectCommand(text), { action: 'undo' });
   for (const text of ['되돌리지 마', '되돌려줘 말고 다음 일정 보여줘', '처음 날짜로 되돌려줘', '되돌리기는 어떻게 해?']) assert.equal(naruDirectCommand(text), null);
