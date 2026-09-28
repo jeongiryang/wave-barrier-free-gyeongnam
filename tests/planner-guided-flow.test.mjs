@@ -37,7 +37,9 @@ test("PC는 같은 날짜의 시간표 왼쪽과 지도 오른쪽, 모바일은 
     source("features/planner/components/PlannerItineraryBoard.tsx"),
     source("app/styles/simple-planner.css"),
   ]);
-  assert.match(itinerary, /matchMedia\('\(min-width:1024px\)'\)/);
+  assert.match(itinerary, /matchMedia\('\(min-width:900px\)'\)/);
+  const referenceCss = await source("app/styles/itinerary-reference.css");
+  assert.match(referenceCss, /@media\s*\(min-width:\s*900px\)/);
   assert.match(itinerary, /media\.removeEventListener\('change', update\)/);
   assert.match(itinerary, /const mapView = desktop \|\| props\.mapView/);
   assert.match(itinerary, /!desktop &&[\s\S]*aria-label="일정 보기 방식"/);
