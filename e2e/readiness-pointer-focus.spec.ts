@@ -32,7 +32,7 @@ test("a pointer press near the tool scroll edge keeps the readiness action under
       return Math.abs(box.bottom - edge) <= 1 && hit !== null && element.contains(hit);
     }, edge);
   }).toBe(true);
-  await expect(page.getByRole('tab', { name: '여행 도구', exact: true })).toBeInViewport();
+  await expect(page.getByRole('tab', { name: '직접 골라서 하기', exact: true })).toBeInViewport();
   await expect(page.getByRole('button', { name: '나루 대화 닫기', exact: true })).toBeInViewport();
   const before = (await shortcut.boundingBox())!;
   expect(before.y + before.height).toBeLessThanOrEqual(960);

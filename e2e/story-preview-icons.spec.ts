@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { pauseCurrentClock } from './landing-contract';
+import { pauseCurrentClock, expectNaruDurationExample, storyReady } from './landing-contract';
 import { mockPlannerApi, mockPublicShellApi } from './fixtures';
 test.use({ storageState:{cookies:[],origins:[]} });
 test.beforeEach(async({page})=>{await page.addInitScript(()=>sessionStorage.setItem('wave-arrival-session-v1','done'));});
@@ -8,28 +8,22 @@ for (const width of [390,960,1440]) test(`story controls and common icons ${widt
  await page.emulateMedia({reducedMotion:'reduce'});
  await mockPlannerApi(page);
  await page.goto('/');
- const chat=page.locator('.wave-chat-demo');
+ const chat=page.locator('.restored-naru-preview');
  await chat.scrollIntoViewIfNeeded();
- await expect(chat).toHaveAttribute('data-frame','5');
  await expect(chat.locator('.preview-pages,.preview-typing')).toHaveCount(0);
- await expect(chat.locator('.preview-answer')).toHaveCount(3);
- await expect(chat.locator('aside')).toContainText('통영');
- await expect(chat.locator('aside')).toBeVisible();
+ await expect(chat.locator('.restored-chat-row').first()).toBeVisible();
+ expect(await chat.locator('.restored-chat-row').count()).toBeLessThanOrEqual(4);
+ await expect(chat.locator('aside')).toHaveCount(0);
  await page.locator('#story').scrollIntoViewIfNeeded();
  const demo=page.locator('.wave-journey-demo');
  await demo.getByRole('button',{name:'거제',exact:true}).click();
- await demo.getByRole('button',{name:'거제 바람의 언덕 예시 일정에 담기'}).click();
- await expect(demo).toHaveAttribute('data-stage','1');
- await demo.getByRole('button',{name:'예시 지도에서 확인',exact:true}).click();
- await expect(demo).toHaveAttribute('data-stage','2');
+ await expect(demo).toHaveAttribute('data-region','거제');
+ await expect(demo.locator('.journey-paper-map')).toHaveAttribute('aria-label','나루와 꼬마 여행자가 가리키는 지도: 거제');
  await expect(demo.getByRole('link',{name:'거제 여행 만들기'})).toHaveAttribute('href','/planner?region=%EA%B1%B0%EC%A0%9C');
  await expect(demo.locator('.journey-art')).toHaveJSProperty('naturalWidth',1536);
  await page.screenshot({path:testInfo.outputPath(`story-${width}.png`)});
- const example=page.locator('.simple-naru-example');
- await example.getByRole('button',{name:'예시 일정에 적용',exact:true}).click();
- await expect(example.locator('.example-duration strong:not(.example-proposed)')).toHaveText('90분');
- await example.getByRole('button',{name:'되돌리기',exact:true}).click();
- await expect(example.locator('.example-duration strong:not(.example-proposed)')).toHaveText('60분');
+ await page.locator('#naru').scrollIntoViewIfNeeded();
+ await expectNaruDurationExample(page);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.goto('/planner');
  const gallery=page.locator('.simple-region-discovery');
@@ -42,19 +36,22 @@ for (const width of [390,960,1440]) test(`story controls and common icons ${widt
  await expect(page.getByRole('button',{name:'WAVE 여행 가이드 나루와 대화 열기'})).toBeVisible();
  await page.screenshot({path:testInfo.outputPath(`planner-icons-${width}.png`)});
 });
-test('conversation reveals one message each second with its link in the header',async({page})=>{
+test('conversation adds messages individually and keeps the most recent four with opposite profiles',async({page})=>{
+ await mockPlannerApi(page);
  await page.clock.install();
- await page.goto('/');const chat=page.locator('.wave-chat-demo');await chat.scrollIntoViewIfNeeded();
- await expect(chat.locator('header a')).toHaveText('나루와 내 여행 만들기');
+ await page.goto('/');await storyReady(page);const chat=page.locator('.restored-naru-preview');await chat.scrollIntoViewIfNeeded();
+ await expect(chat.locator('header a')).toHaveAttribute('href','/planner?assistant=naru');
  await expect(chat.locator('header button,footer')).toHaveCount(0);
  await pauseCurrentClock(page);
- const initial=Number(await chat.getAttribute('data-frame'));
- expect(await chat.locator('.preview-question').count()).toBe(Math.floor(initial/2)+1);
- expect(await chat.locator('.preview-answer').count()).toBe(Math.floor((initial+1)/2));
- await page.clock.runFor(1000);
- const next=(initial+1)%6;
- await expect(chat).toHaveAttribute('data-frame',String(next));
- expect(await chat.locator('.preview-answer').count()).toBe(Math.floor((next+1)/2));
+ const rows=chat.locator('.restored-chat-row');
+ for(let step=0;step<7;step++) {
+   const count=await rows.count(), last=await rows.last().innerText();
+   await page.clock.runFor(2450);
+   await expect(rows).toHaveCount(Math.min(count+1,4));
+   await expect(rows.last()).not.toHaveText(last);
+ }
+ await expect(chat.locator('.traveler .story-dialogue-portrait')).toHaveCount(2);
+ await expect(chat.locator('.naru .naru-character')).toHaveCount(2);
 
 });
 test('festival icon sort still opens below and keeps selected option',async({page})=>{
@@ -106,21 +103,15 @@ test('welcome bubble stays dismissed across routes and reloads but returns in a 
  const fresh=await context.newPage();await mockPublicShellApi(fresh);await mockPlannerApi(fresh);await fresh.goto('/planner');await expect(fresh.locator('.naru-welcome-bubble')).toBeVisible();await fresh.close();
 });
 
-test('planner intro settles once and dialogue transitions promptly with opposite portraits',async({page})=>{
+test('planner scenery changes without returning the removed decorative dialogue',async({page})=>{
  await page.clock.install();await mockPlannerApi(page);await page.goto('/planner');
  const scene=page.locator('.naru-header-scene');
- await expect(scene.locator('.wave-written-line')).toHaveAttribute('data-writing','true');
+ await expect(scene.locator('.wave-written-line,.naru-welcome-dialogue')).toHaveCount(0);
  await expect(scene).toHaveAttribute('data-intro','true');
  await expect(scene.locator('picture')).toHaveCount(2);
- const opening=await scene.locator('h2').boundingBox();
- expect(Math.abs(opening!.x+opening!.width/2-page.viewportSize()!.width/2)).toBeLessThan(2);
- expect(await scene.locator('h2').evaluate(e=>parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(42);
  await expect(scene).toHaveAttribute('data-frame','1');
  await page.clock.pauseAt(await page.evaluate(()=>Date.now()+50));await page.clock.runFor(800);
  await expect(scene).toHaveAttribute('data-frame','2');
- const rows=await scene.locator('.naru-welcome-dialogue p').evaluateAll(nodes=>nodes.map(e=>({portrait:e.querySelector('.naru-dialogue-profile')!.getBoundingClientRect().toJSON(),copy:e.querySelector('.naru-welcome-copy')!.getBoundingClientRect().toJSON()})));
- expect(rows[0].portrait.right).toBeLessThan(rows[0].copy.left);
- expect(rows[1].portrait.left).toBeGreaterThan(rows[1].copy.right);
  await expect(scene).toHaveAttribute('data-intro','false');
  await expect(scene.locator('img.is-current')).toHaveAttribute('src','/naru/planner-harbor-grounded-v4.webp');
  await page.clock.runFor(1800);

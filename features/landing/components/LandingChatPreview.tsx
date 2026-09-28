@@ -15,13 +15,14 @@ export default function LandingChatPreview({ framed = false }: { framed?: boolea
   const [history, setHistory] = useState([{ frame: 0, key: 0 }]);
   useEffect(() => {
     if (!framed) return;
-    setHistory(current => current[current.length - 1].frame === frame ? current : [...current, { frame, key: current[current.length - 1].key + 1 }].slice(-4));
+    const animation=requestAnimationFrame(()=>setHistory(current => current[current.length - 1].frame === frame ? current : [...current, { frame, key: current[current.length - 1].key + 1 }].slice(-4)));
+    return ()=>cancelAnimationFrame(animation);
   }, [frame, framed]);
   const round = Math.floor(frame / 2);
   const item = exchanges[round];
   if (framed) return <div ref={previewRef} className="restored-naru-preview" aria-label="여행 준비 대화 예시">
     <header><span><NaruAvatar /><strong>나루</strong></span><Link href="/planner?assistant=naru">나루와 내 여행 만들기 →</Link></header>
-    <div className="restored-naru-body"><div className="restored-naru-messages" aria-live="off">{history.map(message => { const traveler = message.frame % 2 === 0; const exchange = exchanges[Math.floor(message.frame / 2)]; return <div key={message.key} className={`restored-chat-row ${traveler ? 'traveler' : 'naru'}`}>{traveler ? <i className="story-dialogue-portrait" aria-label="꼬마여행자"/> : <NaruAvatar />}<div><small>{traveler ? '꼬마여행자' : '나루'}</small><p className={traveler ? 'restored-naru-question' : undefined}>{traveler ? exchange.question : exchange.answer}</p></div></div>; })}</div></div>
+    <div className="restored-naru-body"><div className="restored-naru-messages" aria-live="off">{history.map(message => { const traveler = message.frame % 2 === 0; const exchange = exchanges[Math.floor(message.frame / 2)]; return <div key={message.key} className={`restored-chat-row ${traveler ? 'traveler' : 'naru'}`}>{traveler ? <i className="story-dialogue-portrait" aria-hidden="true"/> : <NaruAvatar />}<div><small>{traveler ? '꼬마여행자' : '나루'}</small><p className={traveler ? 'restored-naru-question' : undefined}>{traveler ? exchange.question : exchange.answer}</p></div></div>; })}</div></div>
   </div>;
   return <div ref={previewRef} className="landing-floating-dialogue" aria-label="여행 준비 예시 대화" aria-live="off">
     <div key={`question-${round}`} className="landing-floating-message traveler">

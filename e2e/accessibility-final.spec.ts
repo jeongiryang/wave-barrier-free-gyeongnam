@@ -21,7 +21,13 @@ test("OS 동작 줄이기와 관계없이 full을 유지하고 부분 번역 중
   await expect(page.locator(".preference-controls")).toHaveAttribute("aria-busy", "false");
   await page.getByRole('button', { name: /^(환경설정 열기|Open preferences)$/ }).click();
   await expect(page.locator(".motion-toggle")).toHaveCount(0);
-  await expect(page.locator(".preference-panel")).toContainText("읽기 편한 화면으로 조정합니다.");
+  const preferences = page.locator(".preference-panel");
+  await preferences.getByRole("radio", { name: "크게", exact: true }).check();
+  await expect(page.locator("html")).toHaveAttribute("data-text-scale", "large");
+  const colorAssist = preferences.getByRole("button", { name: /^색 구분 보조/ });
+  await colorAssist.click();
+  await expect(colorAssist).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-color-assist", "on");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("wave-motion"))).toBeNull();
 });
 
@@ -84,10 +90,19 @@ test("1363px 공개 화면의 핵심 조작은 보이는 44px 면적을 유지�
   await page.goto("/planner", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "전체 18개 지역", exact: true }).click();
   await expect(page.locator(".simple-region-link")).toHaveCount(18);
-  sizes.push(...await page.locator('.simple-region-link, .simple-search-bar [role="combobox"], .simple-facility-trigger').evaluateAll(nodes => nodes.map(node => {
+  sizes.push(...await page.locator('.simple-region-link').evaluateAll(nodes => nodes.map(node => {
     const rect = node.getBoundingClientRect();
     return { name: node.textContent?.trim() || "지역", width: rect.width, height: rect.height };
   })));
+  // Measure the interactive controls, not an aria-hidden native form mirror
+  // or an inactive tool surface. Every required control must still be visible.
+  for (const control of [page.getByRole("combobox", { name: "여행 지역", exact: true }), page.getByRole("button", { name: /^필요한 편의/ })]) {
+    await expect(control).toBeVisible();
+    sizes.push(await control.evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      return { name: node.getAttribute("aria-label") || node.textContent?.trim() || "조건", width: rect.width, height: rect.height };
+    }));
+  }
   expect(sizes.length).toBeGreaterThanOrEqual(25);
   for (const size of sizes) {
     expect(size.width, `${size.name} 너비`).toBeGreaterThanOrEqual(44);

@@ -64,7 +64,22 @@ test("landing: reduced motion shows a dismissible intro and preserves the real p
   expect(await phrase.evaluate(node => parseFloat(getComputedStyle(node).animationDuration))).toBeGreaterThan(0.1);
   await expect(page.locator(".landing-feature-grid")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(page.locator(".landing-feature-card")).toHaveCount(8);
-  await expect(page.locator(".landing-feature-card").first()).toHaveCSS("background-color", "rgb(16, 37, 59)");
+  // Owner-approved sections now use the page palette instead of the former
+  // shared dark wrapper. Preserve real entry points and readability, not its RGB.
+  const featureLinks = [
+    ["편의로 찾기", "/planner#conditions"], ["편의 확인", "/planner"],
+    ["나루와 계획", "/guide#naru-guide"], ["출발 준비", "/planner"],
+    ["경로 비교", "/planner"], ["여행 저장", "/travel-book"],
+    ["당일 안내", "/guide#day-guide"], ["축제 찾기", "/festivals"],
+  ];
+  for (const [title, href] of featureLinks) {
+    const feature = page.locator(".landing-feature-card").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
+    await expect(feature).toHaveAttribute("href", href);
+    await expect(feature).toHaveAccessibleName(new RegExp(title));
+  }
+  await expectNoSeriousA11yIssues(page);
+  await page.locator(".landing-feature-card").first().hover();
+  await expectNoSeriousA11yIssues(page);
   // An OS preference change must not put the page back into calm mode.
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -129,30 +144,36 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     const arrival = itinerary.locator("#itinerary-stop-1001 time").first();
     if (mobileLayout) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();
     await expect(page.locator(".simple-itinerary-map .leaflet-container")).toBeVisible();
-    await expect(arrival).toHaveText("10:25");
-    await expect(itinerary.locator("#itinerary-stop-1001 .simple-leg-time")).toHaveText("여기까지 이동 25분");
+    await expect(arrival).toHaveText("10:25 도착 예정");
+    await expect(itinerary.locator(".simple-timing-mode")).toContainText("이동 기준 도착");
+    await expect(itinerary.locator("#itinerary-stop-1001 .simple-leg-time")).toBeHidden();
     await openNaruTool(page, '이동 구간 확인');
     await expect.poll(() => carRequests).toBe(2);
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "true");
     await closeNaruTool(page);
     await page.locator(".reference-route-details > summary").click();
     await page.getByRole("button", { name: /여유 자동차 경로/ }).click();
-    await expect(arrival).toHaveText("10:40");
+    await expect(arrival).toHaveText("10:40 도착 예정");
     releaseAutomatic();
     await openNaruTool(page, "이동 구간 확인");
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "false");
     await expect(page.locator(".itinerary-route-coverage").getByRole("status")).toContainText("전체 1구간 중 1구간 확인");
-    await expect(arrival).toHaveText("10:40");
+    await expect(arrival).toHaveText("10:40 도착 예정");
     await closeNaruTool(page);
     await page.getByRole("button", { name: /추천 자동차 경로/ }).click();
-    await expect(arrival).toHaveText("10:25");
+    await expect(arrival).toHaveText("10:25 도착 예정");
     if (mobileLayout) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true }).click();
     await expect(itinerary).toBeVisible();
     await page.getByRole("button", { name: "여행 설정", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
     await settings.getByLabel("하루 시작", { exact: true }).fill("09:00");
     await settings.getByRole("button", { name: "적용", exact: true }).click();
-    await expect(arrival).toHaveText("09:25");
+    await expect(arrival).toHaveText("09:25 도착 예정");
+    const visitTimetable = itinerary.locator(".simple-timing-mode details");
+    await visitTimetable.getByText("방문 시간표", { exact: true }).click();
+    await expect(visitTimetable).toContainText("관람·휴식·고정 방문을 포함한 시간표입니다.");
+    await expect(visitTimetable.locator("li").first()).toContainText(/경남도립미술관.*09:25.*관람 \d+분/);
+    await visitTimetable.getByText("방문 시간표", { exact: true }).click();
 
     await screens.locator(".night-search-link").click();
     await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
@@ -176,7 +197,7 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await expect(page.locator(".demand-insight")).toContainText("지역 관광자원 수요지수의 최신 가용월 자료가 제공되면 표시합니다.");
     await page.reload();
     await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toBeVisible();
-    await expect(page.locator("#itinerary-stop-1001 time").first()).toHaveText("09:25");
+    await expect(page.locator("#itinerary-stop-1001 time").first()).toHaveText("09:25 도착 예정");
     await expect(page.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expectNoSeriousA11yIssues(page);
@@ -188,7 +209,7 @@ test("planner exposes honest recovery when the official plan request fails", asy
   await page.goto("/planner");
   const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
   await expect(region).toBeEnabled(); await chooseWaveOption(region, "창원");
-  await expect(page.locator("#places").getByRole("alert")).toContainText("서버가 요청을 처리하지 못했어요.");
+  await expect(page.getByRole("region", { name: "여행지 검색 결과", exact: true }).getByRole("alert")).toContainText("서버가 요청을 처리하지 못했어요.");
   await expect(page.getByRole("button", { name: "같은 조건으로 다시 시도", exact: true })).toBeVisible();
   await expect(region).toHaveText("창원");
 });

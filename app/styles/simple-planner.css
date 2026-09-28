@@ -222,7 +222,7 @@ html[data-theme=dark] .simple-itinerary-attention li { border-color: #5c5133; }
   .simple-itinerary-board[data-map=true] { grid-template-columns: minmax(360px,.9fr) minmax(0,1.1fr); }
   .simple-itinerary-map { position: sticky; top: 90px; }
   .simple-itinerary-map:has(.route-map-shell.expanded) { position: static; }
-  .planner-simple:has(.naru-panel[open]):not(:has(.naru-panel[hidden])) .simple-itinerary-map { display: none; }
+  .planner-simple:has(.naru-panel[open]):not(:has(.naru-panel[hidden])) .simple-itinerary-map:not(.naru-panel *) { display: none; }
   .planner-simple:has(.naru-panel[open]):not(:has(.naru-panel[hidden])) .simple-itinerary-board { grid-template-columns: minmax(0,1fr); }
 }
 @media(max-width:1023px) { .simple-itinerary-board[data-map=true] .simple-timeboard { display: none; } }

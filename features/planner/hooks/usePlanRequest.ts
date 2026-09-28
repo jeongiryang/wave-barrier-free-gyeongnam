@@ -134,7 +134,8 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         latestPlan.current = example;
         setPlan(example);
         setResultSignature(requestedSignature);
-        setPlanError("");
+        // Preview data must not hide the real failure or remove its retry action.
+        setPlanError(planFailureKind(error, navigator.onLine !== false));
         setRecentPlan(null);
         setUsingRecent(null);
         setNoticeKind("error");
@@ -142,7 +143,7 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         if (revealResults && !reveal.signal.aborted) onRevealResults?.();
         cancelReveal();
         restoreRequestFocus();
-        return true;
+        return false;
       }
       cancelReveal();
       const message = planFailureKind(error, navigator.onLine !== false);

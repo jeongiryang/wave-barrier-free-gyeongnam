@@ -15,6 +15,7 @@ import { localDistanceKilometres } from "../../../lib/device-location.js";
 import { plannerJson } from "../services/api";
 import type { Place } from "../types";
 import PlaceAudioGuide from "./PlaceAudioGuide";
+import LocalAmenityPreview from './LocalAmenityPreview';
 import styles from "./TravelExperience.module.css";
 import { buildEvidenceReviewQueue } from "../../../lib/evidence-cycle.js";
 const visibleSensoryKeys = ["mobility", "restroom"] as const;
@@ -28,6 +29,9 @@ function SensoryLeafletMap({ points, places, layer, selected, onSelect }: {
   onSelect: (id: string) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef(selected);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
+  const pins = useRef(new Map<string, HTMLElement>());
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   useEffect(() => {
     let cancelled = false;
@@ -48,7 +52,7 @@ function SensoryLeafletMap({ points, places, layer, selected, onSelect }: {
           styles.sensoryMapPin,
           layer === "restroom" ? styles.sensoryMapPinRestroom : "",
           point.synthetic ? styles.sensoryMapPinSynthetic : "",
-          point.place.id === selected ? styles.sensoryMapPinSelected : "",
+          point.place.id === selectedRef.current ? styles.sensoryMapPinSelected : "",
         ].filter(Boolean).join(" ");
         pin.dataset.sensoryMarker = layer;
         pin.setAttribute("aria-hidden", "true");
@@ -72,8 +76,13 @@ function SensoryLeafletMap({ points, places, layer, selected, onSelect }: {
           .addTo(map!)
           .bindPopup(popup);
         marker.on("click", () => onSelect(point.place.id));
-        marker.getElement()?.setAttribute("role", "button");
-        marker.getElement()?.setAttribute("aria-label", label);
+        const element = marker.getElement();
+        if (element) {
+          element.setAttribute("role", "button"); element.setAttribute("aria-label", label);
+          element.setAttribute("aria-pressed", String(point.place.id === selectedRef.current));
+          element.addEventListener("keydown", event => { if(event.key === " " || event.key === "Enter") { event.preventDefault(); marker.fire("click"); marker.openPopup(); } });
+          pins.current.set(point.place.id, element);
+        }
       });
       const bounds = L.latLngBounds(points.map(point => [point.lat, point.lng] as [number, number]));
       if (points.length === 1) map.setView(bounds.getCenter(), 14, { animate: false });
@@ -82,7 +91,8 @@ function SensoryLeafletMap({ points, places, layer, selected, onSelect }: {
       frame = requestAnimationFrame(() => { if (!cancelled) map?.invalidateSize({ animate: false }); });
     }).catch(() => { if (!cancelled) setState("error"); });
     return () => { cancelled = true; cancelAnimationFrame(frame); map?.remove(); };
-  }, [layer, onSelect, places, points, selected]);
+  }, [layer, onSelect, places, points]);
+  useEffect(() => { for(const [id, element] of pins.current) { element.setAttribute("aria-pressed", String(id === selected)); element.querySelector("[data-sensory-marker]")?.classList.toggle(styles.sensoryMapPinSelected, id === selected); } }, [selected, state]);
   return <div className={styles.sensoryMapFrame}>
     <div ref={container} className={styles.sensoryMap} data-testid="sensory-leaflet-map" role="region" aria-label={`${SENSORY_FIELDS[layer].label} 감각지도`} />
     {state === "loading" && <p className={styles.sensoryMapStatus} role="status">지도를 불러오고 있어요.</p>}
@@ -239,6 +249,7 @@ export default function SensoryMap({
   return (
     <div className={styles.experience}>
       <h3>감각지도·지금 현장</h3>
+      {place && <LocalAmenityPreview place={place}/>}
       <p>
         여행자가 직접 관찰한 휠체어 이동·화장실 정보입니다. 관찰 후 2시간이
         지나면 현재 정보에서 제외해요. 제보가 없는 곳은 미확인입니다.

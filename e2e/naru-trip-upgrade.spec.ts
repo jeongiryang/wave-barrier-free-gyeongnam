@@ -92,8 +92,8 @@ test('카드형 일정안은 날짜·미확인·적용 전 상태와 작은 화�
   const { chat } = await setup(page);
   await send(page);
   const proposal = chat.getByRole('region', { name: '나루의 실제 일정안', exact: true });
-  await expect(proposal.locator('.naru-proposal-day')).toHaveCount(2);
-  await expect(proposal).toContainText('적용 전');
+  await expect(proposal.locator('.naru-journey-day')).toHaveCount(2);
+  await expect(proposal).toContainText('확인하고 적용하기 전에는 내 일정이 바뀌지 않아요.');
   await expect(proposal).toContainText('방문 전 확인: 승강기 이용 가능 여부');
   for (const width of [1440, 960, 390]) {
     await page.setViewportSize({ width, height: 960 });

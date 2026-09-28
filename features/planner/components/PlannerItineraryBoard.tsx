@@ -14,7 +14,7 @@ import DayDeadlineControl from "./DayDeadlineControl";
 import TripComfortPlan from "./TripComfortPlan";
 import RestStopFinder from "./RestStopFinder";
 import PlaceVisitHours from "./PlaceVisitHours";
-import { buildItinerarySchedule, formatScheduleTime, parseClock } from "../optimization/itinerary-schedule.js";
+import { buildItinerarySchedule } from "../optimization/itinerary-schedule.js";
 import PlaceFacilitySummary from "./PlaceFacilitySummary";
 import SmartSpotImage from "../../tourism/components/SmartSpotImage";
 import LoadingState from "../../../components/LoadingState";
@@ -61,10 +61,8 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
   const focusedEntry = active?.entries.find(entry => entry.place.id === focusedPlaceId) || active?.entries[0];
   type ScheduleEntry = NonNullable<typeof active>['entries'][number];
   function arrivalLabel(entry: ScheduleEntry) {
-    const preceding = active?.entries.slice(0, (active?.entries.indexOf(entry) ?? 0) + 1) || [];
-    if (preceding.some(item => item.travelSource === 'fallback')) return '도착 시각 미확인';
-    const time = formatScheduleTime(parseClock(trip.dayStartTime) + preceding.reduce((minutes, item) => minutes + item.travelMinutes, 0));
-    return `${time} 도착 ${preceding.some(item => item.travelSource === 'estimate') ? '예상' : '예정'}`;
+    if (entry.movementArrivesAt === null) return '도착 시각 미확인';
+    return `${entry.movementArrivesAtLabel} 도착 ${entry.movementEstimated ? '예상' : '예정'}`;
   }
   function nextStopSummary(entry: ScheduleEntry) {
     const next = active?.entries[(active?.entries.indexOf(entry) ?? -1) + 1];
@@ -87,6 +85,7 @@ export default function PlannerItineraryBoard({ focusedPlaceId, onFocusPlace, tr
           <ul>{attention.map(({ place, items }) => <li key={place.id}><div><b>{place.name}</b><span>{items.join(" · ")}</span></div><button type="button" onClick={() => onSelectPlace(place)} data-icon-action="" title="이용 정보"><NightIcon name="info" size={20}/><span className="sr-only">이용 정보</span></button></li>)}</ul>
         </section>}
         <div className="simple-day-tabs" role="group" aria-label="일정 날짜">{trip.tripDays.map((day, index) => <button type="button" key={day} aria-pressed={day === trip.activeDay} onClick={() => trip.setActiveDay(day)}>{index + 1}일차 <span>{day.slice(5).replace('-', '/')}</span></button>)}</div>
+        <div className="simple-timing-mode"><span>이동 기준 도착</span><details><summary>방문 시간표</summary><p>관람·휴식·고정 방문을 포함한 시간표입니다.</p><ol>{active?.entries.map(entry => <li key={entry.place.id}><strong>{entry.place.name}</strong> {entry.startsAtLabel}–{entry.endsAtLabel} · 관람 {entry.visitMinutes}분{entry.breakMinutes > 0 && ` · 휴식 ${entry.breakMinutes}분`}</li>)}</ol></details></div>
         <ol className="simple-stops" data-many={(active?.entries.length || 0) > 3} tabIndex={(active?.entries.length || 0) > 3 ? 0 : undefined} aria-label="방문 장소 순서">{active?.entries.map(entry => {
           const movement = trip.movementFor(entry.place.id);
           return <li key={entry.place.id} id={`itinerary-stop-${entry.place.id}`} data-selected={entry.place.id === focusedPlaceId}>

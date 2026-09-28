@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import ts from "typescript";
 
 async function source(path) { return readFile(new URL(`../${path}`, import.meta.url), "utf8"); }
 
@@ -19,7 +20,24 @@ test("issue 544 direct search keeps unknown facts explicit and connects saved pl
   assert.match(workspace, /날짜 정하기/);
   assert.match(search, /trip\.toggleSaved\(result\.place\.id, result\.place\)/);
   assert.match(workspace, /내 일정 보기/);
-  assert.match(page, /onBuildItinerary=\{\(\) => stageView\.changeStep\("itinerary", true\)\}/);
+  assert.match(workspace, /onClick=\{props\.onBuildItinerary\}/);
+  const ast = ts.createSourceFile("page.tsx", page, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let callback;
+  const visit = node => {
+    if (ts.isJsxSelfClosingElement(node) && node.tagName.getText(ast) === "RecommendationWorkspace") {
+      callback = node.attributes.properties.find(attribute => ts.isJsxAttribute(attribute) && attribute.name.getText(ast) === "onBuildItinerary")?.initializer?.expression;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+  assert.ok(callback, "saved search candidates must have an itinerary action");
+  for (const assistantOpen of [false, true]) {
+    const calls = [];
+    const action = new Function("assistantOpen", "openAssistantTool", "stageView", `return (${callback.getText(ast)})`)(assistantOpen,
+      tool => calls.push(["naru", tool]), { changeStep: (...args) => calls.push(["planner", ...args]) });
+    action();
+    assert.deepEqual(calls, [assistantOpen ? ["naru", "itinerary"] : ["planner", "itinerary", true]], "continue in the current surface without losing the saved candidates");
+  }
 });
 
 test("issue 544 date control opens from the field and keyboard with a mobile target", async () => {

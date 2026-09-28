@@ -10,9 +10,14 @@ export async function openOnsiteCommunication(page: Page, offlineBeforeEntry = f
   await page.waitForURL(url => url.pathname === "/planner" && url.searchParams.get("region") === "창원");
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");
   await page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true }).click();
-  await page.getByRole("button", { name: /문의 카드 만들기/ }).click();
+  const detail = page.locator(".native-place-dialog");
+  // Keep the original offline precondition: load the inquiry and communication
+  // bundle online through the UI before measuring the local-only conversation.
+  await detail.getByRole("button", { name: /^방문 전에 물어보기/ }).click();
   const inquiry = page.getByRole("dialog", { name: "이렇게 물어보세요." });
-  const entry = inquiry.getByRole("button", { name: "화면으로 대화", exact: true });
+  await expect(inquiry).toBeVisible();
+  await inquiry.getByRole("button", { name: "문의 카드 닫기", exact: true }).click();
+  const entry = detail.getByRole("button", { name: /^현장에서 화면으로 대화/ });
   await expect(entry).toBeEnabled();
   beforeEntry?.();
   if (offlineBeforeEntry) await page.context().setOffline(true);

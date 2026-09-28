@@ -11,7 +11,10 @@ import NaruLoadingPanel from '../../components/NaruLoadingPanel';
 import type { NaruJourney } from '../../lib/naru-journey.js';
 import { sanitizeSavedPlaceCatalog } from '../../lib/saved-place-catalog.js';
 import { REGION_KEY, THEMES_KEY } from '../../lib/current-trip-storage.js';
-import { explorationPlaceAction } from '../../lib/exploration-place-action.js';
+import { explorationPlaceAction, type ExplorationPlaceAction } from '../../lib/exploration-place-action.js';
+import { FACILITIES, classifyFacilities } from '../../lib/facility-selection.js';
+import { GYEONGNAM_REGION_POINTS } from '../../lib/gyeongnam-regions.js';
+import { useSavedPlaceEvidence } from '../../features/planner/hooks/useSavedPlaceEvidence';
 
 import {
   lazy,
@@ -87,7 +90,8 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   const [naruEntry, setNaruEntry] = useState('');
   useEffect(() => {
     const source = new URLSearchParams(window.location.search).get('fromNaru');
-    if (source === 'dates' || source === 'itinerary') setNaruEntry(source);
+    const frame=requestAnimationFrame(()=>{if (source === 'dates' || source === 'itinerary') setNaruEntry(source);});
+    return ()=>cancelAnimationFrame(frame);
   }, []);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const resumeAssistant = useRef(false);
@@ -95,8 +99,23 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   const placeDialogRef = usePlaceDialogFocus(Boolean(selectedPlace), closeSelectedPlace);
 
   const activePlaces = useMemo(() => plan?.places ?? [], [plan]);
-  const canSaveSelectedPlace = planController.resultCurrent && activePlaces.some(place => place === selectedPlace);
-  const explorationAction = explorationPlaceAction({ place: selectedPlace, plan, current: planController.resultCurrent, region, criteriaKey: JSON.stringify([region, theme, selected, locale]) });
+  // Search membership authorizes the original record, while the exact evidence
+  // shown in the dialog governs facilities and the snapshot written on save.
+  const criteriaKey = JSON.stringify([region, theme, selected, locale]);
+  const sourceCanSave = planController.resultCurrent && activePlaces.some(place => place === selectedPlace);
+  const sourceAction = explorationPlaceAction({ place: selectedPlace, plan, current: planController.resultCurrent, region, criteriaKey });
+  const selectedEvidence = useSavedPlaceEvidence(selectedPlace ? [selectedPlace.id] : [], FACILITIES.map(item => item.key), Boolean(selectedPlace));
+  const refreshedPlace = selectedEvidence.places.find(place => place.id === selectedPlace?.id);
+  const olderEvidence = refreshedPlace && selectedPlace && Date.parse(refreshedPlace.checkedAt || '') < Date.parse(selectedPlace.checkedAt || '');
+  const decisionPlace = refreshedPlace && !olderEvidence ? refreshedPlace : selectedPlace;
+  const sameRegion = decisionPlace && (region === '경남 전체' ? decisionPlace.city === '경남' || Object.hasOwn(GYEONGNAM_REGION_POINTS, decisionPlace.city) : decisionPlace.city === region);
+  const sourceAuthorized = Boolean(sameRegion && (sourceCanSave || sourceAction.kind === 'acknowledge'));
+  const facilityState = decisionPlace ? classifyFacilities(decisionPlace, selected) : 'unknown';
+  const canSaveSelectedPlace = sourceAuthorized && facilityState === 'match';
+  const explorationAction: ExplorationPlaceAction = !sameRegion ? { kind: 'blocked', key: '', providerError: false } : !sourceAuthorized ? sourceAction
+    : facilityState === 'absent' ? { kind: 'mismatch', key: '', providerError: false }
+    : facilityState === 'unknown' ? { kind: 'acknowledge', key: JSON.stringify([criteriaKey, plan?.generatedAt, decisionPlace]), providerError: decisionPlace?.facilityLookupState === 'error' || sourceAction.providerError }
+    : { kind: 'blocked', key: '', providerError: false };
   usePlannerChrome(plan);
   const [assistantMounted, setAssistantMounted] = useState(false);
   const [naruActivity, setNaruActivity] = useState({ phase: 'idle', text: '' });
@@ -357,10 +376,10 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
     return ok ? planController.getPlan() : null;
   }
 
-  const inspectPlace = (place: Place) => { if (assistantOpen) { resumeAssistant.current = true; setAssistantOpen(false); } setSelectedPlace(place); };
+  const inspectPlace = (place: Place) => { setSelectedPlace(place); };
   const openInternalToolRef = useRef<(tool:string)=>void>(()=>{});
   useEffect(() => {
-    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'on-trip':key; if(toolSurfaceGroup(tool)) openInternalToolRef.current(tool); else if (event?.type !== "wave:planner-navigation" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
+    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'on-trip':key; const group=toolSurfaceGroup(tool); if(group && group!=='browse' && group!=='planning') openInternalToolRef.current(tool); else if (event?.type === "hashchange" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
     let pending: MutationObserver | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let deliveryFrame = 0;
@@ -398,7 +417,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   function openAssistantTool(tool: string, fromNaru = false) {
     setNaruEntry(fromNaru ? tool : '');
     assistantToolFocusCleanup.current?.();
-    if (toolSurfaceGroup(tool)) { internalTools.open(tool); if (toolSurfaceGroup(tool) === "readiness") { setDepartureDetailsOpen(true); if (tool !== "readiness") setSecondaryOpen(true); } if (!assistantOpen) showAssistant(); return; }
+    if (toolSurfaceGroup(tool)) { if (["conditions","facilities","places","compare"].includes(tool)) stageView.changeStep("conditions"); else if (["dates","itinerary","map","save","share","calendar"].includes(tool)) { stageView.changeStep("itinerary"); setItineraryMapView(tool === "map"); } internalTools.open(tool); if (toolSurfaceGroup(tool) === "readiness") { setDepartureDetailsOpen(true); if (tool !== "readiness") setSecondaryOpen(true); } if (!assistantOpen) showAssistant(); return; }
     setAssistantOpen(false);
     stageView.changeView("guided");
     if (["conditions", "facilities"].includes(tool)) stageView.changeStep('conditions');
@@ -450,11 +469,11 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   }
   const browsing = journey.activeStepId === "conditions" || journey.activeStepId === "places";
   const plannerStages = <div className="simple-stage-stream">
-    <div hidden={!browsing} className="simple-browse-view">
-      <PlannerConditionsPanel onRegionChange={regionChange.request} view="guided" question={stageView.conditionQuestion} onQuestion={stageView.changeQuestion} onItinerary={() => journey.goToStep("itinerary")} onGenerate={generatePlan} t={t} activePlaces={activePlaces} planController={planController} route={routePlanning} tripSelection={tripSelection} />
-      {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} weather={weather} weatherDate={travelStart} onGenerate={generatePlan} onSelectPlace={inspectPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
-    </div>
-    <div hidden={browsing} className="simple-itinerary-view">
+    <PlannerToolPortal group="browse"><div hidden={!browsing} className="simple-browse-view">
+      <PlannerConditionsPanel onRegionChange={regionChange.request} view="guided" question={stageView.conditionQuestion} onQuestion={stageView.changeQuestion} onItinerary={() => assistantOpen ? openAssistantTool("itinerary") : journey.goToStep("itinerary")} onGenerate={generatePlan} t={t} activePlaces={activePlaces} planController={planController} route={routePlanning} tripSelection={tripSelection} />
+      {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} weather={weather} weatherDate={travelStart} onGenerate={generatePlan} onSelectPlace={inspectPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => assistantOpen ? openAssistantTool("itinerary") : stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
+    </div></PlannerToolPortal>
+    <PlannerToolPortal group="planning"><div hidden={browsing} className="simple-itinerary-view">
       <section className="planner-progress-context" aria-label="현재 여행 준비 상태">
         <div><span className="planner-progress-kicker">{naruEntry ? '나루에서 이어서 준비 중' : '여행 설계'}</span><h2>{travelStart ? '시간표를 만들었어요' : '장소를 담았어요 · 이제 날짜를 정해요'}</h2><p>{naruEntry ? (travelStart ? '나루에서 일정 확인 화면으로 이동했어요.' : '나루에서 날짜 설정으로 이동했어요. 아직 시간표는 만들지 않았어요.') : (travelStart ? '방문 순서와 시간을 확인하고 바꿀 수 있어요.' : '담은 장소는 유지돼요. 날짜는 나중에 정해도 괜찮아요.')}</p></div>
         <div className="planner-progress-actions">{naruEntry && <button type="button" onClick={showAssistant}>나루 대화로 돌아가기</button>}<button type="button" onClick={() => { setNaruEntry(''); stageView.changeStep('places', true); }}>여행지 목록으로</button></div>
@@ -464,7 +483,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
                 onStart={() => stageView.changeStep("conditions", true)}
                 alternativeTools={<><PlannerToolSection tools={["alternatives"]}><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /></PlannerToolSection><PlannerToolSection tools={["course"]}><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={inspectPlace}/></Suspense></PlannerToolSection><PlannerToolSection tools={["receipt"]}><button type="button" onClick={showAssistant}>나루에게 일정 변경 요청하기</button><PlannerServiceStatus locale={locale} keyHealth={keyHealth} effectiveProviders={effectiveProviders} transportProviders={transportProviders} providerErrors={providerErrors} liveCount={liveCount} dataErrors={dataErrors} plan={plan}/></PlannerToolSection></>}
                 mapView={itineraryMapView}
-                onMapViewChange={value => { setItineraryMapView(value); if (assistantOpen) { setAssistantOpen(false); stageView.changeStep("itinerary", true); if (embedded) router.push("/planner#itinerary"); } }}
+                onMapViewChange={value => { setItineraryMapView(value); if (assistantOpen) stageView.changeStep("itinerary", true); }}
                 canAddPlaces={planController.resultCurrent}
                 expanded={false}
                 weather={weather}
@@ -543,7 +562,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
                 onRouteFromRichSpot={routeFromRichSpot}
               /></div>
       </details></PlannerToolPortal>}
-    </div>
+    </div></PlannerToolPortal>
   </div>;
 
   return (
@@ -568,12 +587,13 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
         region={region} themes={theme} profiles={selected} weather={weather}
         onApply={alternatives.apply} onClose={alternatives.close}
       /></Suspense>}
-      {selectedPlace && <PlaceDecisionDialog
-        place={selectedPlace}
+      {selectedPlace && decisionPlace && <PlaceDecisionDialog
+        place={decisionPlace}
         region={region}
         saved={saved.includes(selectedPlace.id)}
         canSave={canSaveSelectedPlace}
         explorationAction={explorationAction}
+        latestEvidence={selectedEvidence}
         guidancePreferences={guidance.value}
         feedbackText={feedbackText}
         feedbackState={feedbackState}
@@ -582,7 +602,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
         onToggleSaved={acknowledgedKey => {
           if (saved.includes(selectedPlace.id) || canSaveSelectedPlace
             || explorationAction.kind === "acknowledge" && acknowledgedKey === explorationAction.key) {
-            if (toggleSaved(selectedPlace.id, selectedPlace)) closeSelectedPlace();
+            if (toggleSaved(selectedPlace.id, decisionPlace)) closeSelectedPlace();
           }
         }}
         onFeedbackChange={changeFeedbackText}
@@ -592,7 +612,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
       {regionChange.pending && <RegionChangeDialog region={regionChange.pending} en={locale === "en"} error={regionChange.error} onCancel={regionChange.cancel} onAdd={regionChange.add} onNew={regionChange.startNew} />}
       {!embedded && !assistantOpen && <NaruLauncher state={naruActivity.phase} buttonRef={mountAssistantLauncher} disabled={!hydrated || !planController.criteriaReady || !tripSelection.storageReady} onOpen={showAssistant} />}
 
-      {assistantMounted && <Suspense fallback={assistantOpen ? <NaruLoadingPanel /> : null}><PlannerAssistant onNewTrip={startNewTrip} origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={reviewRequest?.sourceId === launchRequest.id ? reviewRequest : launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={place => { resumeAssistant.current = true; setAssistantOpen(false); setSelectedPlace(place); }} onAlternative={(id, reason) => alternatives.open(id, reason)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={tool => openAssistantTool(tool, true)} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
+      {assistantMounted && <Suspense fallback={assistantOpen ? <NaruLoadingPanel /> : null}><PlannerAssistant onNewTrip={startNewTrip} origin={origin} routeMinutes={itineraryRoutes.routeMinutes} launchRequest={reviewRequest?.sourceId === launchRequest.id ? reviewRequest : launchRequest} pageContext={pageContext} open={assistantOpen} onClose={closeAssistant} plan={planController} trip={tripSelection} guidance={guidance} onRegion={regionChange.request} onSearch={searchForNaru} onPlace={inspectPlace} onAlternative={(id, reason) => alternatives.open(id, reason)} onUndoAlternative={alternatives.undoReplacement} canUndoAlternative={alternatives.canUndo} replacementVersion={alternatives.replacementVersion} onOpenTool={tool => openAssistantTool(tool, true)} transport={routePlanning.routeTravelMode} routeRevision={JSON.stringify([routePlanning.routeTravelMode, origin, originLabel, privateOrigin])} onJourneyApplied={applyNaruJourney} onRecalculate={recalculateNaruRoute} onActivity={setNaruActivity} /></Suspense>}
 
     </main>
   );

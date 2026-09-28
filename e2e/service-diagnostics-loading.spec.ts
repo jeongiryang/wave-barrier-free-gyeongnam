@@ -50,7 +50,7 @@ for (const failure of [false, true]) test(`service diagnostics load only when op
   expect(requests).toHaveLength(1);
   await summary.focus();
   await page.keyboard.press("Enter");
-  await page.getByRole('button', { name: '모든 여행 도구', exact: true }).click();
+  await page.getByRole('button', { name: '다른 기능 고르기', exact: true }).click();
   await expect(summary).toBeHidden();
   expect(await tripValues(page)).toEqual(before);
 

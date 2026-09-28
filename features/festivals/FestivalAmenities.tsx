@@ -10,6 +10,7 @@ import type { Place } from "../planner/types";
 import { plannerJson } from "../planner/services/api";
 import { usePlaceDialogFocus } from "../planner/hooks/usePlaceDialogFocus";
 import NightIcon from "../../components/NightIcon";
+import LocalAmenityPreview from '../planner/components/LocalAmenityPreview';
 import styles from "./FestivalAmenities.module.css";
 
 type FestivalPlace = Place & { websiteUrl?: string; officialUrl?: string; phone?: string };
@@ -85,6 +86,7 @@ function FestivalAmenityDetails({ place, onClose }: { place: FestivalPlace; onCl
     return () => controller.abort();
   }, [canLocate, place.id, retry]);
   return <section className={styles.panel} aria-label="축제 주변 편의 정보">
+    <LocalAmenityPreview place={place} festival/>
     <div className={styles.intro}><span className={styles.eyebrow}>방문 전에 살펴보세요</span><h3>가까운 편의시설 찾기</h3><p>축제 장소 주변 5km의 등록 정보를 모았어요. 축제장 내부 시설과 현재 운영 여부는 별도로 확인해 주세요.</p></div>
     <div className={styles.layerButtons} role="group" aria-label="확인할 편의시설">
       <button type="button" aria-pressed={layer === 'restroom'} onClick={() => setLayer('restroom')}>화장실</button>

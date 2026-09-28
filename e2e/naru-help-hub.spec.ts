@@ -19,8 +19,9 @@ async function open(page: Page) {
   await launcher.click();
   const chat = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
   await expect(chat).toBeVisible();
-  await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
-  await expect(chat.getByRole('tabpanel', { name: '여행 도구', exact: true })).toBeVisible();
+  await chat.getByRole('tab', { name: '직접 골라서 하기', exact: true }).click();
+  await expect(chat.getByRole('tabpanel', { name: '직접 골라서 하기', exact: true })).toBeVisible();
+  await chat.locator('.naru-extra-help > summary').click();
   return { chat, launcher };
 }
 
@@ -46,16 +47,13 @@ test('항목을 누르면 대화 없이 해당 도구가 열리고 나루를 닫
   const { chat, launcher } = await open(page);
   const hub = chat.getByRole('region', { name: '나루 도움 모음', exact: true });
   await hub.getByRole('button', { name: '필요한 편의 고르기', exact: true }).click();
-  await expect(chat).toHaveCount(0);
-  await expect(page.locator('dialog[open]')).toHaveCount(0);
-  await expect(page.locator('.simple-facility-trigger')).toBeFocused();
-  await page.locator('.simple-facility-trigger').evaluate(node => (node as HTMLElement).blur());
-  // Returning through the launcher button restores its own focus rule; opening
-  // and closing without a nested tool exercises the same dialog focus-restore path.
-  await launcher.click();
-  const chat2 = page.getByRole('dialog', { name: 'WAVE 여행 가이드 나루와 대화', exact: true });
-  await expect(chat2).toBeVisible();
-  await chat2.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
+  await expect(chat).toBeVisible();
+  const facilities = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+  await expect(facilities).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(facilities).toBeHidden();
+  await expect(chat.locator('.simple-facility-trigger')).toBeFocused();
+  await chat.getByRole('button', { name: '나루 대화 닫기', exact: true }).click();
   await expect(launcher).toBeFocused();
 });
 
@@ -68,7 +66,7 @@ test('나루 모델을 쓸 수 없는 상태에서도 도움 모음은 동작하
   await expect(hub).toBeVisible();
   await expect(hub.getByRole('button', { name: '직접 이야기하기', exact: true })).toHaveCount(0);
   await hub.getByRole('button', { name: '필요한 편의 고르기', exact: true }).click();
-  await expect(page.locator('.simple-facility-trigger')).toBeFocused();
+  await expect(page.getByRole('dialog', { name: '필요한 편의', exact: true })).toBeVisible();
 });
 
 test('키보드만으로 도움 모음 항목까지 이동해 실행할 수 있다', async ({ page }) => {
@@ -80,6 +78,6 @@ test('키보드만으로 도움 모음 항목까지 이동해 실행할 수 있�
   await button.focus();
   await expect(button).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(chat).toHaveCount(0);
-  await expect(page.locator('.simple-facility-trigger')).toBeFocused();
+  await expect(chat).toBeVisible();
+  await expect(page.getByRole('dialog', { name: '필요한 편의', exact: true })).toBeVisible();
 });

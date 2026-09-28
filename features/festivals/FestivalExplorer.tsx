@@ -26,6 +26,7 @@ import { getTabStorage } from '../../lib/session-storage.js';
 import { emptyTrip } from '../../lib/current-trip-storage.js';
 import { replaceTripWithBackup } from '../../lib/trip-import.js';
 import FestivalAmenities from './FestivalAmenities';
+import LocalFestivalExamples from './LocalFestivalExamples';
 import FestivalCardPanel from './FestivalCardPanel';
 import FestivalDetailDialog, { type FestivalDetail } from './FestivalDetailDialog';
 import { addFestivalToTrip, existingFestivalVisit, rescheduleFestivalVisit } from '../../lib/festival-trip.js';
@@ -151,6 +152,7 @@ export default function FestivalExplorer() {
     <div className="festival-state-tabs" role="group" aria-label="축제 진행 상태">{[['all','전체'],['ongoing','진행 중'],['upcoming','예정'],['ended','종료']].map(([value,label]) => <button type="button" key={value} disabled={!current || pending} aria-pressed={eventState === value} onClick={() => setEventState(value)}>{label}</button>)}</div>
     <p className="festival-period-help">선택한 날짜와 겹치는 축제를 보여드려요. 종료된 축제는 과거 날짜로 조회해 주세요.</p>
     <div className="night-festival-heading"><h2><NightIcon name="star"/>지금, 경남에서 만나는 축제 <em>{current && !pending && !failure ? shown.length : ''}</em></h2><div><WaveSelect icon="sort" aria-label="축제 정렬" value={sort} onChange={event => setSort(event.target.value)}>{['추천순','가까운 날짜순','이름순'].map(item => <option key={item}>{item}</option>)}</WaveSelect><button type="button" data-icon-action="" title={listView ? "카드형으로 보기" : "목록형으로 보기"} aria-label={listView ? '카드형으로 보기' : '목록형으로 보기'} aria-pressed={listView} onClick={() => setListView(!listView)}><NightIcon name={listView ? 'grid' : 'list'}/></button></div></div>
+    <LocalFestivalExamples/>
     <section id="festival-results" className="festival-results" tabIndex={-1} aria-busy={pending}>{pending && <LoadingState>행사 날짜와 관광정보를 확인하고 있어요.</LoadingState>}{notice && <p className="result-notice" role="alert">{notice}</p>}{failure && <div className="result-notice error" role="alert"><p>{failure}</p><button type="button" onClick={() => setReload(current => current + 1)} data-icon-action="" title="다시 조회"><NightIcon name="refresh" size={20}/><span className="sr-only">다시 조회</span></button></div>}
       {!validQuery && (start || end) && <p role="status">시작일부터 끝날까지 날짜를 골라주세요.</p>}
       {!pending && !failure && current && data && <p role="status">{shown.length}개의 축제 · {evidenceDate(data.checkedAt)} 한국관광공사 조회{data.partial && ' · 일부 제공 범위의 결과입니다.'}</p>}

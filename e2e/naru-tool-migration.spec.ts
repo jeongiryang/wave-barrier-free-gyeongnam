@@ -41,14 +41,14 @@ test('a place restroom action mounts Naru and preserves the requested stop on fi
   expect(await stored(page)).toBe(before);
 });
 
-test('an internal route action dismisses Naru and exposes the selected shared journey on the map', async ({ page }) => {
+test('an internal route action keeps Naru and exposes the selected shared journey on the map', async ({ page }) => {
   await setup(page); const before = await stored(page);
   const chat = await openNaruTool(page, '이동 구간 확인');
   const second = chat.locator('.itinerary-route-coverage li').nth(1);
   await expect(second).toContainText('경남도립미술관 · 용지호수공원');
   await expect(second.getByRole('button', { name: '이 구간 지도에서 보기', exact: true })).toBeEnabled();
   await second.getByRole('button', { name: '이 구간 지도에서 보기', exact: true }).click();
-  await expect(chat).toBeHidden(); await expect(page.locator('#navigation')).toBeVisible();
+  await expect(chat).toBeVisible(); await expect(chat.locator('#navigation')).toBeVisible();
   await openRouteDetails(page);
   await expect(page.locator('.route-compare-panel a[href^="https://map.kakao.com/"]')).toHaveAttribute('href', `https://map.kakao.com/link/by/car/${encodeURIComponent('경남도립미술관')},35.238,128.691/${encodeURIComponent('용지호수공원')},35.229,128.683`);
   expect(await stored(page)).toBe(before);
@@ -60,7 +60,7 @@ test('undated internal tools explain the prerequisite and focus date entry witho
   await expect(chat.getByRole('status').filter({ hasText: '여행 날짜를 정하면' })).toBeVisible();
   expect(await stored(page)).toBe(before);
   await chat.getByRole('button', { name: '날짜·출발지 정하기', exact: true }).click();
-  await expect(chat).toBeHidden(); await expect(page.locator('#itinerary-setup input').first()).toBeFocused();
+  await expect(chat).toBeVisible(); await expect(chat.locator('#itinerary-setup input').first()).toBeFocused();
   expect(await stored(page)).toBe(before);
 });
 
@@ -78,7 +78,7 @@ test('readiness deep links, checklist state and place detail return remain insid
   if (await hours.getAttribute('open') === null) await hours.locator('summary').click();
   await review.getByRole('button', { name: '이용 정보·문의', exact: true }).first().click();
   const detail = page.locator('dialog.place-modal'); await expect(detail).toBeVisible();
-  await expect(chat).toBeHidden();
+  await expect(chat).toBeVisible();
   await detail.getByRole('button', { name: '닫기', exact: true }).click();
   await expect(chat).toBeVisible(); await expect(readiness).toBeVisible();
   await expect(readiness.getByRole('checkbox').first()).toBeChecked(); expect(await stored(page)).toBe(before);
@@ -111,9 +111,9 @@ test('an empty trip opened from community returns to usable place search', async
   const chat = await openNaruTool(page, '이동 부담·휴식');
   await expect(chat.getByRole('status').filter({ hasText: '여행지를 일정에 담으면' })).toBeVisible();
   await chat.getByRole('button', { name: '여행지 찾기', exact: true }).click();
-  await expect(chat).toBeHidden();
-  await expect(page).toHaveURL(/\/planner#conditions$/);
-  const region = page.getByRole('combobox', { name: '여행 지역', exact: true });
+  await expect(chat).toBeVisible();
+  await expect(page).toHaveURL(/\/community$/);
+  const region = chat.getByRole('combobox', { name: '여행 지역', exact: true });
   await expect(region).toBeFocused();
   await chooseWaveOption(region, '창원');
   await expect(page.locator('#places')).toBeVisible();

@@ -55,7 +55,9 @@ async function setup(page: Page, withTrip = false, initialRegion = '창원') {
   return { chat: await open(page), prompts, journeys };
 }
 async function requestTrip(chat: Locator) {
-  await chat.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
+  const initial = chat.getByRole('button', { name: /^여행 처음 만들기/ });
+  if (await initial.isVisible()) await initial.click();
+  else await chat.getByRole('button', { name: '여행 준비 맡기기', exact: true }).click();
   const form = chat.getByRole('form', { name: '여행 준비 맡기기', exact: true });
   await chooseWaveOption(form.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   await form.getByLabel('출발 날짜', { exact: true }).fill(start);
@@ -74,35 +76,42 @@ test('workspace tabs expose all 28 tools with keyboard and pointer targets', asy
   const tabs = chat.getByRole('tablist', { name: '나루 작업공간' });
   await tabs.getByRole('tab', { name: '대화', exact: true }).focus();
   await page.keyboard.press('ArrowRight');
-  await expect(tabs.getByRole('tab', { name: '여행 도구', exact: true })).toBeFocused();
-  await expect(tabs.getByRole('tab', { name: '여행 도구', exact: true })).toHaveAttribute('aria-selected', 'true');
-  const tools = chat.getByRole('region', { name: '모든 여행 도구', exact: true }).locator('.naru-tools button');
+  await expect(tabs.getByRole('tab', { name: '직접 골라서 하기', exact: true })).toBeFocused();
+  await expect(tabs.getByRole('tab', { name: '직접 골라서 하기', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await chat.getByRole('button', { name: '전체', exact: true }).click();
+  const tools = chat.getByRole('region', { name: '모든 여행 도구', exact: true }).locator('.naru-task-actions > button');
   await expect(tools).toHaveCount(28);
-  const labels = await tools.allTextContents();
-  expect(labels).toEqual(expect.arrayContaining(['지역·활동', '필요한 편의', '날짜·기간', '지도·경로', '동행·합류', '해설 대본', '방문 전 문의', '오프라인 요약', '여행 당일 안내', '페이스·감각지도·여행여권', '오디오 가이드·후기', '장소 좌표 복원', '이동 구간 확인']));
+  const labels = await tools.locator('strong').allTextContents();
+  expect(labels).toEqual(expect.arrayContaining(['어디로 갈지 고르기', '필요한 편의 고르기', '여행 날짜 정하기', '지도에서 동선 보기', '동행·합류', '해설 대본', '직원에게 물어볼 말 준비하기', '인터넷 없이 볼 일정 저장하기', '오늘 일정 확인하기', '페이스·감각지도·여행여권', '장소 해설 듣기', '장소 좌표 복원', '이동 구간 확인']));
   for (const button of await tools.all()) {
     await button.scrollIntoViewIfNeeded(); await button.focus(); await expect(button).toBeFocused();
     const box = (await button.boundingBox())!;
     expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
     await expect.poll(() => button.evaluate(node => { const r = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); })).toBe(true);
   }
-  await tabs.getByRole('tab', { name: '여행 도구', exact: true }).focus(); await page.keyboard.press('End');
+  await tabs.getByRole('tab', { name: '직접 골라서 하기', exact: true }).focus(); await page.keyboard.press('End');
   await expect(chat.getByRole('region', { name: '저장한 여행 작업', exact: true })).toBeVisible();
   await page.keyboard.press('Home');
   await expect(tabs.getByRole('tab', { name: '대화', exact: true })).toBeFocused();
-  await tabs.getByRole('tab', { name: '여행 도구', exact: true }).click();
-  await chat.getByRole('region', { name: '모든 여행 도구', exact: true }).getByRole('button', { name: '필요한 편의', exact: true }).click();
-  await expect(chat).toBeHidden(); await expect(page.locator('.simple-facility-trigger')).toBeFocused();
+  await tabs.getByRole('tab', { name: '직접 골라서 하기', exact: true }).click();
+  await chat.locator('.naru-task-actions > button').filter({ has: page.getByText('필요한 편의 고르기', { exact: true }) }).click();
+  await expect(chat).toBeVisible();
+  const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+  await expect(picker).toBeVisible();
+  expect(await picker.evaluate(node => !!node.closest('.naru-panel'))).toBe(true);
+  await picker.getByRole('button', { name: '편의 선택 닫기', exact: true }).click();
+  await expect(chat.locator('.simple-facility-trigger')).toBeFocused();
   expect(prompts).toEqual([]); expect(journeys).toEqual([]);
 });
 
 test('plain-language tool search finds difficult tools without changing the current trip', async ({page})=>{
   const {chat}=await setup(page,true);
   const before=await state(page);
-  await chat.getByRole('tab',{name:'여행 도구',exact:true}).click();
-  const search=chat.getByLabel('무엇을 확인할까요?',{exact:true});
+  await chat.getByRole('tab',{name:'직접 골라서 하기',exact:true}).click();
+  await chat.getByRole('button',{name:'전체',exact:true}).click();
+  const search=chat.getByLabel('여행 기능 검색',{exact:true});
   await search.fill('막차');
-  const tools=chat.getByRole('region',{name:'모든 여행 도구',exact:true}).locator('.naru-tools button');
+  const tools=chat.getByRole('region',{name:'모든 여행 도구',exact:true}).locator('.naru-task-actions > button');
   await expect(tools).toHaveCount(1);
   await expect(tools.first()).toContainText('교통');
   await search.fill('없는도구검색');
@@ -142,7 +151,7 @@ test('follow-up itinerary remains applicable when the first apply finishes its b
     await expect(adjustment).toContainText('기존 장소');
     await expect(adjustment.getByRole('button',{name:'이 일정으로 반영하기',exact:true})).toBeEnabled();
     if(!isMobile){
-      await chat.getByRole('button',{name:'변경안과 확인할 사항 보기',exact:true}).click();
+      await chat.getByRole('button',{name:'변경안 확인하기',exact:true}).click();
       await expect(adjustment.locator('header')).toBeInViewport();
     }
     expect(await state(page)).toEqual(before);
@@ -167,7 +176,7 @@ async function verifyGentleFollowup(page: Page, request: string) {
   await chat.getByRole('button',{name:'나루에게 보내기',exact:true}).click();
   const proposal=chat.getByRole('region',{name:'나루의 실제 일정안',exact:true});
   await expect(proposal).toContainText(original.name);
-  await expect(proposal).toContainText('20분');
+  await expect(proposal).not.toContainText('체류 60분 · 휴식 20분');
   expect(await state(page)).toEqual(before);
   await proposal.getByRole('button',{name:'이 일정으로 반영하기',exact:true}).click();
   await expect.poll(async()=>(await state(page)).schedule.breakMinutesByPlaceId['1001']).toBe(20);
@@ -206,7 +215,7 @@ test('explicit conversation saving survives reload and resumes without executabl
   const before = await state(page);
   expect(await page.evaluate(() => localStorage.getItem('wave-naru-workspaces-v1'))).toBeNull();
   await chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('아직 보내지 않은 요청');
-  await chat.getByRole('tab', { name: '저장한 내용', exact: true }).click();
+  await chat.getByRole('tab', { name: '저장한 여행', exact: true }).click();
   const saved = chat.getByRole('region', { name: '저장한 여행 작업', exact: true });
   await saved.getByLabel('여행 이름', { exact: true }).fill('부모님과 창원');
   await saved.getByRole('button', { name: '대화와 현재 여행 저장', exact: true }).click();
@@ -218,8 +227,8 @@ test('explicit conversation saving survives reload and resumes without executabl
   for (const message of envelope.workspaces[0].messages) expect(Object.keys(message).sort()).toEqual(['role', 'text']);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('wave-travel-book-v1') || '[]').length)).toBe(1);
   await page.reload(); const reopened = await open(page);
-  await reopened.getByRole('tab', { name: '저장한 내용', exact: true }).click();
-  await reopened.getByRole('button', { name: '부모님과 창원 이어가기', exact: true }).click();
+  await reopened.getByRole('tab', { name: '저장한 여행', exact: true }).click();
+  await reopened.locator('.naru-saved-workspaces > article').filter({ has: page.getByText('부모님과 창원', { exact: true }) }).getByRole('button', { name: '이어서 준비하기', exact: true }).click();
   await expect(reopened.getByRole('tab', { name: '대화', exact: true })).toHaveAttribute('aria-selected', 'true');
   await expect(reopened.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true })).toHaveValue('아직 보내지 않은 요청');
   await expect(reopened.getByRole('log')).toContainText('부모님과 창원');
@@ -232,7 +241,7 @@ test('a blocked local save reports failure and preserves both the previous archi
   const { chat, prompts } = await setup(page);
   const question = chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true });
   await question.fill('저장 실패에도 남아야 할 요청');
-  await chat.getByRole('tab', { name: '저장한 내용', exact: true }).click();
+  await chat.getByRole('tab', { name: '저장한 여행', exact: true }).click();
   const saved = chat.getByRole('region', { name: '저장한 여행 작업', exact: true });
   await saved.getByLabel('여행 이름', { exact: true }).fill('기존 대화');
   await saved.getByRole('button', { name: '대화와 현재 여행 저장', exact: true }).click();
@@ -251,7 +260,7 @@ test('saved trips and an empty preparation workspace restore their own conversat
   const { chat } = await setup(page, true);
   await requestTrip(chat);
   const before = await state(page);
-  await chat.getByRole('tab', { name: '저장한 내용', exact: true }).click();
+  await chat.getByRole('tab', { name: '저장한 여행', exact: true }).click();
   await chat.getByLabel('여행 이름', { exact: true }).fill('장소 있는 여행 A');
   await chat.getByRole('button', { name: '저장하고 새 여행 준비', exact: true }).click();
   await expect.poll(async () => (await state(page)).ids).toEqual([]);
@@ -260,7 +269,7 @@ test('saved trips and an empty preparation workspace restore their own conversat
   await chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('혼자 떠날 여행 B는 아직 장소를 고르지 않았어요');
   await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
   await expect(chat.getByRole('log')).toContainText('여행 B의 질문을 확인했어요.');
-  await chat.getByRole('tab', { name: '저장한 내용', exact: true }).click();
+  await chat.getByRole('tab', { name: '저장한 여행', exact: true }).click();
   await chat.getByLabel('여행 이름', { exact: true }).fill('장소 없는 여행 B');
   await chat.getByRole('button', { name: '대화와 현재 여행 저장', exact: true }).click();
   await expect(chat.locator('.naru-workspace-notice')).toContainText('이 기기에 대화를 저장했어요');
@@ -268,8 +277,8 @@ test('saved trips and an empty preparation workspace restore their own conversat
   const a = workspaces.find(item => item.title === '장소 있는 여행 A')!, b = workspaces.find(item => item.title === '장소 없는 여행 B')!;
   expect(a.bookId).toBeTruthy(); expect(b.bookId).toBeUndefined(); expect(a.tripId).not.toBe(b.tripId);
   for (const target of [a, b]) {
-    await chat.getByRole('tab', { name: '저장한 내용', exact: true }).click();
-    await chat.getByRole('button', { name: `${target.title} 이어가기`, exact: true }).click();
+    await chat.getByRole('tab', { name: '저장한 여행', exact: true }).click();
+    await chat.locator('.naru-saved-workspaces > article').filter({ has: page.getByText(target.title, { exact: true }) }).getByRole('button', { name: '이어서 준비하기', exact: true }).click();
     const confirmation = chat.getByRole('region', { name: '다른 대화 열기 확인', exact: true });
     await expect(confirmation).toBeVisible();
     await confirmation.getByRole('button', { name: '대화 저장 없이 열기', exact: true }).click();
@@ -287,7 +296,7 @@ test('saved trips and an empty preparation workspace restore their own conversat
 test('another tab changing the current trip prevents stale workspace saves and restores', async ({ page }) => {
   const { chat } = await setup(page, true);
   await requestTrip(chat);
-  await chat.getByRole('tab', { name: '저장한 내용', exact: true }).click();
+  await chat.getByRole('tab', { name: '저장한 여행', exact: true }).click();
   await chat.getByLabel('여행 이름', { exact: true }).fill('원래 여행');
   await chat.getByRole('button', { name: '대화와 현재 여행 저장', exact: true }).click();
   await expect(chat.locator('.naru-workspace-notice')).toContainText('대화와 일정을 저장했어요');
@@ -299,7 +308,7 @@ test('another tab changing the current trip prevents stale workspace saves and r
   });
   await chat.getByRole('button', { name: '대화와 현재 여행 저장', exact: true }).click();
   await expect(chat.locator('.naru-workspace-notice')).toContainText('다른 탭에서 여행이 바뀌었어요');
-  await chat.getByRole('button', { name: '원래 여행 이어가기', exact: true }).click();
+  await chat.locator('.naru-saved-workspaces > article').filter({ has: page.getByText('원래 여행', { exact: true }) }).getByRole('button', { name: '이어서 준비하기', exact: true }).click();
   await expect(chat.locator('.naru-workspace-notice')).toContainText('다른 탭에서 여행이 바뀌었어요');
   expect(await page.evaluate(() => ({ current: localStorage.getItem('wave-current-trip-v1'), archive: localStorage.getItem('wave-naru-workspaces-v1'), books: localStorage.getItem('wave-travel-book-v1') }))).toEqual(changed);
 });

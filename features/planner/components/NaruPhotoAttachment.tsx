@@ -14,8 +14,8 @@ export default function NaruPhotoAttachment({ photo, disabled, onChange, onPrepa
   useEffect(() => { if (enlarged && photo) viewer.current?.showModal(); }, [enlarged, photo]);
   const [preparing, setPreparing] = useState(false), [error, setError] = useState('');
   useEffect(() => () => { generation.current++; onPreparing(false); }, [onPreparing]);
-  async function choose(file?: File) {
-    if (!file) return;
+  async function choose(files: File[]) {
+    if (!files.length || disabled || preparing || remaining < 1) return;
     const id = ++generation.current; setPreparing(true); onPreparing(true); setError('');
     try { const next = await Promise.all(files.slice(0, remaining).map(prepareAssistantPhoto)); if (generation.current === id) { if (onAddPhotos) onAddPhotos(next); else onChange(next[0]); if (files.length > remaining) setError('사진은 최대 3장까지 첨부할 수 있어요.'); } }
     catch (error) { if (generation.current === id) setError(error instanceof Error ? error.message : '사진을 준비하지 못했어요.'); }

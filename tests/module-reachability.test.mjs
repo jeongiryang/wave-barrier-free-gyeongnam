@@ -21,13 +21,17 @@ test("module discovery keeps lazy imports separate from the following static imp
 // Owner #353 retains these removed presentation scenes as source history;
 // itinerary/map introductions are deferred to #386, not loaded into Landing.
 // The 2026-09-10 Owner 8+10 decision also retires the old facilities/demo presentation.
-const PRESERVED_LANDING_SCENES = [
+const PRESERVED_PRESENTATION_MODULES = [
   "features/landing/components/LandingManifesto.tsx",
   "features/landing/components/LandingPossibilityScene.tsx",
   "features/landing/components/LandingBoundaryMap.tsx",
   "features/landing/components/LandingExpansionScene.tsx",
   "features/landing/components/LandingJourneyScene.tsx",
   "features/landing/components/LandingProductStories.tsx",
+  // Owner's 2026-09-29 local baseline removes the auth illustration and replaces
+  // the old example with LandingRestoredConversation. Keep the sources retired.
+  "components/NightAccountVisual.tsx",
+  "features/landing/components/LandingUseExample.tsx",
 ];
 
 async function walk(relative) {
@@ -66,10 +70,10 @@ test("every shared module is reachable from something that imports it", async ()
     }
   }));
 
-  for (const path of PRESERVED_LANDING_SCENES) {
+  for (const path of PRESERVED_PRESENTATION_MODULES) {
     assert.ok(owned.includes(path), `보존하기로 한 소개 원본이 삭제됐다: ${path}`);
     assert.ok(!imported.has(path.replace(CODE, "")), `제외한 소개 장면이 다시 연결됐다: ${path}`);
   }
-  const orphans = owned.filter((path) => !imported.has(path.replace(CODE, "")) && !PRESERVED_LANDING_SCENES.includes(path));
+  const orphans = owned.filter((path) => !imported.has(path.replace(CODE, "")) && !PRESERVED_PRESENTATION_MODULES.includes(path));
   assert.deepEqual(orphans, [], `아무도 불러 쓰지 않는 모듈이 남아 있다:\n${orphans.join("\n")}`);
 });

@@ -1,4 +1,5 @@
 import { waveSelectNative } from './wave-select-fixture';
+import { expectNaruDurationExample } from './landing-contract';
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
@@ -42,7 +43,7 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await expect(page.locator(".night-journey-tabs button")).toHaveCount(3);
     await expect(page.locator('.simple-naru-example')).toHaveAttribute('aria-label', '대화 예시');
     await expect(page.locator('.simple-naru-example .example-user')).toHaveText('첫 번째 장소에서 90분 머물게 해줘');
-    await expect(page.locator('.simple-naru-example').getByRole('button', { name: '예시 일정에 적용', exact: true })).toBeEnabled();
+    await expectNaruDurationExample(page);
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();

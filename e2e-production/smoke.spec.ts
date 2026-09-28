@@ -14,11 +14,16 @@ async function expectHealthyPage(page: Page, path: string) {
   await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Unhandled Runtime Error/i);
 
   if (new URL(page.url()).pathname === "/") {
-    // The release opens directly onto the real planning action.
+    // The approved intro is dismissible on every device, including reduced motion.
     await expect(page.locator(".landing-page")).toBeVisible();
     await expect(page.locator(".wave-support-menu")).toHaveAttribute("aria-busy", "false");
-    await expect(page.locator(".arrival-scene,.wave-intro,#arrival-boot")).toHaveCount(0);
-    await expect(page.locator(".landing-actions a")).toBeVisible();
+    if (await page.evaluate(() => sessionStorage.getItem('wave-arrival-session-v1') !== 'done')) {
+      const skip = page.locator('.arrival-scene').getByRole('button', { name: '건너뛰기', exact: true });
+      await expect(skip).toBeVisible();
+      await skip.press('Enter');
+    }
+    await expect(page.locator('.arrival-scene')).toBeHidden();
+    await expect(page.locator('.night-hero-search button[type="submit"]')).toBeVisible();
   }
   await page.evaluate(() => document.fonts.ready);
   const overflow = await page.evaluate(() => ({
@@ -79,7 +84,7 @@ test("reduced motion keeps the public entry flow usable", async ({ page }) => {
   });
   await expectHealthyPage(page, "/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "calm");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
   const support = page.locator(".wave-support-menu");
   await support.getByLabel("WAVE 이용 안내 메뉴", { exact: true }).click();
   await expect(support).toHaveAttribute("data-open", "true");

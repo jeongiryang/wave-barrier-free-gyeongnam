@@ -54,7 +54,7 @@ export default function PlaceDecisionContent(props: PlaceDecisionDialogProps & {
         <Suspense fallback={null}><PlaceAudioGuide expanded key={place.id} id={place.id} guidance={props.guidancePreferences} /></Suspense>
     </div>
     <div className="place-detail-panel" role="tabpanel" id={`${id}-panel-1`} aria-labelledby={`${id}-tab-1`} hidden={active !== 1} tabIndex={0}>
-        <Suspense fallback={<LoadingState>{en ? "Loading facility details…" : "편의정보를 불러오는 중…"}</LoadingState>}><PlaceEvidenceSummary key={place.id} place={place} /></Suspense>
+        <Suspense fallback={<LoadingState>{en ? "Loading facility details…" : "편의정보를 불러오는 중…"}</LoadingState>}><PlaceEvidenceSummary key={place.id} place={place} refresh={props.latestEvidence} /></Suspense>
         <PlaceSensory place={place}/>
         <details className="place-review-arrival"><summary>{en ? 'Parking, entrance and facilities preview' : '주차·입구·시설 미리보기'}</summary><Suspense fallback={<LoadingState>{en ? 'Preparing arrival information…' : '주차·입구 정보를 준비하고 있어요.'}</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} onClose={props.onClose} onOpenRestrooms={props.onClose} /></Suspense></details>
     </div>

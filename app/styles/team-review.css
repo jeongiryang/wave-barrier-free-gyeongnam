@@ -1,0 +1,33 @@
+/* Team PDF 2026-09-28: bounded presentation, no global image blur. */
+.local-amenity-preview{padding:16px;border:1px solid #5a92b3;border-radius:16px;margin:16px 0;background:#172e43;color:#fff}
+.local-amenity-preview p,.local-amenity-preview li{color:#e5eff9}
+.local-amenity-map{height:280px;width:100%;border-radius:12px;overflow:hidden;margin-top:12px;background:#e7f1ed}
+.local-amenity-marker{background:transparent;border:0}
+.local-red-location-pin{display:block;position:relative;width:28px;height:28px;border-radius:50% 50% 50% 0;background:#d92d20;border:3px solid #fff;transform:rotate(-45deg);margin:4px 8px;box-shadow:0 2px 6px #0006}
+.local-red-location-pin::after{content:'';position:absolute;inset:7px;border-radius:50%;background:white}
+html:root body .naru-panel.naru-friendly .naru-readback{vertical-align:middle;margin:8px 8px 12px 0!important;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;padding:0}
+html:root body .naru-panel.naru-friendly .naru-hours-place{padding:16px;list-style:none;border:1px solid var(--line);border-radius:14px;background:#f8faff;margin:12px 0}
+html:root body .naru-panel.naru-friendly .naru-hours-place button{display:inline-flex;align-items:center;gap:8px;min-height:44px}
+html:root body .naru-panel.naru-friendly .naru-hours-place small{line-height:1.8}
+.naru-panel [data-naru-tool-surface="browse"],.naru-panel [data-naru-tool-surface="planning"]{min-width:0}
+html:root body .naru-panel.naru-friendly .simple-stage-stream,html:root body .naru-panel.naru-friendly .simple-browse-view,html:root body .naru-panel.naru-friendly .simple-itinerary-view{width:100%;max-width:none;margin:0}
+html:root body .naru-panel.naru-friendly .simple-search-bar{max-width:100%}
+html:root body .naru-panel.naru-friendly .simple-itinerary-view .itinerary-workspace-layout{grid-template-columns:minmax(0,1fr)}
+.local-festival-examples{margin:20px 0;padding:20px;border:1px solid #75a0bd;border-radius:20px;max-width:640px}
+.local-festival-examples .festival-card-photo{position:relative;display:block;width:100%;height:240px;overflow:hidden;border-radius:16px}
+.local-festival-examples img{width:100%;height:100%;object-fit:cover}
+.local-festival-examples .festival-card-photo span{position:absolute;bottom:12px;left:16px;background:#173147;color:white;padding:8px;border-radius:8px}
+
+.night-hero-search .wave-select-trigger{text-align:center!important;justify-content:center!important}
+.simple-timing-mode{display:flex;align-items:start;justify-content:space-between;gap:12px;margin:8px 0;font-size:.875rem}.simple-timing-mode details{max-width:70%}.simple-timing-mode summary{cursor:pointer;min-height:44px}.simple-timing-mode li{margin:8px 0}
+
+/* Nested comparison belongs to Naru's light surface, not the outer night page. */
+html:root body .naru-panel.naru-friendly .region-change-dialog.place-comparison-dialog{
+  --paper:#fff;--surface:#fff;--ink:#293c55;--ink-soft:#4e6178;--muted:#576980;--line:#c4d2e5;--accent:#267e79;--blue:#267e79;--on-blue:#fff;--on-accent:#fff;
+  background:var(--paper);color:var(--ink);color-scheme:light;
+}
+html:root body .naru-panel.naru-friendly .place-comparison-dialog .place-comparison-scroll :is(th:first-child,thead th){background:#edf5f3;color:var(--ink)}
+html:root body .naru-panel.naru-friendly .place-comparison-dialog .place-comparison-scroll button{background:var(--surface);color:var(--ink);border-color:var(--line)}
+html:root body .naru-panel.naru-friendly .place-comparison-dialog .place-comparison-scroll td[data-state=confirmed] strong{color:#256045}
+html:root body .naru-panel.naru-friendly .place-comparison-dialog .place-comparison-scroll td[data-state=negative] strong{color:#993f40}
+html:root body .naru-panel.naru-friendly .place-comparison-dialog input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}

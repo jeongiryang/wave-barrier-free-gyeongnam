@@ -326,6 +326,8 @@ for (const width of [390, 960, 1440]) test(`festival photo cards and compact act
   const period = card.locator('.festival-period');
   await period.scrollIntoViewIfNeeded();
   const contrast = await paintedContrast(page, '.festival-card .festival-period', true);
+  await test.info().attach('festival-period-contrast', { body: JSON.stringify({ width, ...contrast }), contentType: 'application/json' });
+  await page.screenshot({ path: test.info().outputPath('festival-photo-card.png') });
   expect(contrast.pixels).toBeGreaterThan(0);
   expect(contrast.minimum).toBeGreaterThanOrEqual(4.5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

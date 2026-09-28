@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPublicShellApi } from "./fixtures";
 
-const LABELS = ["서비스 소개", "여행 설계", "축제", "커뮤니티"];
+const LABELS = ["소개", "여행 설계", "축제", "커뮤니티"];
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem("wave-arrival-session-v1", "done"));
@@ -36,7 +36,7 @@ test("그림은 별도 초점 대상이 아니고 현재 항목만 aria-current�
   expect(await nav.locator("svg[tabindex], svg[role='img'], svg a").count()).toBe(0);
 
   await expect(nav.locator("a[aria-current='page']")).toHaveCount(1);
-  await expect(nav.locator("a[aria-current='page']")).toHaveText("서비스 소개");
+  await expect(nav.locator("a[aria-current='page']")).toHaveText("소개");
   const home = page.getByRole("link", { name: "WAVE 홈", exact: true });
   await expect(home).toHaveAttribute("href", "#top"); await home.focus(); await expect(home).toBeFocused();
 

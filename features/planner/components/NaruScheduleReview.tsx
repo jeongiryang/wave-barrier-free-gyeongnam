@@ -47,12 +47,12 @@ export default function NaruScheduleReview({ visits, onAlternative, onDetails }:
     {loading ? <LoadingState>이후 장소의 운영시간을 확인하고 있어요.</LoadingState> : <>
       <p>{visits.length}곳 중 {conflicts}곳 일정 조정 필요 · {unknown}곳 정보 확인 필요</p>
       <div className="naru-hours-metrics"><div><NightIcon name="search"/><strong>{visits.length}곳</strong><span>전체 방문</span></div><div><NightIcon name="check"/><strong>{checks.filter(check => check.state === 'within').length}곳</strong><span>등록 시간 안에 방문</span></div><div><NightIcon name="info"/><strong>{unknown}곳 미확인</strong><span>추가 확인 필요</span></div></div>
-      <details open={conflicts > 0 || undefined}><summary>장소별 확인 내용</summary>
+      <details open><summary>장소별 확인 내용</summary>
       <ul>{visits.map(visit => {
         const source = info[visit.place.id];
         const check = assessVisitHours(source, visit);
-        return <li key={visit.place.id}><strong>{visit.place.name}</strong><p>{visit.day || '날짜 미정'} · {check.state === 'within' ? '등록된 운영시간 안에 방문' : check.state === 'conflict' ? `${reason[check.reason] || '운영시간과 겹침'} · 일정 조정 필요` : source ? '시간·휴무 조건을 시설에 확인해 주세요' : '운영 정보를 불러오지 못했어요'}</p>
-          {source && <small>{source.hours || '운영시간 미제공'} · {source.restDays || '휴무 정보 미제공'}<br />{source.source} · {evidenceDate(source.checkedAt)} 조회</small>}
+        return <li key={`${visit.day}:${visit.place.id}`} className="naru-hours-place"><button type="button" onClick={() => onDetails(visit.place)}><NightIcon name="pin" size={18}/><strong>{visit.place.name}</strong></button><p>{visit.day || '날짜 미정'} · {check.state === 'within' ? '등록된 운영시간 안에 방문' : check.state === 'conflict' ? `${reason[check.reason] || '운영시간과 겹침'} · 일정 조정 필요` : source ? '시간·휴무 조건을 시설에 확인해 주세요' : '운영 정보를 불러오지 못했어요'}</p>
+          {source && <small><span>운영시간 · {source.hours || '미제공'}</span><br/><span>휴무일 · {source.restDays || '미제공'}</span><br/><span>출처 · {source.source} · {evidenceDate(source.checkedAt)} 조회</span></small>}
           <div><button type="button" onClick={() => onDetails(visit.place)} data-icon-action="" title="이용 정보·문의"><NightIcon name="info" size={20}/><span className="sr-only">이용 정보·문의</span></button>{check.state === 'conflict' && <button type="button" onClick={() => onAlternative(visit.place.id)}>같은 편의로 다른 장소 찾기</button>}</div>
         </li>;
       })}</ul>

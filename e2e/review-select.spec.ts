@@ -44,24 +44,21 @@ test('review all 28 Naru tool entries and search return',async({page})=>{
  test.setTimeout(90000);await mockPublicShellApi(page);await mockPlannerApi(page,{preserveView:true});await page.goto('/planner');
  await page.getByRole('button',{name:'WAVE 여행 가이드 나루와 대화 열기',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'WAVE 여행 가이드 나루와 대화',exact:true});
- await dialog.getByRole('tab',{name:'여행 도구',exact:true}).click();
- const catalog=dialog.locator('.naru-tool-catalog .naru-tools');
+ await dialog.getByRole('tab',{name:'직접 골라서 하기',exact:true}).click();
+ await dialog.getByRole('button',{name:'전체',exact:true}).click();
+ const catalog=dialog.locator('.naru-task-actions');
  await expect(catalog.getByRole('button')).toHaveCount(28);
  await dialog.locator('#naru-tool-search').fill('막차');await expect(catalog.getByRole('button')).toHaveCount(1);
- await expect(catalog.getByRole('button')).toHaveText('교통·귀가');
+ await expect(catalog.getByRole('button')).toContainText('교통과 귀가편 찾기');
  await dialog.getByRole('button',{name:'검색 지우기',exact:true}).click();
- const names=await catalog.getByRole('button').allTextContents();
+ const names=await catalog.getByRole('button').locator('strong').allTextContents();
  for(const name of names){
-  await catalog.getByRole('button',{name,exact:true}).click();
-  console.log('entered tool',name);
-  const back=dialog.getByRole('button',{name:'모든 여행 도구',exact:true});
-  if(await dialog.isVisible()){await expect(back).toBeVisible();await back.click();}
-  else {
-   await page.keyboard.press('Escape');
-   await page.getByRole('button',{name:'WAVE 여행 가이드 나루와 대화 열기',exact:true}).click();
-   await dialog.getByRole('tab',{name:'여행 도구',exact:true}).click();
-   if(await back.isVisible()) await back.click();
-  }
+  await catalog.getByRole('button').filter({has:page.getByText(name,{exact:true})}).click();
+  await expect(dialog).toBeVisible();
+  const nested=page.locator('dialog[open]:not(.naru-panel)');
+  if(await nested.count()) await page.keyboard.press('Escape');
+  const back=dialog.getByRole('button',{name:'다른 기능 고르기',exact:true});
+  await expect(back).toBeVisible();await back.click();
   await expect(catalog.getByRole('button')).toHaveCount(28);
  }
 });

@@ -10,7 +10,12 @@ test('Naru is one persistent conversation with compact, large and mobile fullscr
   const [assistant, page, css] = await Promise.all([source('features/planner/components/PlannerAssistant.tsx'), source('app/planner/page.tsx'), source('app/styles/planner-conversation.css')]);
   assert.match(assistant, /naru-\$\{size\}/);
   assert.match(assistant, /wave-naru-size-v1/);
-  assert.match(assistant, /여행 설계에서 자세히 보기/);
+  // Tools now open within the persistent Naru surface. Preserve the real entry
+  // and full place details instead of restoring the retired navigation copy.
+  assert.match(assistant, /<PlannerToolSurfaces visible=\{props\.open && workspaceTab === 'tools'\}/);
+  assert.match(page, /<PlaceDecisionDialog/);
+  assert.match(page, /onPlace=\{inspectPlace\}/);
+  assert.match(assistant, /onClick=\{\(\) => setWorkspaceTab\('tools'\)\}/);
   assert.doesNotMatch(assistant, /onToolHost|PlannerAssistantPlaceTools/);
   assert.doesNotMatch(page, /PlannerStagePortal|assistantHost/);
   assert.match(css, /\.naru-panel\.naru-compact[^}]*440px/);

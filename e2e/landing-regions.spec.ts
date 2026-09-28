@@ -1,4 +1,5 @@
 import { chooseWaveOption, waveSelectNative } from './wave-select-fixture';
+import { expectNaruDurationExample } from './landing-contract';
 import { expectOnlyLandingReads } from "./landing-contract";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
@@ -77,10 +78,7 @@ test("landing: labelled itinerary and conversation examples preserve restored-se
   const example = page.locator(".simple-naru-example");
   await expect(example).toHaveAttribute("aria-label", "대화 예시");
   await expect(example.locator("input,form,textarea,[contenteditable=true]")).toHaveCount(0);
-  await example.getByRole("button", { name: "예시 일정에 적용", exact: true }).click();
-  await expect(example.locator(".example-duration strong:not(.example-proposed)")).toHaveText("90분");
-  await example.getByRole("button", { name: "되돌리기", exact: true }).click();
-  await expect(example.locator(".example-duration strong:not(.example-proposed)")).toHaveText("60분");
+  await expectNaruDurationExample(page);
   expect(writes).toEqual([]); expectOnlyLandingReads(requests);
 });
 

@@ -48,11 +48,13 @@ export default function VisitHoursCard({ id, name, visit, en = false, expanded =
   useEffect(() => {
     if (!expanded) return;
     let cancelled = false;
-    setState("loading");
-    void fetchVisitInfo(id).then(next => {
-      if (!cancelled) { setInfo(next); setState("ready"); }
-    }).catch(() => { if (!cancelled) setState("error"); });
-    return () => { cancelled = true; };
+    const frame = requestAnimationFrame(() => {
+      setState("loading");
+      void fetchVisitInfo(id).then(next => {
+        if (!cancelled) { setInfo(next); setState("ready"); }
+      }).catch(() => { if (!cancelled) setState("error"); });
+    });
+    return () => { cancelled = true; cancelAnimationFrame(frame); };
   }, [id, expanded]);
   const c = (ko: string, english: string) => en ? english : ko;
   async function load() {

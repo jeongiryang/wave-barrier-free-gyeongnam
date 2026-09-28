@@ -22,6 +22,7 @@ export type PlaceDecisionDialogProps = {
   saved: boolean;
   canSave?: boolean;
   explorationAction?: ExplorationPlaceAction;
+  latestEvidence?: { notice: string; loading: boolean; places: Place[]; retry: () => void };
   guidancePreferences?: GuidancePreferences;
   feedbackText: string;
   feedbackState: "idle" | "sending" | "done" | "error";
@@ -48,7 +49,8 @@ function PlaceSaveAction({ saved, canSave, explorationAction, onToggleSaved, en 
 }
 
 export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
-  const { place, region, dialogRef, onClose } = props;
+  const { region, dialogRef, onClose } = props;
+  const { place, latestEvidence: latest } = props;
   const { locale } = useSitePreferences();
   const en = locale === "en";
   const location = place.city || region;
@@ -58,11 +60,12 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
       <div className="modal-body">
         <h2 id="place-modal-title" lang={originalLanguage(place.name)} tabIndex={-1}>{place.name}</h2><p lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
+        {latest?.notice && <details className="place-detail-source"><summary>관광정보 조회 상태</summary><p role="status">{latest.notice}</p>{!latest.loading && !latest.places.length && <button type="button" onClick={latest.retry}>최신 정보 다시 확인</button>}</details>}
         <PlaceSaveAction key={`${place.id}:${props.explorationAction?.key || "regular"}`} saved={props.saved} canSave={props.canSave} explorationAction={props.explorationAction} onToggleSaved={props.onToggleSaved} en={en} />
         {/* Keep controls below the lazy detail body unavailable until its layout
             exists, so loading it cannot move a preview button during a click. */}
         <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}>
-          <PlaceDecisionContent key={place.id} {...props} location={location} />
+          <PlaceDecisionContent key={place.id} {...props} place={place} location={location} />
         </Suspense>
         {/* 한 손 조작: 위 닫기 버튼은 습관대로 남기고, 엄지가 닿는 내용 맨 아래에도
             같은 동작의 닫기를 하나 더 둔다. 좁은 화면에서만 보이므로 768px 이상

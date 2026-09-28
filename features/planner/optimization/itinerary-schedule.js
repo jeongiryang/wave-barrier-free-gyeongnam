@@ -112,12 +112,20 @@ export function buildItinerarySchedule({
     const dayPlaces = safePlaces.filter((place) => (assignments[place.id] || safeDays[0]) === day);
     let cursor = origin;
     let elapsed = startMinutes;
+    // Route-only projection requested by the owner. Keep the visit schedule
+    // below intact for opening hours, reservations, rest and calendar export.
+    let movementElapsed = startMinutes;
+    let movementKnown = true;
+    let movementEstimated = false;
     const entries = dayPlaces.map((place) => {
       const configuredRoute = routeMinutesByPlaceId[place.id];
       const travel = travelDurationBetween(cursor, place, {
         routeMinutes: configuredRoute,
       });
       const arrivesAt = elapsed + travel.minutes;
+      movementElapsed += travel.minutes;
+      movementKnown = movementKnown && travel.source !== "fallback";
+      movementEstimated = movementEstimated || travel.source === "estimate";
       const fixedTime = validTripClock(fixedVisits[place.id]?.time) ? fixedVisits[place.id].time : "";
       const fixedMinutes = fixedTime ? parseClock(fixedTime) : arrivesAt;
       const startsAt = Math.max(arrivesAt, fixedMinutes);
@@ -131,6 +139,9 @@ export function buildItinerarySchedule({
       cursor = place;
       return {
         place,
+        movementArrivesAt: movementKnown ? movementElapsed : null,
+        movementArrivesAtLabel: movementKnown ? formatScheduleTime(movementElapsed) : "",
+        movementEstimated,
         travelMinutes: travel.minutes,
         travelSource: travel.source,
         visitMinutes,
