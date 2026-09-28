@@ -40,7 +40,7 @@ const BUDGET = {
   // 2026-09-28: five self-contained demo schedules, editable controls and
   // inquiry/checklist surfaces measure 108.12 KiB. Keep a 0.38 KiB margin.
   // 2026-09-28: requested Naru photo/address result cards replace old row rules;
-  // measured 108.61 KiB. Bound this feature's CSS allowance to another 0.5 KiB.
+  // measured 108.62 KiB. Bound this feature's CSS allowance to another 0.5 KiB.
   cssGzipKiB: 109,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
