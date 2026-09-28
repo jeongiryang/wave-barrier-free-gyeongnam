@@ -11,7 +11,7 @@ import { localAssistantAction, validateAssistantAction, type AssistantAction } f
 import { onTripIdentity, readOnTrip } from '../../../lib/on-trip.js';
 import type { TripCommand, TripCommandReceipt } from '../../../lib/trip-command.js';
 import { FACILITIES, resolveFacilityKeys } from '../../../lib/facility-selection.js';
-import { evidenceGroupTitle, evidenceSentence, evidenceStateText, groupByEvidence, placeFacilityState, tallyEvidence, weakestFacility } from '../../../lib/naru-evidence.js';
+import { evidenceGroupTitle, evidenceSentence, groupByEvidence, tallyEvidence, weakestFacility } from '../../../lib/naru-evidence.js';
 import { guidancePreferenceText } from '../../../lib/guidance-preferences.js';
 import { acceptsPendingChange, canRunConversationAction, isChangeNegated, resolveConversationReference } from '../../../lib/assistant-conversation.js';
 import type { usePlannerPlan } from '../hooks/usePlannerPlan';
@@ -25,6 +25,7 @@ import { requestNaruJourney } from '../services/naru-journey';
 import { isNaruStream, readNaruStream } from '../services/naru-stream';
 import NaruJourneyProposal from './NaruJourneyProposal';
 import NaruWorkspaceIcon from './NaruWorkspaceIcon';
+import NaruPlaceResult from './NaruPlaceResult';
 import NaruWorkRequest from './NaruWorkRequest';
 import NaruPlaceTools from "./NaruPlaceTools";
 import NaruWorkspaceAside from './NaruWorkspaceAside';
@@ -654,7 +655,12 @@ export default function PlannerAssistant(props: Props) {
     if (!facilityKey) return [];
     return [[message.id, { facilityKey, tally: tallyEvidence(message.results, facilityKey), groups: groupByEvidence(message.results, facilityKey) }] as const];
   }));
-  const resultRow = (place: Place, facilityKey: string | null, label: string) => <article key={place.id}><button type="button" className="naru-place-name" onClick={() => { setFocused(place.id); if (log.current) scrollPosition.current = log.current.scrollTop; props.onPlace(place); }}>{place.name}</button><small>{place.city}</small>{facilityKey && <span className="access-badge" data-evidence-state={placeFacilityState(place, facilityKey)}>{evidenceStateText(placeFacilityState(place, facilityKey), label)}</span>}{plan.resultCurrent && plan.plan?.places.some(item => item.id === place.id) ? <button type="button" disabled={trip.saved.includes(place.id)} onClick={() => void apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: { action: 'add', placeId: place.id }, revision })}>{trip.saved.includes(place.id) ? '✓ 담았음' : '담기'}</button> : <button type="button" onClick={() => props.onPlace(place)} data-icon-action="" title="시설 정보 확인"><NightIcon name="info" size={20}/><span className="sr-only">시설 정보 확인</span></button>}</article>;
+  const resultRow = (place: Place, facilityKey: string | null, label: string) => <NaruPlaceResult
+    key={place.id} place={place} facilityKey={facilityKey} facilityLabel={label}
+    canAdd={Boolean(plan.resultCurrent && plan.plan?.places.some(item => item.id === place.id))}
+    saved={trip.saved.includes(place.id)}
+    onDetails={() => { setFocused(place.id); if (log.current) scrollPosition.current = log.current.scrollTop; props.onPlace(place); }}
+    onAdd={() => void apply({ id: ++messageId.current, role: 'assistant', text: '', proposal: { action: 'add', placeId: place.id }, revision })} />;
   return <dialog ref={dialogRef} lang="ko" className={`naru-panel naru-workspace naru-friendly naru-${size}`} aria-label="WAVE 여행 가이드 나루와 대화" onCancel={event => { event.preventDefault(); close(); }} onKeyDown={event => {
     // React portal children handle Escape first (for example a draft editor).
     if (event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open]:not(.naru-panel)')) return;
