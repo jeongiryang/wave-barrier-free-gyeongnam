@@ -1,0 +1,80 @@
+:global(.naru-result-list),
+:global(.naru-result-list > [data-evidence-group]) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  gap: 12px;
+  align-items: start;
+}
+:global(.naru-result-list > [data-evidence-group]),
+:global(.naru-result-list > [data-evidence-group] > p) { grid-column: 1 / -1; }
+:global(.naru-result-list > [data-evidence-group] > p) { margin: 8px 0 0; }
+:global(html:root body .naru-panel.naru-workspace) .card {
+  display: grid;
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 280px;
+  align-self: stretch;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #334a62;
+  border-radius: 16px;
+  background: #243951;
+  box-shadow: 0 3px 12px #26375308;
+}
+.photo { position: absolute; inset: 0; overflow: hidden; background: linear-gradient(145deg, #344f6b, #29354d); }
+.photo img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+.photo > span { display: flex; align-items: center; gap: 8px; padding: 18px; color: #edf4ff; }
+:global(html:root body .naru-panel.naru-workspace) .photo small { color: #edf4ff; font-size: 12px; }
+.info { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-width: 0; margin-top: 64px; padding: 32px 16px 16px; gap: 4px; background: linear-gradient(to bottom, #10203400, #102034d6 24px, #102034f5 100%); }
+:global(html:root body .naru-panel.naru-workspace) .city { color: #edf4ff; font-size: 12px; font-weight: 600; }
+:global(html:root body .naru-panel.naru-workspace) button.title {
+  min-height: 44px;
+  width: 100%;
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.45;
+  text-align: left;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+:global(html:root body .naru-panel.naru-workspace) .card .address {
+  margin: 0;
+  color: #edf4ff;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+:global(html:root body .naru-panel.naru-workspace) .evidence { max-width: 100%; margin-top: 4px; white-space: normal; overflow-wrap: anywhere; color: #243551; background: #f4f7ff; border-color: #dce2ee; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; width: 100%; margin-top: auto; padding-top: 8px; }
+:global(html:root body .naru-panel.naru-workspace) .hint { color: #edf4ff; font-size: 11px; }
+:global(html:root body .naru-panel.naru-workspace) .actions button {
+  min-width: 60px;
+  min-height: 44px;
+  margin: 0 0 0 auto;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+:global(html:root body .naru-panel.naru-workspace) button.add { color: #233957; background: #fff; border-color: #fff; }
+:global(html:root body .naru-panel.naru-workspace) button.add:disabled { color: #fff; background: #233957; border-color: #8396ad; opacity: 1; }
+:global(html:root body .naru-panel.naru-workspace) button.details { color: #3e5076; background: #f1f4fa; border-color: #dce2ee; }
+:global(html:root body .naru-panel.naru-workspace) .card button:focus-visible { outline: 3px solid #54d9ff; outline-offset: 2px; box-shadow: 0 0 0 2px #102034; }
+@media (max-width: 420px) {
+  .info { padding: 32px 14px 14px; }
+  .hint { display: none; }
+}
