@@ -149,3 +149,26 @@ test('960px dates and place detail use the available width; desktop layout remai
     expect(await page.locator('.night-planner-hero').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(2);
   }
 });
+
+test('place photo opens its detail when the lazy image finishes between press and release', async ({ page }) => {
+  await setup(page);
+  await page.setViewportSize({ width: 960, height: 900 });
+  let releaseImage!: () => void;
+  const imageGate = new Promise<void>(resolve => { releaseImage = resolve; });
+  await page.route('**/features/tourism/components/SmartSpotImage.tsx*', async route => {
+    await imageGate;
+    await route.continue();
+  });
+  await page.goto('/planner?region=창원');
+  const photo = page.getByRole('button', { name: '경남도립미술관 상세 보기', exact: true });
+  await expect(photo.locator('.simple-photo-placeholder')).toBeVisible();
+  await photo.scrollIntoViewIfNeeded();
+  const bounds = (await photo.boundingBox())!;
+  // Loading must not replace the pointer target during one ordinary click.
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  releaseImage();
+  await expect(photo.locator('.smart-spot-image')).toBeVisible();
+  await page.mouse.up();
+  await expect(page.getByRole('dialog', { name: /경남도립미술관/ })).toBeVisible();
+});

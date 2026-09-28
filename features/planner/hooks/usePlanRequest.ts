@@ -61,7 +61,10 @@ export function usePlanRequest({ locale, region, selected, theme }: { locale: st
         // A result render can temporarily remove focus from the select/button
         // that started it. Restore only that accidental loss; never override a
         // control the traveller deliberately focused while waiting.
-        if (!userInteracted && control.isConnected) control.focus({ preventScroll: true });
+        const active = window.document?.activeElement;
+        if (!userInteracted && control.isConnected && (active === control || active === window.document?.body)) {
+          control.focus({ preventScroll: true });
+        }
       }));
     };
     const onInteraction = (event: Event) => {

@@ -4,6 +4,7 @@ import { openSupportMenu } from "./support-menu";
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, chooseTripConditions, openItinerary } from "./fixtures";
 import AxeBuilder from "@axe-core/playwright";
+import { waitForRenderedEntry } from "./painted-contrast";
 
 const forecast = {
   region: "창원", updatedAt: "2026-09-06T02:00:00Z", source: "Open-Meteo",
@@ -104,6 +105,10 @@ for (const theme of ["light", "dark"] as const) {
     const days = Array.from({ length: 7 }, (_, index) => ({ ...forecast.days[0], date: `2026-09-0${index + 1}` }));
     await page.route("**/api/weather**", (route) => route.fulfill({ json: { ...forecast, days } }));
     const board = await openWeather(page, true);
+    // Both lazy panels reveal on entry. Audit their actual text colours after
+    // that finite animation, including the initially lower impact panel.
+    await waitForRenderedEntry(board);
+    await waitForRenderedEntry(page.locator(".impact-response"));
     for (const [width, height] of [[320,568], [360,640], [390,844], [430,932], [768,1024], [1024,768], [1280,720], [1366,768], [1440,900], [1920,1080], [2560,1440]]) {
       await page.setViewportSize({ width, height });
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
@@ -127,7 +132,12 @@ for (const theme of ["light", "dark"] as const) {
     }
     const daily = board.getByRole("region", { name: "Daily forecast, scroll for more days", exact: true });
     await page.setViewportSize({ width: 390, height: 844 });
+    // setViewportSize can return before Chromium paints the narrower scroll
+    // container. A native arrow sent to the old full-width layout cannot move it.
+    await waitForRenderedEntry(daily);
+    await expect.poll(() => daily.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
     await daily.focus();
+    await expect(daily).toBeFocused();
     await page.keyboard.press("ArrowRight");
     await expect.poll(() => daily.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
     expect(errors).toEqual([]);

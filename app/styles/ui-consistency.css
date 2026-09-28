@@ -586,7 +586,7 @@ html:root body .scenic-page .restored-naru-preview{min-width:0;display:flex;flex
 html:root body .scenic-page .restored-naru-preview>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px;background:#f4f9ff}
 html:root body .scenic-page .restored-naru-preview>header>span{display:flex;align-items:center;gap:12px}
 html:root body .scenic-page .restored-naru-preview .naru-character{width:48px;height:48px}
-html:root body .scenic-page .restored-naru-preview>header a{font-size:clamp(13px,.8vw,18px);color:#09669f}
+html:root body .scenic-page .restored-naru-preview>header a{display:inline-flex;align-items:center;min-height:44px;font-size:clamp(13px,.8vw,18px);color:#09669f}
 html:root body .scenic-page .restored-naru-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,25%);flex:1;min-height:320px}
 html:root body .scenic-page .restored-naru-messages{padding:24px;display:flex;flex-direction:column;gap:16px}
 html:root body .scenic-page .restored-naru-messages p{margin:0;padding:18px;border:1px solid #b4d4f0;border-radius:22px 22px 22px 4px;background:#fff;color:#184263;font-size:clamp(15px,.9vw,21px);line-height:1.7}

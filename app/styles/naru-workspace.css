@@ -139,6 +139,11 @@ html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true
 html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-workspace-tabs>button { min-height:44px;padding-block:6px; }
 html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-input { margin-block:4px; }
 html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-input textarea { max-height:max(64px,calc(1lh + 16px)); }
+/* The latest-answer action must not shrink the readable log above a keyboard. */
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-log-viewport { position:relative; }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-latest { position:absolute;right:12px;bottom:4px;z-index:2;margin:0;min-height:44px; }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-log-viewport:has(>.naru-latest)>.naru-log { padding-bottom:max(64px,calc(2lh + 16px)); }
+
 
 body .naru-panel.naru-workspace .naru-photo-preview { flex-shrink:0;max-height:20%;overflow:auto; }
 

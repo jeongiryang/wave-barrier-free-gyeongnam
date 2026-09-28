@@ -5,6 +5,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockPlannerApi } from "./fixtures";
 import { freshArrival, prepareLandingMedia, storyReady, expectUsableTarget } from "./landing-contract";
+import { waitForRenderedEntry } from "./painted-contrast";
 
 const pageErrors = new WeakMap<import("@playwright/test").Page, string[]>();
 
@@ -78,7 +79,11 @@ test("landing: reduced motion shows a dismissible intro and preserves the real p
     await expect(feature).toHaveAccessibleName(new RegExp(title));
   }
   await expectNoSeriousA11yIssues(page);
-  await page.locator(".landing-feature-card").first().hover();
+  const firstFeature = page.locator(".landing-feature-card").first();
+  await firstFeature.hover();
+  // Hover scrolls the grid into view and starts its parent's 550ms reveal.
+  // Audit the rendered hover state, not an arbitrary translucent entry frame.
+  await waitForRenderedEntry(firstFeature);
   await expectNoSeriousA11yIssues(page);
   // An OS preference change must not put the page back into calm mode.
   await page.emulateMedia({ reducedMotion: "no-preference" });

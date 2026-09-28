@@ -60,7 +60,7 @@ test('undated internal tools explain the prerequisite and focus date entry witho
   await expect(chat.getByRole('status').filter({ hasText: '여행 날짜를 정하면' })).toBeVisible();
   expect(await stored(page)).toBe(before);
   await chat.getByRole('button', { name: '날짜·출발지 정하기', exact: true }).click();
-  await expect(chat).toBeVisible(); await expect(chat.locator('#itinerary-setup input').first()).toBeFocused();
+  await expect(chat).toBeVisible(); await expect(chat.locator('#itinerary-setup [data-trip-start]')).toBeFocused();
   expect(await stored(page)).toBe(before);
 });
 

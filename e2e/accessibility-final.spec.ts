@@ -185,8 +185,24 @@ test("플래너 헤더는 스크롤 뒤에도 키보드로 돌아갈 수 있다"
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPlannerApi(page);
   await page.goto("/planner");
+  await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
+  await page.clock.install();
+  let pausedResultFrames = false;
+  await page.route('**/api/wave?*', async route => {
+    const url = new URL(route.request().url());
+    const facilities = (url.searchParams.get('facilityKeys') || '').split(',');
+    if (!pausedResultFrames && url.searchParams.get('action') === 'plan'
+      && ['parking', 'route', 'wheelchair', 'elevator', 'restroom'].every(key => facilities.includes(key))) {
+      pausedResultFrames = true;
+      // Deliver the real response before its queued rendering frames. A busy
+      // device must not restore the old search control over a new keyboard choice.
+      await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
+    }
+    await route.fallback();
+  });
   await chooseTripConditions(page);
   await page.getByRole("heading", { name: "경남도립미술관" }).first().waitFor();
+  expect(pausedResultFrames).toBe(true);
 
   const header = page.locator(".wave-header");
   const home = header.getByRole("link", { name: "WAVE 홈" });
@@ -198,6 +214,7 @@ test("플래너 헤더는 스크롤 뒤에도 키보드로 돌아갈 수 있다"
   await page.evaluate(() => window.scrollTo(0, 1_500));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   await page.keyboard.press("Shift+Tab");
+  await page.clock.runFor(50);
   await expect(home).toBeFocused();
   await expect(home).toBeInViewport();
 });
