@@ -4,14 +4,16 @@ import NightIcon from '../../components/NightIcon';
 
 /* eslint-disable @next/next/no-img-element -- 한국관광공사 API가 반환하는 가변 HTTPS CDN URL을 서버에서 검증한 뒤 지연 렌더링한다. */
 import WaveSelect from "../../components/WaveSelect";
-import { useCallback, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { MAX_PHOTOS, usePhotoCourse } from "./usePhotoCourse";
 import { usePlaceDialogFocus } from '../planner/hooks/usePlaceDialogFocus';
 import AccessibleDateInput from '../../components/AccessibleDateInput';
+import { providerFailureMessage } from '../../lib/provider-failure.js';
 
 const REGIONS = ["창원", "진주", "통영", "사천", "김해", "밀양", "거제", "양산", "의령", "함안", "창녕", "고성", "남해", "하동", "산청", "함양", "거창", "합천"];
 const subscribeClientReady = () => () => {};
 const PHOTO_ACCEPT = ".jpg,.jpeg,.png,.webp,.tif,.tiff,image/jpeg,image/png,image/webp,image/tiff";
+type SamplePhoto = { fileName: string; caption: string };
 
 type Props = {
   onApply: (input: { region: string; travelStart: string; travelEnd: string }) => void;
@@ -27,8 +29,45 @@ export default function PhotoCourseRestore({ onApply }: Props) {
   const headingId = useId();
   const clientReady = useSyncExternalStore(subscribeClientReady, () => true, () => false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [sampleLoading, setSampleLoading] = useState(false);
+  const [sampleError, setSampleError] = useState("");
+  const [samples, setSamples] = useState<SamplePhoto[]>([]);
+  const [sampleCatalogLoading, setSampleCatalogLoading] = useState(true);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
   const helpRef = usePlaceDialogFocus(helpOpen, closeHelp);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/judge-demo-photos", { signal: controller.signal })
+      .then(async response => { if (!response.ok) throw new Error(); return response.json(); })
+      .then(data => {
+        if (!Array.isArray(data.photos)) throw new Error();
+        const valid = data.photos.filter((photo: SamplePhoto) => typeof photo?.fileName === "string" && /^sample-[a-z]+\.jpg$/.test(photo.fileName) && typeof photo.caption === "string" && photo.caption.length <= 80);
+        if (!valid.length) throw new Error();
+        setSamples(valid);
+      })
+      .catch(() => { if (!controller.signal.aborted) setSampleError("시연 사진을 불러오지 못했습니다. 잠시 후 다시 열어 주세요."); })
+      .finally(() => { if (!controller.signal.aborted) setSampleCatalogLoading(false); });
+    return () => controller.abort();
+  }, []);
+
+  async function loadSamplePhotos() {
+    if (sampleLoading) return;
+    setSampleLoading(true);
+    setSampleError("");
+    try {
+      const files = await Promise.all(samples.map(async ({ fileName }) => {
+        const response = await fetch(`/media/photo-course-demo/${fileName}`);
+        if (!response.ok) throw new Error("sample-unavailable");
+        return new File([await response.blob()], fileName, { type: "image/jpeg" });
+      }));
+      await readFiles(files);
+    } catch {
+      setSampleError("시연 사진을 불러오지 못했습니다. 잠시 후 다시 시도하거나 내 사진을 선택해 주세요.");
+    } finally {
+      setSampleLoading(false);
+    }
+  }
 
   return (
     <section className="photo-course" aria-labelledby={headingId} data-client-ready={clientReady ? "true" : "false"}>
@@ -69,10 +108,20 @@ export default function PhotoCourseRestore({ onApply }: Props) {
         <label className={`photo-course-pick${clientReady ? "" : " is-disabled"}`} aria-disabled={!clientReady} htmlFor="photo-course-input">
           {clientReady ? "사진 고르기" : "사진 기능 준비 중"}
         </label>
+        <button type="button" className="photo-course-sample-button" disabled={!clientReady || reading || sampleLoading || !samples.length} onClick={() => void loadSamplePhotos()}>{sampleLoading ? "시연 사진 여는 중…" : sampleCatalogLoading ? "시연 사진 확인 중…" : `시연 사진 ${samples.length}장으로 시작`}</button>
         <button type="button" className="photo-course-help-button" onClick={() => setHelpOpen(true)}>사용 방법</button>
         {course && <button type="button" className="photo-course-clear" onClick={clear}>지우기</button>}
         <p className="photo-course-limit">JPG · PNG · WebP · TIFF 원본 최대 {MAX_PHOTOS}장 · 촬영 정보로 여행 순서 확인</p>
       </div>
+
+      <div className="photo-course-samples" aria-label="AI 생성 시연 사진">
+        {samples.map(({ fileName, caption }) => <figure key={fileName}>
+          <img src={`/media/photo-course-demo/${fileName}`} alt={caption} width="160" height="120" loading="lazy" />
+          <figcaption>{caption}</figcaption>
+        </figure>)}
+      </div>
+      <p className="photo-course-sample-disclosure">AI로 만든 예시 사진입니다. 실제 방문지·촬영 기록·시설 정보가 아닙니다. 시연용 촬영 시각만 포함하며 위치 정보는 없습니다.</p>
+      {sampleError && <p role="alert" className="photo-course-notice">{sampleError}</p>}
 
       <p className="photo-course-notice" role="status" aria-live="polite" aria-busy={reading}>
         {reading ? `사진 촬영 정보를 읽고 있어요… ${progress}%` : notice}
@@ -143,7 +192,7 @@ export default function PhotoCourseRestore({ onApply }: Props) {
                         </> : <p>
                           {enrichment.status === "empty"
                             ? "공식 데이터에서 동일 장소를 확인하지 못했습니다. 이름·지역을 확인하고 다시 시도해 주세요."
-                            : "공식 관광정보 연결이 지연되고 있습니다. 코스 편집은 그대로 계속할 수 있습니다."}
+                            : enrichment.failure ? `${providerFailureMessage(enrichment.failure)} 코스 편집은 계속할 수 있습니다.` : "공식 관광정보 연결이 지연되고 있습니다. 코스 편집은 그대로 계속할 수 있습니다."}
                         </p>}
                       </div>}
                     </li>

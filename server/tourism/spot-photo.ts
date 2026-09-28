@@ -3,6 +3,7 @@ import { clean, httpsUrl } from "../shared/http";
 import { attemptProvider as attempt, commonParams, fetchTourismData as fetchKto } from "../shared/provider-data";
 import { regionPhotoKeywords } from "./catalog";
 import { spotPhotoRegionMatches } from '../../lib/spot-photo-match.js';
+import type { ProviderFailure } from '../../lib/provider-failure.js';
 
 function normalizedSearchText(value: unknown) {
   return clean(value, 120).toLocaleLowerCase("ko-KR").replace(/[^\p{L}\p{N}]+/gu, "");
@@ -42,11 +43,13 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
   ].filter((value) => value.length >= 2))].slice(0, 5);
 
   let providerWorked = false;
+  const providerFailures: ProviderFailure[] = [];
   if (/^\d{3,}$/.test(contentId)) {
     const detail = await attempt(fetchKto(env, "KorService2", "detailCommon2", {
       ...commonParams("1"), contentId,
     }));
     providerWorked ||= detail.ok;
+    if (!detail.ok && detail.failure) providerFailures.push(detail.failure);
     const item = detail.ok ? detail.value.items[0] : undefined;
     const image = httpsUrl(item?.firstimage || item?.firstimage2);
     // 기존 사진 호출은 contentId 상세에 이미지가 있을 때만 즉시 종료한다.
@@ -71,6 +74,8 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
       attempt(fetchKto(env, "KorService2", "searchKeyword2", { ...commonParams("12"), arrange: "Q", keyword })),
     ]);
     providerWorked ||= gallery.ok || tour.ok;
+    if (!gallery.ok && gallery.failure) providerFailures.push(gallery.failure);
+    if (!tour.ok && tour.failure) providerFailures.push(tour.failure);
     const candidates = [
       ...(gallery.ok ? gallery.value.items.map((item) => ({
         image: httpsUrl(item.galWebImageUrl || item.galWebImageUrl2),
@@ -119,5 +124,6 @@ export async function fetchSpotPhoto(env: Env, region: string, title: string, ta
   return {
     image: "", source: "", matchedTitle: clean(title), contentId: "", address: "", query: "",
     status: providerWorked ? "empty" : "error",
+    ...(!providerWorked && providerFailures.length ? { failure: providerFailures.find(item => item.kind === "quota_exhausted") || providerFailures.find(item => item.kind === "rate_limited") || providerFailures[0] } : {}),
   };
 }

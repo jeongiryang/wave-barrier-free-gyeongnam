@@ -23,6 +23,7 @@ import TravelProfileSummary from "../../features/trips/components/TravelProfileS
 import TripCompareDialog from "../../features/trips/components/TripCompareDialog";
 import RegionRecordList from "../../features/trips/components/RegionRecordList";
 import LocalMarketCard from "../../features/trips/components/LocalMarketCard";
+import JudgeDemoTrips from "../../features/travel-book/JudgeDemoTrips";
 
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric" });
 const shortDateFormatter = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" });
@@ -144,7 +145,7 @@ function NewTripDialog({ onCancel, onConfirm, error }: { onCancel: () => void; o
 
 export default function TravelBookPage() {
   const router = useRouter();
-  const { books, hydrated, update, remove, restore, storageError } = useTravelBook();
+  const { books, hydrated, archive, update, remove, restore, storageError } = useTravelBook();
   const [announcement, setAnnouncement] = useState("");
   const [newTripReady, setNewTripReady] = useState(false);
   const [newTripError, setNewTripError] = useState("");
@@ -185,6 +186,7 @@ export default function TravelBookPage() {
       <button type="button" disabled={!hydrated} onClick={requestNewTrip}>새 여행 설계</button>
       <nav aria-label="여행 저장 위치"><a href="#travel-book-collection">이 기기</a><Link href="/my-trips">계정에 저장한 여행</Link></nav>
     </section>
+    <JudgeDemoTrips onImport={archive} />
     <div className="travel-book-collection-heading" id="travel-book-collection"><h2>저장한 여행</h2></div>
     {hydrated && <TravelProfileSummary books={books} onStart={startFromProfile} />}
     {books.length >= 2 && <div className="trip-compare-toolbar"><button type="button" disabled={compareIds.length !== 2} onClick={() => setCompareOpen(true)}>선택한 여행 2개 비교</button><span>{compareIds.length}/2개 선택</span></div>}

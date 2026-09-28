@@ -12,7 +12,7 @@ const dateFrom = (value: unknown) => { const raw = clean(value, 8); const date =
 export async function fetchFestivals(env: Env, { region = '경남 전체', start = koreaToday(), end = offsetTripDate(start, 30), profiles = [], signal }: { region?: string; start?: string; end?: string; profiles?: string[]; signal?: AbortSignal } = {}) {
   // Include festivals which started before the selected period and are still running.
   const result = await attemptProvider(fetchTourismData(env, 'KorService2', 'searchFestival2', { ...commonParams('500'), arrange: 'A', lDongRegnCd: '48', eventStartDate: offsetTripDate(start, -365).replaceAll('-', ''), eventEndDate: end.replaceAll('-', '') }, signal));
-  if (!result.ok) return { items: [], state: 'error' as const, checkedAt: new Date().toISOString(), partial: false };
+  if (!result.ok) return { items: [], state: 'error' as const, checkedAt: new Date().toISOString(), partial: false, ...(result.failure ? { failure: result.failure } : {}) };
   const today = koreaToday();
   const selected = result.value.items.filter(item => {
     const from = dateFrom(item.eventstartdate), to = dateFrom(item.eventenddate);
@@ -37,7 +37,7 @@ export async function handleFestivals(request: Request, env: Env) {
     const contentId = url.searchParams.get('contentId') || '';
     if (!/^[1-9]\d{0,11}$/.test(contentId)) return json({ error: '축제 번호를 확인해 주세요.' }, 400);
     const result = await attemptProvider(fetchTourismData(env, 'KorService2', 'detailCommon2', { ...commonParams('1'), contentId }, request.signal));
-    if (!result.ok) return json({ error: '행사 링크를 불러오지 못했어요.' }, 502);
+    if (!result.ok) return json({ error: '행사 링크를 불러오지 못했어요.', ...(result.failure ? { failure: result.failure } : {}) }, 502);
     const item = result.value.items.find(item => clean(item.contentid) === contentId && clean(item.contenttypeid) === '15');
     return json({ ...festivalSources(item), checkedAt: new Date().toISOString() }, 200, true);
   }

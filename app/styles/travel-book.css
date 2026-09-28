@@ -1,5 +1,11 @@
 /* 계정 없이 여행 전후의 흐름을 잇는 로컬 여행집 */
 .travel-book-page { min-height: 100vh; padding: 1px 0 70px; color: var(--ink); background: var(--surface); }
+.travel-book-demo { width: min(1080px,calc(100% - 48px)); margin: 20px auto 36px; padding: clamp(20px,3vw,32px); border: 1px solid var(--line); border-radius: 24px; background: var(--paper); }
+.travel-book-demo h2 { margin: 0 0 8px; font-size: clamp(1.5rem,2.5vw,2rem); }.travel-book-demo > p { color: var(--muted); line-height: 1.6; }
+.travel-book-demo-list { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,250px),1fr)); gap: 12px; }
+.travel-book-demo-list article { padding: 18px; display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); border-radius: 16px; }
+.travel-book-demo-list span { color: var(--blue); font-size: .8rem; font-weight: 600; }.travel-book-demo-list h3 { margin: 8px 0; font-size: 1.15rem; }.travel-book-demo-list p { flex: 1; color: var(--muted); line-height: 1.5; }
+.travel-book-demo-list button { min-height: 44px; padding: 9px 14px; border: 0; border-radius: 10px; color: var(--on-blue); background: var(--blue); font: inherit; font-weight: 600; cursor: pointer; }.travel-book-demo-list button:disabled { opacity: .6; cursor: wait; }
 .travel-book-hero { width: min(1240px,calc(100% - 48px)); margin: 24px auto 48px; padding: 48px 0 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 44px; color: var(--ink); }
 .travel-book-hero p { margin: 0 0 20px; color: var(--muted); font-size: 0.875rem; font-weight: 600; letter-spacing: .13em; }
 .travel-book-hero h1 { margin: 0; font-size: clamp(2.8rem,4.6vw,4.8rem); font-weight: 500; line-height: 1.24; letter-spacing: -.055em; }
@@ -49,6 +55,7 @@
 /* 플래너의 서버 공유와 로컬 보관을 목적별로 분리한다. */
 
 html[data-theme="dark"] .travel-book-page { color: #edf7fb; background: #061f2b; }
+html[data-theme="dark"] .travel-book-demo { border-color: #315767; background: #0a2b39; }
 html[data-theme="dark"] .travel-book-card { border-color: #315767; background: #0a2b39; }html[data-theme="dark"] .travel-book-status { background: #123848; }html[data-theme="dark"] .travel-book-status button { color: #b2ccd7; }html[data-theme="dark"] .travel-book-status button[aria-pressed="true"] { color: #fff; background: #0c7194; }
 html[data-theme="dark"] .travel-book-profiles li { color: #c4e1eb; border-color: #38687b; background: #123848; }html[data-theme="dark"] .travel-book-days section { border-color: #315767; background: #0c3140; }html[data-theme="dark"] .travel-book-days li { background: #242b2a; }html[data-theme="dark"] .travel-book-days li > span { color: #073b38; }html[data-theme="dark"] .travel-book-days li em { color: #8fe3c5; }
 html[data-theme="dark"] .travel-book-days section > header strong { color: #bad1da; }
@@ -60,6 +67,7 @@ html[data-theme="dark"] .travel-book-empty { border-color: #386273; background: 
   .travel-book-card { grid-template-columns: 1fr; }.travel-book-cover { min-height: 260px; }.travel-book-card-body > header { flex-direction: column; }.travel-book-status { width: 100%; }.travel-book-status button { flex: 1; }
 }
 @media (max-width: 620px) {
+  .travel-book-demo { width: calc(100% - 16px); padding: 18px 14px; }
   .trip-compare-toolbar { width: calc(100% - 16px); }.trip-compare-dialog thead { display: none; }.trip-compare-dialog :is(table,tbody,tr,th,td) { display: block; width: 100%; }.trip-compare-dialog tr { padding: 10px 0; }.trip-compare-dialog td::before { display: block; color: var(--muted); font-size: .75rem; }.trip-compare-dialog td:nth-child(2)::before { content: "첫 번째 여행"; }.trip-compare-dialog td:nth-child(3)::before { content: "두 번째 여행"; }.trip-compare-actions { grid-template-columns: 1fr; }
   .travel-profile-summary { width: calc(100% - 16px); padding: 18px 14px; }.travel-profile-summary > div { grid-template-columns: 1fr; }
   .region-record-list { width:calc(100% - 16px); padding:18px 14px; }.region-record-list > header { align-items:flex-start; flex-direction:column; }.region-record-list ul { grid-template-columns:1fr; }

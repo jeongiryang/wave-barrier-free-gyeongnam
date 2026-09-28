@@ -3,6 +3,29 @@ import { expect, test } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi } from "./fixtures";
 import { buildExifJpeg } from "../tests/helpers/exif-jpeg.mjs";
 
+test("공개 DB 사진 예시로 실제 EXIF 코스를 열고 공식 조회 전 데이터는 비워 둔다", async ({ page }) => {
+  await mockPublicShellApi(page);
+  await mockPlannerApi(page, { preserveView: true });
+  await page.route("**/api/judge-demo-photos", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({ photos: [
+      { fileName: "sample-coast.jpg", caption: "첫째 날 오전, 바닷길 예시" },
+      { fileName: "sample-garden.jpg", caption: "첫째 날 오후, 정원 예시" },
+      { fileName: "sample-riverside.jpg", caption: "둘째 날 오전, 강변 예시" },
+    ] }),
+  }));
+  let officialCalls = 0;
+  await page.route(/\/api\/wave\?.*action=spot-photo/, route => { officialCalls += 1; return route.abort(); });
+  await page.goto("/photo-course");
+  await expect(page.getByText("AI로 만든 예시 사진입니다.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "시연 사진 3장으로 시작" }).click();
+  await expect(page.getByText("사진 3장에서 2일치 코스를 만들었습니다.", { exact: false })).toBeVisible();
+  await expect(page.locator(".photo-course-day")).toHaveCount(2);
+  await expect(page.locator(".photo-course-stop")).toHaveCount(3);
+  await expect(page.locator(".photo-course-badge.is-unlocated")).toHaveCount(3);
+  expect(officialCalls).toBe(0);
+});
+
 test("사진 EXIF 코스를 기기 안에서 복원하고 좌표 없이 공식정보를 확인한다", async ({ page }) => {
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });

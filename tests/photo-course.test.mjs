@@ -38,6 +38,23 @@ test("EXIF reading invents nothing when metadata is absent or damaged", () => {
   assert.deepEqual(readPhotoExif(null), { takenAt: null, point: null });
 });
 
+test("public demo photos contain only synthetic capture times and no location", async () => {
+  const samples = [
+    ["sample-coast.jpg", "2026-09-20", 600],
+    ["sample-garden.jpg", "2026-09-20", 810],
+    ["sample-riverside.jpg", "2026-09-21", 570],
+  ];
+  const metadata = await Promise.all(samples.map(async ([name]) => {
+    const bytes = await readFile(new URL(`../public/media/photo-course-demo/${name}`, import.meta.url));
+    return readPhotoExif(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+  }));
+  for (let index = 0; index < samples.length; index += 1) {
+    assert.deepEqual(metadata[index].takenAt, { date: samples[index][1], minutes: samples[index][2] });
+    assert.equal(metadata[index].point, null);
+  }
+  assert.deepEqual(buildPhotoCourse(metadata).days.map(day => day.stops.length), [2, 1]);
+});
+
 test("EXIF timestamps reject impossible clock values", () => {
   assert.deepEqual(parseExifTimestamp("2026:08:14 00:00:00"), { date: "2026-08-14", minutes: 0 });
   assert.equal(parseExifTimestamp("2026:13:14 09:00:00"), null);

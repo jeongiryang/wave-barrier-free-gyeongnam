@@ -15,7 +15,7 @@ export default function TravelProfileSummary({ books, onStart }: { books: Travel
   const profile = useMemo(() => buildTravelProfile({ trips: books.map(book => ({ id: book.id, region: book.region, dayCount: days(book.travelStart, book.travelEnd), facilityKeys: book.profiles, placeTypeIds: book.places.map(place => place.contentTypeId || '').filter(Boolean) })) }), [books]);
   if (!profile) return null;
   return <section className="travel-profile-summary" aria-labelledby="travel-profile-title">
-    <header><div><p>직접 만든 여행만 사용</p><h2 id="travel-profile-title">내 여행 취향 정리</h2></div><span>{profile.tripCount}개 일정</span></header>
+    <header><div><p>이 기기에 담은 여행만 사용</p><h2 id="travel-profile-title">내 여행 취향 정리</h2></div><span>{profile.tripCount}개 일정</span></header>
     <p>저장한 일정에서 고른 사실을 기기 안에서 세었어요. 실제 방문이나 성격 유형을 뜻하지 않아요.</p>
     <div><FactList title="많이 고른 지역" entries={profile.regions} tripCount={profile.tripCount} /><FactList title="자주 고른 편의" entries={profile.facilities} tripCount={profile.tripCount} /><FactList title="즐겨 담은 장소 종류" entries={profile.placeTypes} tripCount={profile.tripCount} /><FactList title="여행 길이" entries={profile.lengths} tripCount={profile.tripCount} /></div>
     <button type="button" onClick={() => onStart(profile.suggestion)}>이 조건으로 새 여행 시작하기</button>

@@ -18,7 +18,8 @@ import SiteFooter from '../../components/SiteFooter';
 import { useOpenNaru } from '../../components/NaruContext';
 import { regions, profiles as facilityProfiles } from '../planner/constants';
 import WaveDatePicker from '../../components/WaveDatePicker';
-import { plannerJson } from '../planner/services/api';
+import { plannerJson, PlannerRequestError } from '../planner/services/api';
+import { providerFailureMessage } from '../../lib/provider-failure.js';
 import { validTripDate, offsetTripDate } from '../../lib/trip-dates.js';
 import { readSessionProfiles, saveSessionProfiles } from '../../lib/session-travel-profiles.js';
 import { getTabStorage } from '../../lib/session-storage.js';
@@ -90,7 +91,7 @@ export default function FestivalExplorer() {
     const timer = setTimeout(() => {
       setLoading(true); setError('');
       const params = new URLSearchParams({ region, start, end, profiles: selected.join(',') });
-      void plannerJson<Result>(`/api/festivals?${params}`, { signal: controller.signal, timeoutMs: 15000 }).then(result => { if (!Array.isArray(result.items)) throw new Error(); if (!controller.signal.aborted) setData(result); }).catch(() => { if (!controller.signal.aborted) setError('축제 정보를 받지 못했어요. 날짜와 선택은 유지됩니다. 잠시 후 다시 시도해 주세요.'); }).finally(() => { if (!controller.signal.aborted) { setLoading(false); setSettled(signature); } });
+      void plannerJson<Result>(`/api/festivals?${params}`, { signal: controller.signal, timeoutMs: 15000 }).then(result => { if (!Array.isArray(result.items)) throw new Error(); if (!controller.signal.aborted) setData(result); }).catch((cause) => { if (!controller.signal.aborted) setError(cause instanceof PlannerRequestError && cause.failure ? `${providerFailureMessage(cause.failure)} 날짜와 선택은 유지됩니다.` : '축제 정보를 받지 못했어요. 날짜와 선택은 유지됩니다. 잠시 후 다시 시도해 주세요.'); }).finally(() => { if (!controller.signal.aborted) { setLoading(false); setSettled(signature); } });
     }, 250);
     return () => { clearTimeout(timer); controller.abort(); };
   // The signature represents the complete request, including selected facilities.
