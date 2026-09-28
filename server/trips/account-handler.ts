@@ -6,6 +6,7 @@ import { profileFields } from "../tourism/catalog";
 import { portableEnv } from "../shared/env";
 import { attemptProvider, commonParams, fetchTourismData } from "../shared/provider-data";
 import { placeFrom } from "../tourism/accessibility-model";
+import type { ProviderFailure } from "../../lib/provider-failure.js";
 
 function response(data: unknown, status = 200) {
   return Response.json(data, { status, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", ...(status === 429 ? { "Retry-After": "60" } : {}) } });
@@ -47,12 +48,16 @@ export async function accountTravelHandler(request: Request) {
       const trip = await repo.get(userId, id);
       await repo.reservePlaceLookup(userId);
       const env = portableEnv();
+      const failures: ProviderFailure[] = [];
       const places = await Promise.all((trip.payload.placeIds as string[]).map(async (contentId, index) => {
         const common = await attemptProvider(fetchTourismData(env, "KorService2", "detailCommon2", { ...commonParams("1"), contentId }));
+        if (!common.ok && common.failure) failures.push(common.failure);
         const item = common.ok ? common.value.items[0] : null;
         return item ? placeFrom(item, {}, trip.payload.region, [], index) : null;
       }));
-      return response({ places: places.filter(Boolean), missing: places.filter(place => !place).length, checkedAt: new Date().toISOString() });
+      const missing = places.filter(place => !place).length;
+      const failure = missing ? failures.find(item => item.kind === "quota_exhausted") || failures.find(item => item.kind === "rate_limited") || failures[0] : undefined;
+      return response({ places: places.filter(Boolean), missing, ...(failure ? { failure } : {}), checkedAt: new Date().toISOString() });
     }
     if (action === "delete") { await repo.remove(userId, id, body.revision); return response({ ok: true }); }
     if (!action) return response(await repo.update(userId, id, body.revision, body.payload));
