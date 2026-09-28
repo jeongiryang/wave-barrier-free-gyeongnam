@@ -50,7 +50,7 @@ test("보관 일정을 열면 자동 조회 후에도 같은 일정과 누락된
   await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
   await expect(page.getByRole("list", { name: "선택한 편의조건" }).getByRole("listitem")).toHaveText(["장애인 주차구역", "접근로", "휠체어 대여", "승강기", "장애인 화장실"]);
   const restoreRequests = observeRestoreRequests(page);
-  await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+  await page.getByRole("button", { name: "일정 열기", exact: true }).click();
   await expect(page).toHaveURL(/from=travel-book#itinerary$/);
   await expect(page.locator(".simple-stops .simple-stop-copy").getByRole("button", { name: "경남도립미술관", exact: true })).toBeVisible();
   await expectRestoredEvidence(page, restoreRequests);
@@ -83,17 +83,20 @@ test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원�
   await expect(page).toHaveURL(/\/travel-book$/);
   await expect(page.getByRole("heading", { name: "창원 1곳 여행" })).toBeVisible();
   await expect(page.getByRole("link", { name: '계정에 저장한 여행', exact: true })).toBeVisible();
-  await expect(page.getByText("경남도립미술관")).toBeVisible();
-  await expect(page.getByRole("link", { name: "사진으로 코스 되살리기" })).toHaveAttribute("href", "/photo-course");
+  await expect(page.locator('.travel-book-route-summary')).toHaveText("경남도립미술관");
+  // Owner removed this optional, non-submitted shortcut; archived trip functions remain.
+  await expect(page.getByRole("link", { name: "사진으로 코스 되살리기" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "여행 후기 초안" })).toHaveAttribute("href", /draft=journal/);
 
   await page.getByRole("button", { name: "다녀온 여행" }).click();
+  await page.getByText("일정과 메모 보기", { exact: true }).click();
   const note = page.getByPlaceholder(/현장에서 편했던 동선/);
   await note.fill("입구 경사로가 편했고 오전 방문이 여유로웠다.");
   await note.blur();
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("wave-travel-book-v1") || "")).toContain("오전 방문이 여유로웠다");
   await page.reload();
   await expect(page.getByRole("button", { name: "다녀온 여행" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByText("일정과 메모 보기", { exact: true }).click();
   await expect(page.getByPlaceholder(/현장에서 편했던 동선/)).toHaveValue("입구 경사로가 편했고 오전 방문이 여유로웠다.");
 
   const restoreRequests = observeRestoreRequests(page);
@@ -101,9 +104,9 @@ test("플래너의 일정은 로컬 여행집에서 기록하고 다시 복원�
   // ID refresh must restore it independently and must not add the park instead.
   await page.route("**/api/wave?**", route => new URL(route.request().url()).searchParams.get("action") === "plan"
     ? route.fulfill({ json: { ...plan, places: [plan.places[1]], stops: [plan.stops[1]] } }) : route.fallback());
-  await page.getByRole("button", { name: /이 일정 다시 열기/ }).click();
+  await page.getByRole("button", { name: "일정 열기", exact: true }).click();
   await expect(page).toHaveURL(/\/planner\?.*from=travel-book/);
-  await expect(page.getByRole("region", { name: "날짜별 여행 일정" }).getByText("경남도립미술관").first()).toBeVisible();
+  await expect(page.locator('.simple-stops .simple-stop-copy').getByRole('button', { name: '경남도립미술관', exact: true })).toBeVisible();
   await expectRestoredEvidence(page, restoreRequests);
   await openMap(page);
   await expect(page.locator('.wave-map-icon.place[data-place-id="1001"]')).toHaveCount(1);
@@ -128,14 +131,14 @@ test("여행집의 주요 조작은 44px 이상이고 삭제는 확인을 거친
   await page.goto("/travel-book");
   for (const control of [
     page.getByRole("button", { name: "갈 여행" }),
-    page.getByRole("button", { name: /이 일정 다시 열기/ }),
-    page.getByRole("link", { name: "사진으로 코스 되살리기" }),
+    page.getByRole("button", { name: "일정 열기", exact: true }),
+    page.getByRole("link", { name: "여행 후기 초안", exact: true }),
   ]) {
     const box = await control.boundingBox();
     expect(box?.height || 0).toBeGreaterThanOrEqual(44);
   }
-  await page.getByRole("button", { name: "여행집에서 삭제" }).click();
-  const deleteTrigger = page.getByRole("button", { name: "여행집에서 삭제" });
+  await page.getByRole("button", { name: "삭제", exact: true }).click();
+  const deleteTrigger = page.getByRole("button", { name: "삭제", exact: true });
   await expect(deleteTrigger).toHaveAttribute("aria-expanded", "true");
   await expect(deleteTrigger).toHaveAttribute("aria-controls", /travel-book-delete-/);
   await expect(page.getByText("이 여행을 삭제할까요?")).toBeVisible();
@@ -144,6 +147,7 @@ test("여행집의 주요 조작은 44px 이상이고 삭제는 확인을 거친
   await expect(deleteTrigger).toHaveAttribute("aria-expanded", "false");
   await expect(deleteTrigger).toBeFocused();
 
+  await page.getByText("일정과 메모 보기", { exact: true }).click();
   const note = page.getByRole("textbox", { name: "출발 전에 기억할 점" });
   await note.fill("출발 전 운영시간 확인");
   await note.blur();

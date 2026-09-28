@@ -19,8 +19,8 @@ function place(id: string, name: string, state: "confirmed" | "negative" | "unkn
   } satisfies Place;
 }
 
-const withText = place("s1", "접근로 설명 있는 장소", "confirmed", "정문 앞에 경사로가 있고 턱이 낮습니다. 안내견 동반도 가능합니다.");
-const withoutText = place("s2", "접근로 설명 없는 장소", "unknown", "");
+const withText = place("700011", "접근로 설명 있는 장소", "confirmed", "정문 앞에 경사로가 있고 턱이 낮습니다. 안내견 동반도 가능합니다.");
+const withoutText = place("700012", "접근로 설명 없는 장소", "unknown", "");
 
 async function openArrivalPreview(page: Page, target: Place) {
   await mockPlannerApi(page, { plannerView: "overview", savedPlaces: [target] });
@@ -66,7 +66,7 @@ test("문의 기능으로 가는 링크가 동작한다(#545, 새 화면을 만�
   const notice = dialog.locator(".place-arrival-preview .place-inquiry-entry").filter({ hasText: "휠체어 통행 정보" });
   await notice.getByRole("button", { name: "문의 카드 만들기", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "3. 시설", exact: true }).first()).toHaveAttribute("aria-pressed", "true");
-  await expect(dialog.locator(".place-inquiry-entry").filter({ hasText: "방문 전에 물어보세요" }).getByRole("button", { name: "문의 카드 만들기", exact: true }).first()).toBeVisible();
+  await expect(dialog.locator('.place-arrival-preview').getByRole('button', { name: /^방문 전에 물어보기/ })).toBeVisible();
 });
 
 test("1440/960/390px에서 가로 스크롤이 없고 axe 위반이 없다", async ({ page }) => {

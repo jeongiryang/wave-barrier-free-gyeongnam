@@ -59,6 +59,7 @@ html:root body .wave-night .map-crowd-legend .crowd-visual{width:30px;height:30p
 html:root body .wave-night .map-crowd-legend small{font-size:12px;color:#3c5e70}
 html:root body .wave-night .map-crowd-legend strong{font-size:16px}
 html:root body .wave-night .crowd-forecast-label{font-size:12px;color:#3c5e70}
+html:root[data-theme="dark"] body .wave-night .map-crowd-legend :is(small,.crowd-forecast-label){color:#b6d0dc}
 html:root body .wave-night .map-crowd-details>summary{display:grid;place-items:center;width:44px;height:44px;padding:0;list-style:none;color:#235574;background:transparent;cursor:pointer}
 .map-crowd-details>summary::-webkit-details-marker{display:none}
 .map-crowd-details .map-crowd-evidence{position:absolute;bottom:calc(100% + 8px);left:0;right:0;padding:14px;border:1px solid #91b0c4;border-radius:12px;background:#fff;color:#21425b;box-shadow:0 4px 20px #102d4726;font-size:12px}
@@ -428,6 +429,7 @@ html:root body dialog.map-place-modal .map-place-photo{height:260px;background-s
 html:root body dialog.map-place-modal .map-place-copy{padding:24px;font-size:17px;line-height:1.8;color:#24493f}
 html:root body dialog.map-place-modal h3{font-size:28px;color:#24493f}
 html:root body dialog.map-place-modal .map-place-rating{margin:0 24px 20px;padding:16px;background:#eaf2ed;color:#48665b;border:0;border-radius:12px}
+html:root body dialog.map-place-modal :is(.map-place-copy small,.map-place-rating span){color:inherit}
 html:root body dialog.map-place-modal .map-place-actions{display:flex;gap:12px;padding:0 24px}
 html:root body dialog.map-place-modal .map-place-actions button{min-height:48px;flex:1;background:#286f61;color:white;border:0;border-radius:12px}
 html:root body dialog.map-place-modal .map-place-review-link{display:block;margin:20px 24px 0;color:#286f61}
@@ -474,7 +476,7 @@ html:root body .scenic-page :is(.landing-content,.planner-journey-workspace,.com
  html:root body .scenic-page .landing-content h3{font-size:clamp(19px,1.25vw,28px);line-height:1.4}
  html:root body .scenic-page .landing-content p{font-size:clamp(15px,.92vw,21px);line-height:1.75}
  html:root body .scenic-page .landing-content :is(.landing-naru-usecases button,.simple-text-link){font-size:clamp(15px,.9vw,20px);min-height:clamp(48px,3vw,64px)}
- html:root body .landing-page.horizon-edition.night-landing.scenic-page .landing-content .simple-region-link>img{height:clamp(180px,15vw,340px);min-height:180px}
+ html:root body .landing-page.horizon-edition.night-landing.scenic-page .landing-content .simple-region-link>img{height:100%;min-height:0}
  html:root body .scenic-page .landing-content .simple-region-grid{gap:clamp(16px,1.5vw,32px)}
  html:root body .scenic-page .landing-content .night-discover-photos img{height:clamp(150px,12vw,280px)}
 }

@@ -23,6 +23,8 @@ async function setup(page: Page) {
   await page.route("**/api/**", route => { errors.push(`Unexpected API: ${new URL(route.request().url()).pathname}`); return route.fulfill({ status: 503, json: { error: "Unmocked test API" } }); });
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { plannerView: "overview", savedPlaces: response.explorationPlaces });
+  // The approved detail view opens audio/transcript information immediately.
+  await page.route('**/api/wave?action=place-audio*', route => route.fulfill({ json: { stories: [], checkedAt: plan.generatedAt } }));
   await page.route("**/api/community/posts?**", route => route.fulfill({ json: { posts: [], hasMore: false, page: 1 } }));
   await page.route("**/api/wave?action=plan*", route => route.fulfill({ json: response }));
   await page.emulateMedia({ reducedMotion: "reduce" });

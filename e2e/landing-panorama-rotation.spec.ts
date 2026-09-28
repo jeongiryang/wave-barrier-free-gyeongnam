@@ -24,7 +24,7 @@ test('landing photographs rotate promptly without consecutive repeats even when 
     await expect(panorama.locator('img.is-current')).not.toHaveAttribute('src', first!, { timeout: 6500 });
   }
   await expect(page.locator('.landing-finale img, .landing-finale .award-panorama-credit')).toHaveCount(0);
-  await expect(page.locator('.night-feature-content #naru')).toBeVisible();
+  await expect(page.locator('#naru')).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const current = page.locator('.scenic-background-home img.is-current');
   await expect(page.locator('.scenic-background-home .award-panorama')).toHaveAttribute('data-paused', 'false');

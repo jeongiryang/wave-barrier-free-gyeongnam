@@ -128,17 +128,17 @@ body .naru-panel.naru-workspace .naru-sidebar-tools>.naru-workspace-actions { pa
 /* Landscape phones and touch tablets can keep a wide layout viewport while
    the keyboard leaves a short visual viewport. Use the measured height rather
    than a layout-height media query, and retain desktop sizing when it recovers. */
-@media (pointer:coarse) {
-  body .naru-panel.naru-workspace[data-short-viewport=true]:is(.naru-large,.naru-compact) { inset:var(--naru-visible-top,0px) 0 auto;margin:0;width:100%;height:var(--naru-visible-height,100dvh);border:0;border-radius:0; }
-  body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-body { grid-template-columns:minmax(0,1fr); }
-  body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-sidebar { display:none; }
+@media (pointer:coarse), (max-width:800px) {
+  html:root body .naru-panel.naru-workspace[data-short-viewport=true]:is(.naru-large,.naru-compact) { inset:var(--naru-visible-top,0px) 0 auto;margin:0;width:100%;height:var(--naru-visible-height,100dvh);border:0;border-radius:0; }
+  html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-workspace-body { grid-template-columns:minmax(0,1fr); }
+  html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-workspace-sidebar { display:none; }
 }
-body .naru-panel.naru-workspace[data-short-viewport=true] .naru-heading { min-height:52px;padding-block:4px; }
-body .naru-panel.naru-workspace[data-short-viewport=true] .naru-heading small { display:none; }
-body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-tabs { padding-bottom:4px; }
-body .naru-panel.naru-workspace[data-short-viewport=true] .naru-workspace-tabs>button { min-height:44px;padding-block:6px; }
-body .naru-panel.naru-workspace[data-short-viewport=true] .naru-input { margin-block:4px; }
-body .naru-panel.naru-workspace[data-short-viewport=true] .naru-input textarea { max-height:max(64px,calc(1lh + 16px)); }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-heading { min-height:52px;padding-block:4px; }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-heading small { display:none; }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-workspace-tabs { padding-bottom:4px; }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-workspace-tabs>button { min-height:44px;padding-block:6px; }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-input { margin-block:4px; }
+html:root body .naru-panel.naru-workspace.naru-friendly[data-short-viewport=true] .naru-input textarea { max-height:max(64px,calc(1lh + 16px)); }
 
 body .naru-panel.naru-workspace .naru-photo-preview { flex-shrink:0;max-height:20%;overflow:auto; }
 

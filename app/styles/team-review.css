@@ -31,3 +31,16 @@ html:root body .naru-panel.naru-friendly .place-comparison-dialog .place-compari
 html:root body .naru-panel.naru-friendly .place-comparison-dialog .place-comparison-scroll td[data-state=confirmed] strong{color:#256045}
 html:root body .naru-panel.naru-friendly .place-comparison-dialog .place-comparison-scroll td[data-state=negative] strong{color:#993f40}
 html:root body .naru-panel.naru-friendly .place-comparison-dialog input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+
+/* Moving the approved dark progress card into Naru must retain its readable text. */
+html:root body .naru-panel.naru-friendly .planner-progress-context :is(h2,p){color:#ebf3ff}
+
+/* Map recovery sits on a light canvas; its functional notice stays opaque. */
+html:root body .wave-night .route-empty.map-unavailable{background:#102a40;color:#ebf3ff}
+html:root body .wave-night .route-empty.map-unavailable h3{color:#ebf3ff}
+html:root body .wave-night .route-empty.map-unavailable p{color:#d6e8f7}
+/* Keep the selected regional tool readable on the approved pale teal surface. */
+html:root body .naru-panel .theme-explorer .layer-tabs button[aria-selected="true"] :is(b,small){color:#173f3c}
+
+/* The reunion preview keeps its accent fill and uses a legible button label. */
+html:root body .naru-panel section[aria-label="동행과 합류 계획"] > .travel-book-actions > button:first-child{color:#fff!important}

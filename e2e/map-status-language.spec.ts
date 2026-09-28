@@ -101,7 +101,7 @@ for (const theme of ["light", "dark"]) {
     await nearby.getByRole("button", { name: "Restaurants", exact: true }).click();
     await deliverNearby(page, 0, "OK", [nearbyPlace()]);
     await nearby.getByRole("button", { name: "View on map", exact: true }).click();
-    const details = page.getByRole("region", { name: "Place details", exact: true });
+    const details = page.getByRole("dialog", { name: "Place details", exact: true });
     await expect(details).toBeVisible();
     await expect(details).toHaveAttribute("lang", "en");
     await expect(details).toContainText("Names, addresses and descriptions are shown in their original language.");

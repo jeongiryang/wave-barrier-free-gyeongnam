@@ -17,8 +17,8 @@ for (const width of [390,960,1440]) test(`review select keyboard form and placem
   expect(box!.y+box!.height).toBeLessThanOrEqual(650);
   expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width);
   await page.keyboard.press('Home');await page.keyboard.press('Enter');
-  await expect(select).toBeFocused();await expect(select).toHaveText('통영');
-  await expect(page.locator('#landing-region')).toHaveValue('통영');
+  await expect(select).toBeFocused();await expect(select).toHaveText('경남 전체');
+  await expect(page.locator('#landing-region')).toHaveValue('경남 전체');
   await select.click();await page.getByRole('option',{name:'거제',exact:true}).click();
   await expect(select).toHaveText('거제');await expect(select).toBeFocused();
   await select.press('ArrowDown');await page.keyboard.press('Escape');await expect(select).toBeFocused();

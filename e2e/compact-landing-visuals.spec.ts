@@ -16,7 +16,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.addInitScript(value => localStorage.setItem("wave-theme", value), theme);
     await page.goto("/"); await storyReady(page);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    for (const width of [390, 960, 1440]) {
+    for (const width of [390, 960, 1440, 1920, 2560]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.locator("main section[id]").evaluateAll(nodes => nodes.map(node => node.id))).toEqual(chapterIds);
       for (const id of chapterIds) {

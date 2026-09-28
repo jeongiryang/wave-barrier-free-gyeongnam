@@ -64,10 +64,14 @@ test("missing IntersectionObserver never hides the closing content", async ({ pa
   const welcome = page.locator('.naru-header-scene');
   await welcome.scrollIntoViewIfNeeded();
   await expect(welcome).toHaveAttribute('data-frame', '4');
-  await expect(welcome.getByRole('heading', { name: '나루와 함께해요', exact: true })).toBeVisible();
-  await expect(welcome.locator('.wave-written-character')).toHaveCount(Array.from('나루와 함께해요').length);
-  for (const glyph of await welcome.locator('.wave-written-character').all()) await expect(glyph).toHaveCSS('opacity', '1');
-  await expect(welcome.getByRole('group', { name: '여행 대화 예시', exact: true })).toBeVisible();
+  // The owner removed the decorative headline/dialogue. Without an observer,
+  // the remaining scenery must still decode and expose its final visible frame.
+  await expect(welcome).toHaveAccessibleName('나루와 함께 여행 준비하기');
+  const scenery = welcome.locator('img.is-current');
+  await expect(scenery).toBeVisible();
+  await expect(scenery).toHaveCSS('opacity', '1');
+  await expect.poll(() => scenery.evaluate(node => (node as HTMLImageElement).complete && (node as HTMLImageElement).naturalWidth > 0)).toBe(true);
+  await expect(page.getByRole('combobox', { name: '여행 지역', exact: true })).toBeVisible();
   await expectNoOverflow(page);
   expect(errors).toEqual([]);
 });

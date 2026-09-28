@@ -122,3 +122,18 @@ test('a failed refresh retains the prior dated evidence without claiming a new v
   await expect(dialog).not.toContainText('최신 접근로');
   expect((await stored(page)).facilities).toEqual(['route']);
 });
+
+test('a fresh search still updates an already saved catalog after protecting the detail snapshot', async ({ page }) => {
+  await setup(page);
+  await page.route('**/api/wave?action=places*', route => route.fulfill({ json: { places: [original], missing: [] } }));
+  const dialog = await open(page);
+  await dialog.getByRole('button', { name: '일정에 추가', exact: true }).click();
+  await expect.poll(async () => (await stored(page)).catalog[0]?.address).toBe(original.address);
+  const nextSearch = { ...original, address: '경상남도 창원시 새 검색 주소', checkedAt: '2026-09-30T09:00:00Z' };
+  await page.route('**/api/wave?action=plan*', route => route.fulfill({ json: { ...plan, generatedAt: nextSearch.checkedAt, criteria: { facilityKeys: ['route'] }, places: [nextSearch], explorationPlaces: [], stops: [] } }));
+  await page.getByRole('button', { name: '여행 플랜 추천하기', exact: true }).click();
+  await expect.poll(async () => (await stored(page)).catalog[0]?.address).toBe(nextSearch.address);
+  expect((await stored(page)).ids).toEqual([original.id]);
+  expect((await stored(page)).facilities).toEqual(['route']);
+  expect((await stored(page)).schedule.travelStart).toBe('2026-10-08');
+});

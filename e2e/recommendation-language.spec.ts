@@ -17,6 +17,8 @@ const place = {
 
 async function prepare(page: Page, locale: "ko" | "en" = "en") {
   await mockPlannerApi(page, { plannerView: "overview", savedPlaces: [place] });
+  // The owner-approved detail loads its audio section immediately.
+  await page.route('**/api/wave?action=place-audio*', route => route.fulfill({ json: { stories: [], checkedAt: place.checkedAt } }));
   await page.addInitScript((value) => localStorage.setItem("wave-locale", value), locale);
   await page.route("**/api/wave?action=plan*", (route) => route.fulfill({ json: { criteria: { facilityKeys: (new URL(route.request().url()).searchParams.get("facilityKeys") || "").split(",").filter(Boolean) },
     mode: "live", generatedAt: place.checkedAt, baseYm: "202608", course: null, audio: null, places: [place], stops: [], statuses: [],
@@ -59,10 +61,11 @@ for (const theme of ["light", "dark"] as const) {
     await expect(dialog.locator('.facility-evidence-list [data-state="negative"]')).toHaveText("ElevatorReported unavailable승강기 없음");
     await expect(dialog.locator('.facility-evidence-list [data-state="unknown"]')).toContainText("ToiletsNot reportedNo information supplied");
     await expect(dialog.locator('.facility-evidence-list [data-state="confirmed"] dd')).toHaveAttribute("lang", "ko");
-    await dialog.getByText("Source, retrieval time and method", { exact: true }).click();
-    const evidence = dialog.locator("details").filter({ has: page.getByText("Source, retrieval time and method", { exact: true }) });
+    await dialog.getByText("Source and retrieval time", { exact: true }).click();
+    const evidence = dialog.locator("details.place-evidence").filter({ has: page.getByText('Source and retrieval time', { exact: true }) });
     await expect(evidence).toContainText(place.source);
-    await expect(evidence).toContainText("Retrieval time is not the provider's facility update date");
+    await expect(evidence).toContainText("Retrieved");
+    await expect(dialog.getByRole('link', { name: 'Information guide (new tab)' })).toHaveAttribute('href', '/policies#travel-information-policy');
     await dialog.getByRole('tab', { name: 'Visitor stories', exact: true }).click();
     await expect(dialog.locator(".place-community-empty")).toContainText("There are no public visitor stories");
     await expect(dialog.getByRole("region", { name: "Visitor stories about this place", exact: true })).not.toContainText(/[가-힣]/);
@@ -74,7 +77,7 @@ for (const theme of ["light", "dark"] as const) {
     await dialog.getByRole('tab', { name: 'Access and facilities', exact: true }).click();
     await expect(dialog.locator('.place-review-arrival > summary')).toBeVisible();
     await dialog.getByRole('tab', { name: 'Overview', exact: true }).click();
-    await expect(dialog.locator('.place-audio-guide > summary')).toBeVisible();
+    await expect(dialog.locator('.place-audio-guide > h3')).toBeVisible();
     expect((await new AxeBuilder({ page }).include("dialog").analyze()).violations).toEqual([]);
     if (isMobile) {
       await dialog.getByRole('tab', { name: 'Overview', exact: true }).focus();
@@ -91,6 +94,9 @@ for (const theme of ["light", "dark"] as const) {
     await expect(trigger).toBeFocused();
     expect(errors).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    // Owner consolidated recurring explanation into this linked policy section.
+    await page.goto('/policies#travel-information-policy');
+    await expect(page.getByText(/화면의 조회 시각은 WAVE가 정보를 가져온 시각이며 제공처가 시설정보를 갱신한 날짜가 아닙니다/)).toBeVisible();
   });
 }
 
@@ -141,7 +147,7 @@ test("English visitor stories and feedback stay separate from official evidence"
   const dialog = page.getByRole("dialog");
   await expect(dialog.locator(".place-community-story-list strong")).toHaveAttribute("lang", "ko");
   await expect(dialog.locator(".place-community-story-list")).toContainText("Visit date not supplied");
-  await expect(dialog.getByRole("region", { name: "Visitor stories about this place", exact: true })).toContainText("excluded from official scores");
+  await expect(dialog.getByRole('link', { name: 'Information guide (new tab)' })).toHaveAttribute('href', '/policies#travel-information-policy');
   const text = dialog.getByRole("textbox", { name: "Has the facility information changed?" });
   await text.fill("The elevator has changed.");
   await dialog.getByRole("button", { name: "Report a correction" }).click();
@@ -149,6 +155,7 @@ test("English visitor stories and feedback stay separate from official evidence"
   await expect(text).toHaveValue("The elevator has changed.");
   await dialog.getByRole("button", { name: "Report a correction" }).click();
   await expect(dialog.getByRole("status").filter({ hasText: "Your report was received" })).toBeVisible();
+  await dialog.getByRole('tab', { name: 'Access and facilities', exact: true }).click();
   await expect(dialog.locator('.facility-evidence-list [data-state="negative"]')).toContainText("Reported unavailable승강기 없음");
   expect(submissions).toBe(2);
 });

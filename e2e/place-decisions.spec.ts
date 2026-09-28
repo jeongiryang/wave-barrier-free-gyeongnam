@@ -113,7 +113,7 @@ for (const denied of [false, true]) test(`inquiry card edits, exports and return
   page.on("framenavigated", frame => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
   await page.evaluate(denied => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (value: string) => { if (denied) throw new Error("denied"); (window as unknown as { inquiryCopy: string }).inquiryCopy = value; } } }), denied);
   await page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true }).click();
-  const entry = page.getByRole("button", { name: /문의 카드 만들기/ });
+  const entry = page.getByRole("button", { name: /^방문 전에 물어보기/ });
   await entry.click();
   const dialog = page.getByRole("dialog", { name: "이렇게 물어보세요." });
   await dialog.getByRole("checkbox", { name: "계단 없는 이동", exact: true }).check();

@@ -31,7 +31,7 @@ for (const restoration of ["reload", "archive"] as const) {
       await expect(page.locator(".simple-save-control [role=status]")).toContainText("내 여행에 저장했어요");
       await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
       searches = 0;
-      await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+      await page.getByRole("button", { name: "일정 열기", exact: true }).click();
     } else { searches = 0; await page.reload(); }
     await expect(page.locator("#itinerary")).toBeVisible();
     await expect.poll(() => searches).toBe(1);

@@ -29,7 +29,7 @@ async function checkTargets(controls: Locator) {
   }
 }
 
-for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 }, { width: 390, height: 844 }]) {
+for (const viewport of [{ width: 2560, height: 1440 }, { width: 1920, height: 1080 }, { width: 1440, height: 960 }, { width: 960, height: 800 }, { width: 390, height: 844 }]) {
   test(`Naru workspace fits ${viewport.width}px with usable tabs, preparation and saved work`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
     const origin = new URL(testInfo.project.use.baseURL as string).origin;
@@ -48,6 +48,10 @@ for (const viewport of [{ width: 1440, height: 960 }, { width: 960, height: 800 
     await expect(panel).toBeVisible();
     const tabs = panel.getByRole('tablist', { name: '나루 작업공간' });
     await checkBounds(page, panel);
+    if (viewport.width >= 1920) {
+      await page.screenshot({ path: testInfo.outputPath(`naru-workspace-welcome-${viewport.width}.png`) });
+      await testInfo.attach('workspace-viewport', { body: JSON.stringify({ viewport, panel: await panel.boundingBox() }), contentType: 'application/json' });
+    }
     await checkTargets(tabs.getByRole('tab'));
     await panel.getByRole('button', { name: /^여행 처음 만들기/ }).click();
     const form = panel.getByRole('form', { name: '여행 준비 맡기기', exact: true });

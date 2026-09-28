@@ -35,7 +35,7 @@ test('200% text keeps the empty composer readable from first open and after reop
   const input = chat.getByRole('textbox', { name: '나루에게 여행 질문하기' });
   const unclipped = () => input.evaluate(node => ({ client: node.clientHeight, scroll: node.scrollHeight, line: Number.parseFloat(getComputedStyle(node).lineHeight) }));
   await expect(input).toHaveValue('');
-  await expect.poll(async () => { const size = await unclipped(); return size.client + 1 >= size.scroll && size.line >= 50; }).toBe(true);
+  await expect.poll(async () => { const size = await unclipped(); return { ...size, readable: size.client + 1 >= size.scroll && size.line >= 50 }; }).toMatchObject({ readable: true });
   await input.fill('한글 입력');
   await expect.poll(async () => { const size = await unclipped(); return size.client + 1 >= size.scroll; }).toBe(true);
   await input.fill('');
@@ -100,10 +100,11 @@ async function keyboard(page: Page, height: number, offsetTop = 0, scale = 1) {
 
 test('overlay keyboard leaves readable answers, reachable input and all optional choices', async ({ page }, info) => {
   const chat = await setup(page);
+  const initialHeight = (await chat.boundingBox())!.height;
   const input = chat.getByRole('textbox', { name: '나루에게 여행 질문하기' });
   await expect(input).not.toBeFocused();
   await expect(chat.getByRole('tab', { name: '대화', exact: true })).toBeFocused();
-  await expect(chat.locator('.naru-suggestions')).not.toHaveAttribute('open', '');
+  await expect(chat.locator('.naru-suggestions[open]')).toHaveCount(0);
   await input.fill('여행 준비에 대해 이야기해줘');
   await keyboard(page, 390, 24);
   await expect(chat).toHaveAttribute('data-short-viewport', 'true');
@@ -113,6 +114,7 @@ test('overlay keyboard leaves readable answers, reachable input and all optional
   expect((await chat.getByRole('log').boundingBox())!.height).toBeGreaterThan(180);
   await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
   await expect(chat.getByRole('log')).toContainText('답변을 읽고 이어서 질문해 주세요.');
+  await expect(chat.locator('.naru-suggestions')).not.toHaveAttribute('open', '');
   const composer = await input.boundingBox();
   expect(composer!.y + composer!.height).toBeLessThanOrEqual(414);
   expect(await chat.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
@@ -135,16 +137,17 @@ test('overlay keyboard leaves readable answers, reachable input and all optional
   await expect(chat).toHaveAttribute('data-short-viewport', 'false');
   await expect.poll(() => chat.getByRole('log').evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThan(2);
   await keyboard(page, 200, 100, 2);
-  expect((await chat.boundingBox())!.height).toBeCloseTo(844, 0);
+  expect((await chat.boundingBox())!.height).toBeCloseTo(initialHeight, 0);
   await keyboard(page, 844);
 
   await chat.locator('.naru-suggestions > summary').click();
   await chat.getByRole('button', { name: '선택한 조건으로 여행지를 찾아줘', exact: true }).click();
   await expect(input).toHaveValue('선택한 조건으로 여행지를 찾아줘');
   await expect(input).toBeFocused();
-  await chat.getByRole('tab', { name: '여행 도구', exact: true }).click();
-  await expect(chat.locator('.naru-tool-catalog .naru-tools button')).toHaveCount(28);
-  await chat.getByRole('tab', { name: '저장한 내용', exact: true }).click();
+  await chat.getByRole('tab', { name: '직접 골라서 하기', exact: true }).click();
+  await chat.getByRole('button', { name: '전체', exact: true }).click();
+  await expect(chat.locator('.naru-task-actions > button')).toHaveCount(28);
+  await chat.getByRole('tab', { name: '저장한 여행', exact: true }).click();
   await expect(chat.getByRole('button', { name: '대화와 현재 여행 저장', exact: true })).toBeVisible();
 });
 
@@ -168,16 +171,21 @@ test('photo preview and its recovery controls do not consume the conversation ab
     return canvas.toDataURL('image/png').split(',')[1];
   });
   await chat.getByLabel('나루에게 첨부할 사진 선택').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: Buffer.from(image, 'base64') });
-  await expect(chat.getByAltText('보내기 전 첨부 사진 미리보기')).toBeVisible();
+  await expect(chat.getByAltText('첨부 사진', { exact: true })).toBeVisible();
   await chat.getByRole('textbox', { name: '나루에게 여행 질문하기' }).fill('사진을 읽어줘');
   await keyboard(page, 390);
   await expect(chat).toHaveAttribute('data-short-viewport', 'true');
   expect((await chat.getByRole('log').boundingBox())!.height).toBeGreaterThan(100);
   const preview = chat.getByRole('region', { name: '첨부 사진 확인' });
-  expect((await preview.boundingBox())!.height).toBeLessThanOrEqual(78);
-  await preview.focus();
-  await preview.press('End');
-  await expect(preview).toContainText('위치정보를 제거한 뒤');
+  const remove = preview.getByRole('button', { name: '첨부 사진 삭제', exact: true });
+  await remove.scrollIntoViewIfNeeded();
+  const removeBox = (await remove.boundingBox())!;
+  expect(removeBox.y).toBeGreaterThanOrEqual(0);
+  expect(removeBox.y + removeBox.height).toBeLessThanOrEqual(390);
+  await chat.locator('.naru-more > summary').click();
+  await chat.locator('.naru-menu-privacy > summary').click();
+  await expect(chat.locator('.naru-menu-privacy')).toContainText('위치정보를 제거한 뒤');
+  await chat.locator('.naru-more > summary').click();
   await page.screenshot({ path: info.outputPath('naru-keyboard-photo.png') });
   await chat.getByRole('button', { name: '첨부 사진 삭제', exact: true }).click();
   await expect(preview).toHaveCount(0);

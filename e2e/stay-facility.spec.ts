@@ -47,6 +47,8 @@ test("숙박 장소에서만 숙소 편의 묶음이 보이고, 다른 타입에
   const dialog = await openFacilityStep(page, stayPlace([{ key: "route", label: "접근로", state: "confirmed", detail: "" }]));
   await expect(dialog.locator(".stay-facility-detail")).toBeVisible();
   await expect(dialog.locator(".stay-facility-detail h4").first()).toHaveText("들어가기");
+  const otherType = await openFacilityStep(page, { ...stayPlace([{ key: 'route', label: '접근로', state: 'confirmed', detail: '' }]), contentTypeId: '14' });
+  await expect(otherType.locator('.stay-facility-detail')).toHaveCount(0);
 });
 
 test("세 상태가 문구로 구분되고 미확인이 없음으로 표시되지 않는다", async ({ page }) => {
@@ -87,7 +89,7 @@ test("확인된 편의가 전혀 없으면 등록된 시설 정보가 없다는 
   await dialog.getByRole("button", { name: "3. 시설", exact: true }).click();
   const detail = dialog.locator(".stay-facility-detail");
   await expect(detail).toHaveText("등록된 시설 정보가 없어요.");
-  await expect(dialog.getByRole("button", { name: "문의 카드 만들기", exact: true }).first()).toBeVisible();
+  await expect(dialog.locator('.place-arrival-preview').getByRole('button', { name: /^방문 전에 물어보기/ })).toBeVisible();
 });
 
 test("1440/960/390px에서 가로 스크롤이 없고 axe 위반이 없다", async ({ page }) => {

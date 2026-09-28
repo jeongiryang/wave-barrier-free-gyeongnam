@@ -62,7 +62,7 @@ test('the chosen car mode survives reload, archive restore, sharing and calendar
   await settled(page, 'transit');
   await chooseMode(page, 'car');
   await settled(page, 'car');
-  await expect(page.locator('#itinerary .simple-leg-time:visible').filter({ hasText: /이동 57분/ }).first()).toBeVisible();
+  await expect(page.locator('#itinerary .simple-stop > time').first()).toHaveText('10:27 도착 예정');
   calls.length = 0;
   await page.reload();
   await settled(page, 'car');
@@ -73,7 +73,7 @@ test('the chosen car mode survives reload, archive restore, sharing and calendar
   expect((await stored(page)).books[0]).toMatchObject({ ...schedule, travelMode: 'car' });
   await page.goto('/travel-book');
   calls.length = 0;
-  await page.getByRole('button', { name: '이 일정 다시 열기', exact: true }).click();
+  await page.getByRole('button', { name: '일정 열기', exact: true }).click();
   await settled(page, 'car');
   expect(calls.length).toBeGreaterThanOrEqual(2);
   expect(calls.every(mode => mode === 'car')).toBe(true);

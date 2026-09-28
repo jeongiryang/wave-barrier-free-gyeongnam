@@ -33,6 +33,10 @@ test("기본 지도 일정은 장소 핀과 일정 위치 버튼의 선택을 �
   await expect(museumPin).toBeVisible(); await expect(lakePin).toBeVisible();
   await lakePin.click(); await expect(lake).toHaveAttribute("data-selected", "true");
   await expect(lakePin).toHaveAttribute("aria-current", "location"); await expect(museum).toHaveAttribute("data-selected", "false");
+  const mapDetail = page.getByRole('dialog', { name: '장소 상세 정보', exact: true });
+  await expect(mapDetail.getByRole('heading', { name: '용지호수공원', exact: true })).toBeVisible();
+  await mapDetail.getByRole('button', { name: '관광지 정보 닫기', exact: true }).click();
+  await expect(mapDetail).toBeHidden();
   await timeboard(page); await expect(lake).toBeVisible();
   // This explicit row action must remain reachable on a narrow screen too.
   await focusItineraryStop(page, "경남도립미술관"); await page.getByRole("button", { name: "경남도립미술관 지도에서 보기", exact: true }).click();

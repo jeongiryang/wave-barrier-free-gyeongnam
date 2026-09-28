@@ -60,12 +60,30 @@ test('refresh preserves keyboard focus while waiting and after its response', as
   try { await refresh.focus(); await page.keyboard.press('Enter'); await expect(refresh).toHaveAttribute('aria-busy', 'true'); await expect(refresh).toBeFocused(); await page.keyboard.press('Enter'); expect(calls).toBe(1); } finally { release(); }
   await expect(refresh).toHaveText('다시 조회'); await expect(refresh).toBeFocused();
 });
-for (const scrollAway of [false, true]) test(`late forecast respects ${scrollAway ? 'manual scrolling away' : 'the visible keyboard control'}`, async ({ page }) => {
-  await page.setViewportSize({ width: 1366, height: 900 }); await prepare(page);
+for (const scrollAway of [false, true]) test(`late forecast respects ${scrollAway ? 'manual scrolling away' : 'the visible keyboard control'}`, async ({ page }, info) => {
+  await page.setViewportSize({ width: 1366, height: 900 });
+  let releaseReview!: () => void, reviewRequests = 0;
+  const reviewGate = new Promise<void>(resolve => { releaseReview = resolve; });
+  await page.route('**/features/planner/components/NaruTripReview.tsx*', async route => {
+    reviewRequests++; await reviewGate; await route.continue();
+  });
   let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; });
-  await page.route('**/api/weather?*', async route => { await gate; await route.fallback(); }); const refresh = page.locator('.simple-readiness-heading button');
+  const refresh = page.locator('.simple-readiness-heading button');
   const hit = () => refresh.evaluate(element => { const box = element.getBoundingClientRect(); return element.contains(document.elementFromPoint(box.x + box.width/2, box.y + box.height/2)); });
-  try { await refresh.focus(); await page.keyboard.press('Enter'); await expect(refresh).toHaveAttribute('aria-busy', 'true'); await expect.poll(hit).toBe(true);
+  try {
+    await prepare(page);
+    await expect.poll(() => reviewRequests, { message: 'Hold the real lazy review above the focused control' }).toBeGreaterThan(0);
+    await page.route('**/api/weather?*', async route => { await gate; await route.fallback(); });
+    await refresh.focus(); await page.keyboard.press('Enter'); await expect(refresh).toHaveAttribute('aria-busy', 'true'); await expect.poll(hit).toBe(true);
+    // Expand the actual lazy review after native focus has already scrolled the
+    // refresh button into view. Its completion must not clip that control.
+    releaseReview();
+    await expect(page.locator('.naru-workspace-content [aria-label="나루 여행 점검"]')).toBeVisible();
+    await info.attach('refresh-scroll-bounds', { body: JSON.stringify(await refresh.evaluate(element => {
+      const scroller = element.closest('.naru-workspace-content');
+      return { target: element.getBoundingClientRect().toJSON(), scroller: scroller?.getBoundingClientRect().toJSON(), scrollTop: scroller?.scrollTop, focused: document.activeElement === element, oldWorkspaceFound: Boolean(element.closest('#planner, .journey-stage-stream')) };
+    })), contentType: 'application/json' });
+    await expect.poll(hit).toBe(true);
     if (scrollAway) {
       // Readiness now scrolls inside the Naru tool panel. Wheel scrolling away
       // must not change the focused refresh control or let the response steal it.
@@ -75,6 +93,6 @@ for (const scrollAway of [false, true]) test(`late forecast respects ${scrollAwa
       await page.mouse.wheel(0, 5000);
       await expect.poll(hit).toBe(false);
     }
-  } finally { release(); }
+  } finally { releaseReview(); release(); }
   await expect(refresh).toHaveText('다시 조회'); await expect(refresh).toBeFocused(); await expect.poll(hit).toBe(!scrollAway);
 });

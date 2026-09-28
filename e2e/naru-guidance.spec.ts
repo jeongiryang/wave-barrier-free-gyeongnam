@@ -24,7 +24,7 @@ async function openChat(page: Page) {
 
 async function openSettings(page: Page) {
   await page.getByLabel('나루 메뉴', { exact: true }).click();
-  await page.getByRole('button', { name: '안내 설정 열기', exact: true }).click();
+  await page.getByRole('button', { name: /안내 방식 바꾸기/ }).click();
   const settings = page.getByRole('dialog', { name: '나루 안내 설정', exact: true });
   await expect(settings).toBeVisible();
   return settings;
@@ -33,8 +33,9 @@ async function openSettings(page: Page) {
 test('안내 설정은 채팅을 유지하고 취소·Esc·적용·초기화와 저장을 지원한다', async ({ page }) => {
   await setup(page, false);
   const chat = await openChat(page);
-  await chat.getByRole('button', { name: '휠체어 이동에 필요한 시설', exact: true }).click();
-  await chat.getByRole('button', { name: '짧게, 한 번에 하나씩', exact: true }).click();
+  await chat.getByRole('button', { name: '맞춤 도움', exact: true }).click();
+  await chat.getByRole('button', { name: /휠체어 이동에 필요한 시설/ }).click();
+  await chat.getByRole('button', { name: /짧게, 한 번에 하나씩/ }).click();
   await chat.getByRole('button', { name: '선택 적용', exact: true }).click();
   const input = chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true });
   await input.fill('입력 중인 질문');
@@ -133,14 +134,14 @@ test('답변 읽어주기는 자동으로 재생되지 않고, 눌러야만 읽�
 
 test('읽어주기가 실패해도 대화는 계속 정상 동작한다', async ({ page }) => {
   await setup(page);
-  await page.addInitScript(() => {
+  await page.evaluate(() => {
     window.speechSynthesis.speak = () => { throw new Error('synthetic speech failure'); };
   });
   const chat = await openChat(page);
   const input = chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true });
   await input.fill('요청 확인');
   await input.press('Enter');
-  await chat.getByRole('button', { name: '답변 읽어주기', exact: true }).last().click({ noWaitAfter: true }).catch(() => {});
+  await chat.getByRole('button', { name: '답변 읽어주기', exact: true }).last().click();
   // The page keeps working (text and focus remain fully usable) even though
   // reading the answer aloud failed.
   await input.fill('읽어주기 실패 뒤에도 이어서 보낼 질문');

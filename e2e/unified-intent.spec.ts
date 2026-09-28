@@ -19,7 +19,7 @@ test('short search explains the requirement, returns focus, and never queries a 
   await expect(page.locator('#direct-place-query-notice')).toHaveCount(0);
 });
 
-test('closing keeps the message and ordinary links with compact solid spacing', async ({ page }) => {
+test('closing keeps the message and links joined to the preceding content panel', async ({ page }) => {
   await prepareStory(page);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
@@ -40,14 +40,14 @@ test('closing keeps the message and ordinary links with compact solid spacing', 
     });
     expect(spacing.min).toBe('0px');
     expect(spacing.photo).toBe('none');
-    for (const value of [spacing.top, spacing.bottom]) {
-      expect(parseFloat(value)).toBeGreaterThanOrEqual(16);
-      expect(parseFloat(value)).toBeLessThanOrEqual(64);
-    }
+    // Owner joined the closing and footer into the preceding panel. Verify
+    // content and links remain reachable instead of restoring a separate box.
+    expect(await closing.evaluate(node => Boolean(node.closest('.landing-section-pair')?.querySelector('#features')))).toBe(true);
+    for (const link of await closing.locator('footer a').all()) await expect(link).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   }
-  await expect(page.locator('.night-feature-content #naru')).toBeVisible();
-  await expect(page.locator('.night-feature-content #features')).toBeVisible();
+  await expect(page.locator('.landing-content #naru')).toBeVisible();
+  await expect(page.locator('.landing-content #features')).toBeVisible();
 });
 
 test('unavailable panorama photos keep navigation and introduction readable', async ({ page }) => {

@@ -17,7 +17,8 @@ for (const width of [1366, 2560, 3840]) test(`immersive landing and planner use 
     return [...document.fonts].filter(font => ['WaveScript', 'WaveHand'].includes(font.family)).map(font => ({ family: font.family, status: font.status }));
   });
   expect(fontFaces).toEqual(expect.arrayContaining([{ family: 'WaveScript', status: 'loaded' }, { family: 'WaveHand', status: 'loaded' }]));
-  await expect(page.locator('.landing-hero .night-hero-signature')).toHaveCSS('font-family', /WaveHand/);
+  // The owner removed the hero slogan; the map keeps the handwritten font.
+  await expect(page.locator('.night-map-signature')).toHaveCSS('font-family', /WaveHand/);
   await page.screenshot({ path: test.info().outputPath(`landing-${width}.png`) });
   await page.locator('#story').scrollIntoViewIfNeeded();
   await page.screenshot({ path: test.info().outputPath(`story-${width}.png`) });

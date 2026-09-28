@@ -47,18 +47,20 @@ test('saved trip shows a short Naru start and the timetable before optional tool
   const chat=page.getByRole('dialog',{name:'WAVE 여행 가이드 나루와 대화'});
   await expect(chat.getByRole('button',{name:'건너뛰기',exact:true})).toHaveCount(0);
   await expect(chat.locator('.naru-prompt-starters')).toHaveCount(0);
-  await expect(chat.locator('.naru-trip-context')).toContainText('담은 장소 1곳');
-  await expect(chat.locator('.naru-suggestions')).not.toHaveAttribute('open', '');
-  await chat.locator('.naru-suggestions > summary').click();
-  await expect(chat.getByLabel('현재 여행에서 이어가기').getByRole('button')).toHaveCount(3);
-  await expect(chat.locator('.naru-extra-help')).toHaveCount(0);
+  const prepared = chat.locator('.naru-home-trip');
+  await expect(prepared.locator('summary')).toContainText('창원 · 1곳');
+  await expect(prepared).not.toHaveAttribute('open', '');
+  await prepared.locator('summary').click();
+  await expect(prepared.getByRole('region', { name: '지금까지 준비한 여행' })).toContainText('담은 장소 1곳');
+  await expect(prepared.getByRole('button', { name: /경남도립미술관/ })).toBeVisible();
+  await expect(prepared.getByRole('button', { name: /담은 일정 보기/ })).toBeVisible();
+  await expect(chat.locator('.naru-extra-help')).toBeHidden();
   await expect(chat.getByRole('tab', { name: '대화', exact: true })).toHaveAttribute('aria-selected', 'true');
   await expect(chat.locator('#naru-panel-tools')).toBeHidden();
   await expect(chat.getByText('지금 안내 방식:',{exact:false})).not.toBeVisible();
   for (const width of info.project.name.startsWith('desktop') ? [1440,960] : [390]) {
     await page.setViewportSize({width,height:960});
-    expect(await chat.locator('.naru-trip-context').evaluate(el => el.getBoundingClientRect().height)).toBeLessThan(90);
-    expect(await chat.getByLabel('현재 여행에서 이어가기').evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+    expect(await prepared.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({path:info.outputPath(`naru-${width}.png`)});
   }
@@ -74,6 +76,8 @@ test('missing facility evidence can recover from an error without changing the s
   const saved = await page.evaluate(() => localStorage.getItem('wave-current-trip-v1'));
   await page.locator('.simple-place-row h3 button').first().click();
   const dialog = page.getByRole('dialog');
+  await dialog.getByRole('tab', { name: '이용과 편의', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: '편의정보 다시 조회', exact: true })).toBeEnabled();
   await expect(dialog.getByText('공식 데이터에서 항목별 편의정보를 아직 확인하지 못했어요. 시설이 없다는 뜻은 아니며, 다시 조회하거나 방문 전에 문의해 주세요.')).toBeVisible();
   await expect(dialog.locator('.evidence-counts')).toHaveCount(0);
   let calls = 0;

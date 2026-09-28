@@ -25,11 +25,12 @@ test("지역 사진 카드는 별도 문화·출처 패널 없이 사진으로 �
     await expect(card.locator('img')).toHaveAttribute('src', regionShowcaseAlbums[name][0].image);
     await expect(card.locator('.simple-region-link')).toHaveAttribute('href', `/planner?region=${encodeURIComponent(name)}`);
   }
+  await page.mouse.move(0, 0);
   const fill = await regions.locator(".simple-region").first().evaluate(node => {
     const card = node.getBoundingClientRect(), link = node.querySelector(".simple-region-link")!.getBoundingClientRect(), image = node.querySelector("img")!.getBoundingClientRect();
     return [Math.abs(card.height-link.height), Math.abs(link.height-image.height), Math.abs(link.width-image.width)];
   });
-  expect(fill.every(gap => gap <= 2)).toBe(true);
+  expect(fill.every(gap => gap <= 2), `card/link/image edge differences: ${fill.join(', ')}`).toBe(true);
   // Credits are consolidated without dropping the exact displayed photo,
   // photographer, or the distinction between an original and a verified license.
   await page.locator('.wave-balanced-footer a[href="/policies#content-credits"]').click();

@@ -189,7 +189,9 @@ export default function PlannerAssistant(props: Props) {
     // 44px even when browser minimum fonts need a taller first line.
     if (!field?.getClientRects().length) return;
     field.style.height = 'auto';
-    field.style.height = `${Math.min(128, Math.max(44, field.scrollHeight))}px`;
+    // CSS bounds the composer for each viewport; a fixed JS cap clips the
+    // welcome placeholder when the visitor enlarges their text.
+    field.style.height = `${Math.max(44, field.scrollHeight)}px`;
   }, []);
   const returnFocus = useRef<HTMLElement | null>(null);
   const focusedLaunch = useRef<number | undefined>(undefined);

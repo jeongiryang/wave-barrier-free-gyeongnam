@@ -86,8 +86,11 @@ for (const width of [1440, 1280, 1024, 960, 390]) {
       await lakeTitle.focus(); await lakeTitle.press('Enter');
       await expect(center).toHaveAttribute('aria-label', '용지호수공원 선택 일정 상세');
       await expect(page.getByRole('dialog', { name: '용지호수공원', exact: true })).toHaveCount(0);
-      await expect(center.locator('.simple-focus-overlay time')).toHaveText(await lake.locator('.simple-stop > time').innerText());
-      await expect(center.locator('.simple-focus-copy > p')).toHaveText(await lake.locator('.simple-stop-copy > p').innerText());
+      // Arrival belongs to the ordered timeline; the center card keeps the
+      // selected photograph, facility evidence and opening-hours actions.
+      await expect(lake.locator('.simple-stop > time')).toHaveText('10:50 도착 예정');
+      await expect(center.locator('.simple-focus-overlay time')).toHaveCount(0);
+      await expect(center.locator('.simple-focus-photo')).toBeVisible();
       await expect(center.locator('.simple-facility-summary')).toContainText('장애인 화장실 정보 미확인');
       const columns = await page.locator('.simple-itinerary-board').evaluate(board => ['.simple-timeboard', '.simple-focus-stop', '.simple-itinerary-map'].map(selector => {
         const box = board.querySelector(selector)!.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width };
@@ -111,6 +114,10 @@ for (const width of [1440, 1280, 1024, 960, 390]) {
     await expect(lake).toHaveAttribute('data-selected', 'true');
     await map.locator('.wave-map-icon.place[data-place-id="1001"]').click();
     await expect(page.locator('#itinerary-stop-1001')).toHaveAttribute('data-selected', 'true');
+    const mapDetail = page.getByRole('dialog', { name: '장소 상세 정보', exact: true });
+    await expect(mapDetail.getByRole('heading', { name: '경남도립미술관', exact: true })).toBeVisible();
+    await mapDetail.getByRole('button', { name: '관광지 정보 닫기', exact: true }).click();
+    await expect(mapDetail).toBeHidden();
     if (width >= 1280) {
       await expect(center).toHaveAttribute('aria-label', '경남도립미술관 선택 일정 상세');
       await expect(center.locator('.simple-facility-summary')).not.toContainText('정보 미확인');
@@ -132,8 +139,9 @@ test('selected center edits, reorders, moves and removes the same saved trip bef
   const editor = page.getByRole('dialog', { name: '용지호수공원 수정', exact: true });
   await chooseWaveOption(editor.getByRole('combobox', { name: '용지호수공원 머무는 시간', exact: true }), '120');
   await editor.getByRole('button', { name: '적용', exact: true }).click();
-  await expect(center.locator('.simple-focus-copy > p')).toContainText('120분 머물러요');
-  await expect(center.locator('.simple-focus-copy > p')).toHaveText(await rows.first().locator('.simple-stop-copy > p').innerText());
+  await page.getByText('방문 시간표', { exact: true }).click();
+  await expect(page.locator('.simple-timing-mode li').filter({ hasText: '용지호수공원' })).toContainText('관람 120분');
+  await expect(center).toHaveAttribute('aria-label', '용지호수공원 선택 일정 상세');
   await center.getByRole('button', { name: '용지호수공원 일정 수정', exact: true }).click();
   await chooseWaveOption(editor.getByRole('combobox', { name: '방문 날짜', exact: true }), '2026-10-09');
   await editor.getByRole('button', { name: '적용', exact: true }).click();

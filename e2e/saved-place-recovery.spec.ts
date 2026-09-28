@@ -47,7 +47,7 @@ async function restoredTrip(page: Page, locale: "ko" | "en") {
     }]));
   });
   await page.goto("/travel-book");
-  await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+  await page.getByRole("button", { name: "일정 열기", exact: true }).click();
   await expect(page).toHaveURL(/#itinerary$/);
   await expect(page.locator("#itinerary-stop-1001")).toBeVisible();
   await expect(page.locator(".simple-results")).toHaveAttribute("aria-busy", "false");

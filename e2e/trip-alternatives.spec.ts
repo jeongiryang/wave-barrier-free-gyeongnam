@@ -56,14 +56,17 @@ test("one-place comparison keeps dates/order, supports cancel and undo, and resp
   await page.getByRole("button", { name: "방금 교체 되돌리기", exact: true }).click();
   await expect(board.locator(".simple-stop-copy h3 > button")).toHaveText(["경남도립미술관", "용지호수공원"]);
   expect(await tripSnapshot(page)).toEqual(before);
-  await expect(board).toContainText("180분 머물러요"); await expect(board).toContainText("방문 뒤 15분 휴식");
+  await board.getByText('방문 시간표', { exact: true }).click();
+  await expect(board.locator('.simple-timing-mode li').filter({ hasText: '경남도립미술관' })).toContainText("관람 180분 · 휴식 15분");
   dialog = await open(page); await dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true }).click(); await dialog.getByRole("button", { name: "선택한 장소로 교체", exact: true }).click();
   await board.getByLabel("시민문화쉼터 일정 수정", { exact: true }).click(); const editor=page.getByRole('dialog',{name:'시민문화쉼터 수정',exact:true});await chooseWaveOption(editor.getByRole('combobox', { name: "시민문화쉼터 머무는 시간", ...{ exact: true } }), "30"); await editor.getByRole('button',{name:'적용',exact:true}).click();
   const edited=await tripSnapshot(page);
   await page.getByRole("button", { name: "방금 교체 되돌리기", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "새 선택을 보존하기 위해" })).toBeVisible();
   expect(await tripSnapshot(page)).toEqual(edited);
-  await page.reload(); await openItinerary(page);await timetable(page);await expect(board.locator(".simple-stop-copy h3 > button")).toHaveText(["시민문화쉼터", "용지호수공원"]); await expect(board).toContainText("30분 머물러요");
+  await page.reload(); await openItinerary(page);await timetable(page);await expect(board.locator(".simple-stop-copy h3 > button")).toHaveText(["시민문화쉼터", "용지호수공원"]);
+  await board.getByText('방문 시간표', { exact: true }).click();
+  await expect(board.locator('.simple-timing-mode li').filter({ hasText: '시민문화쉼터' })).toContainText("관람 30분 · 휴식 15분");
 });
 
 test("indoor evidence is checked explicitly and nearby discovery retains facility and activity choices", async ({ page }) => {
@@ -72,9 +75,10 @@ test("indoor evidence is checked explicitly and nearby discovery retains facilit
   const dialog = await open(page);
   await dialog.getByRole("button", { name: "실내 공간으로", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toHaveCount(0);
-  // Saved-place evidence and its visible photo may load in the background;
-  // indoor details and alternative searches require an explicit action.
-  expect(calls.filter(url => !["places", "spot-photo"].includes(url.searchParams.get("action") || ""))).toHaveLength(0);
+  // Current itinerary hours and photos load automatically. Looking up a new
+  // candidate's indoor evidence still requires an explicit action.
+  expect(calls.filter(url => !["places", "spot-photo", "visit-info"].includes(url.searchParams.get("action") || ""))).toHaveLength(0);
+  for (const hours of calls.filter(url => url.searchParams.get('action') === 'visit-info')) expect(['1001', '1002']).toContain(hours.searchParams.get('contentId'));
   for (const photo of calls.filter(url => url.searchParams.get("action") === "spot-photo")) {
     expect(["1001", "1002"]).toContain(photo.searchParams.get("contentId"));
     expect(photo.searchParams.has("latitude")).toBe(false);
@@ -86,8 +90,7 @@ test("indoor evidence is checked explicitly and nearby discovery retains facilit
   }
   await dialog.locator(".travel-book-actions").filter({ hasText: "시민문화쉼터" }).getByRole("button", { name: "실내 공간 정보 확인", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toBeVisible();
-  expect(calls.filter(url => url.searchParams.get("action") === "visit-info")).toHaveLength(1);
-  expect(calls.find(url => url.searchParams.get("action") === "visit-info")?.searchParams.get("contentId")).toBe("1003");
+  expect(calls.filter(url => url.searchParams.get("action") === "visit-info" && url.searchParams.get('contentId') === '1003')).toHaveLength(1);
   await dialog.getByRole("button", { name: "새로운 곳을 볼래요", exact: true }).click();
   await dialog.getByRole("button", { name: "다음 후보 보기", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "시민문화쉼터 선택", exact: true })).toHaveCount(0);

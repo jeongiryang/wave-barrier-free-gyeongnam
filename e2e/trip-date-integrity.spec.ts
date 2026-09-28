@@ -13,6 +13,7 @@ test.beforeEach(async ({ page }) => {
   page.on("pageerror", error => list.push(error.message));
   page.on("console", message => { if (message.type() === "error") list.push(message.text()); });
   await page.route("**/api/**", route => route.fulfill({ status: 503, json: { error: "Unconfigured synthetic API" } }));
+  await page.route("**/api/judge-demo-trips", route => route.fulfill({ json: { trips: [] } }));
 });
 test.afterEach(async ({ page }) => {
   const messages = errors.get(page) || [], expected400 = messages.filter(message => message.includes("the server responded with a status of 400"));
@@ -111,7 +112,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
     expect((await schedule(page)).scheduleAssignments["1002"]).toBe("2026-10-08");
     await share.getByRole("button", { name: "공유 닫기", exact: true }).click();
     await page.getByRole("link", { name: "저장한 여행", exact: true }).click();
-    await expect(page.getByRole("button", { name: "이 일정 다시 열기", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "일정 열기", exact: true })).toBeEnabled();
     const moduleGate = deferred(), sessionGate = deferred();
     let heldModules = 0, heldSessions = 0;
     await page.route("**/features/travel-book/TravelBookArchiveAction.tsx*", async route => {
@@ -121,7 +122,7 @@ for (const english of [false, true]) for (const theme of ["light", "dark"]) {
       heldSessions++; await sessionGate.promise; await route.fulfill({ json: null });
     });
     try {
-      await page.getByRole("button", { name: "이 일정 다시 열기", exact: true }).click();
+      await page.getByRole("button", { name: "일정 열기", exact: true }).click();
       await itinerary.waitFor();
       await expect.poll(() => heldModules).toBe(1);
       await expect(itinerary.locator(".simple-save-control")).toHaveCount(0);

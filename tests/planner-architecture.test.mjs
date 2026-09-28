@@ -48,7 +48,10 @@ test("planner page delegates derived data and browser lifecycles to feature modu
   assert.match(actions, /import \{ mapPlaceToPlannerPlace, richSpotToPlace \}/);
   assert.match(placeAdapters, /export function richSpotToPlace/);
   assert.match(placeAdapters, /export function mapPlaceToPlannerPlace/);
-  assert.match(dialogFocus, /previousFocus\?\.isConnected && previousFocus\.getClientRects\(\)\.length\) previousFocus\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(dialogFocus, /const previousFocus = document\.activeElement instanceof HTMLElement \? document\.activeElement : null/);
+  assert.match(dialogFocus, /if \(!restore\(previousFocus\) && naruReturn\?\.isConnected && naruReturn\.open\)/);
+  assert.match(dialogFocus, /owner\?\.classList\.contains\("naru-panel"\) \? owner/);
+  assert.match(dialogFocus, /previousFocus === document\.body \? document\.querySelector<HTMLDialogElement>\("dialog\.naru-panel\[open\]"\) : null/);
   assert.match(dialogFocus, /if \(sidePanel && media\.matches\) \{ dialog\.show\(\)/);
   assert.match(dialogFocus, /else \{ dialog\.showModal\(\)/);
   assert.match(dialogFocus, /if \(sidePanel && media\.matches\) \{[^\n]*event\.key === 'Escape'[^\n]*return/);

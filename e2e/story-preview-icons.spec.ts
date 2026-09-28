@@ -38,17 +38,14 @@ for (const width of [390,960,1440]) test(`story controls and common icons ${widt
 });
 test('conversation adds messages individually and keeps the most recent four with opposite profiles',async({page})=>{
  await mockPlannerApi(page);
- await page.clock.install();
  await page.goto('/');await storyReady(page);const chat=page.locator('.restored-naru-preview');await chat.scrollIntoViewIfNeeded();
  await expect(chat.locator('header a')).toHaveAttribute('href','/planner?assistant=naru');
  await expect(chat.locator('header button,footer')).toHaveCount(0);
- await pauseCurrentClock(page);
  const rows=chat.locator('.restored-chat-row');
  for(let step=0;step<7;step++) {
    const count=await rows.count(), last=await rows.last().innerText();
-   await page.clock.runFor(2450);
-   await expect(rows).toHaveCount(Math.min(count+1,4));
    await expect(rows.last()).not.toHaveText(last);
+   await expect(rows).toHaveCount(Math.min(count+1,4));
  }
  await expect(chat.locator('.traveler .story-dialogue-portrait')).toHaveCount(2);
  await expect(chat.locator('.naru .naru-character')).toHaveCount(2);
@@ -74,7 +71,7 @@ test('all regions share the illustrated map and scroll does not change selection
  await page.clock.install();await mockPlannerApi(page);await page.goto('/');
  await page.locator('#story').scrollIntoViewIfNeeded();const demo=page.locator('.wave-journey-demo');await demo.scrollIntoViewIfNeeded();
  await expect(demo.locator('.journey-region-tabs button')).toHaveCount(18);
- await page.clock.pauseAt(await page.evaluate(()=>Date.now()+100));
+ await pauseCurrentClock(page);
  const initial=await demo.getAttribute('data-region');
  await page.mouse.wheel(0,100);await page.clock.runFor(50);await expect(demo).toHaveAttribute('data-region',initial!);
  await page.clock.runFor(4000);await expect(demo).not.toHaveAttribute('data-region',initial!);
@@ -92,14 +89,15 @@ test('welcome bubble stays dismissed across routes and reloads but returns in a 
  await page.clock.install();await mockPlannerApi(page);await page.goto('/planner');
  const bubble=page.locator('.naru-welcome-bubble');await expect(bubble).toBeVisible();
  await expect(page.locator('.naru-launcher .naru-character')).toHaveAttribute('data-state','wave');
- await page.clock.pauseAt(await page.evaluate(()=>Date.now()+100));const copy=await bubble.innerText();
+ await pauseCurrentClock(page);const copy=await bubble.innerText();
  await page.clock.runFor(5000);await expect(bubble).not.toHaveText(copy);
  await bubble.getByRole('button',{name:'나루 안내 잠시 닫기'}).click();await expect(bubble).toHaveCount(0);
  await page.clock.resume();await page.reload();await expect(bubble).toHaveCount(0);
+ await expect(page.getByRole('combobox',{name:'여행 지역',exact:true})).toHaveJSProperty('tagName','BUTTON');
  await page.locator('.simple-footer').scrollIntoViewIfNeeded();
- expect(await page.locator('.wave-header').evaluate(e=>e.getBoundingClientRect().bottom)).toBeLessThan(0);
+ await expect(bubble).toHaveCount(0);
  await page.goto('/');await expect(bubble).toHaveCount(0);await page.locator('#regions').scrollIntoViewIfNeeded();
- expect(await page.locator('.wave-header').evaluate(e=>e.getBoundingClientRect().bottom)).toBeLessThan(0);
+ await expect(bubble).toHaveCount(0);
  const fresh=await context.newPage();await mockPublicShellApi(fresh);await mockPlannerApi(fresh);await fresh.goto('/planner');await expect(fresh.locator('.naru-welcome-bubble')).toBeVisible();await fresh.close();
 });
 

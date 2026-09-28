@@ -2,6 +2,7 @@ import { chooseWaveOption } from './wave-select-fixture';
 import { openNaruTool } from './naru-tool-fixtures';
 import { expect, test, type Page } from "@playwright/test";
 import { mockPlannerApi, mockPublicShellApi, openItinerary } from "./fixtures";
+import { paintedContrast } from './painted-contrast';
 
 /**
  * 어두운 화면에서 `--ink`는 밝은 색이 된다. 그 위에 글자색을 `#fff`로 고정해 두면
@@ -89,16 +90,13 @@ for (const theme of ["light", "dark"]) test(`랜딩 검색 아이콘은 ${theme}
   const box = (await search.boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
   await expect(search.locator('svg')).toBeVisible();
-  const gradient = await search.evaluate(node => getComputedStyle(node).backgroundImage);
-  const sample = gradient === 'none' ? await measure(page, selector) : await measureOpaqueGradient(page, selector);
-  expect(sample).not.toBeNull();
-  if (!sample) return;
-  expect(sample.color).toEqual([255, 255, 255]);
-  const backgrounds = 'stops' in sample ? sample.stops : [sample.background];
-  const worst = Math.min(...backgrounds.map(stop => contrastRatio(sample.color, stop)));
+  // The approved button is translucent. Sample the rendered icon against its
+  // composited scenery instead of enforcing a palette or dropping alpha.
+  const sample = await paintedContrast(page, `${selector} svg`);
+  expect(sample.pixels).toBeGreaterThan(0);
   // The control now has a labelled search icon, so its graphic needs 3:1;
   // text controls retain their separate 4.5:1 checks below.
-  expect(worst, `검색 아이콘 최소 대비 ${worst.toFixed(2)}`).toBeGreaterThanOrEqual(3);
+  expect(sample.minimum, `검색 아이콘 최소 대비 ${sample.minimum.toFixed(2)}`).toBeGreaterThanOrEqual(3);
   await search.focus(); await expect(search).toBeFocused();
   expect(await search.evaluate(node => { const r = node.getBoundingClientRect(); return node.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)); })).toBe(true);
 });

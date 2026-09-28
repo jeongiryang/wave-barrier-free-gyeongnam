@@ -21,7 +21,7 @@ test("공개 DB 일정은 모든 방문자에게 보이고 공식 장소 한도 
 
   await page.goto("/travel-book");
   await expect(page.getByRole("heading", { name: "[시연] 창원 문화와 공원" })).toBeVisible();
-  await page.getByRole("button", { name: "내 여행에 사본 담기" }).click();
+  await page.getByRole("region", { name: "예시 여행 골라보기", exact: true }).getByRole("button", { name: "이 여행 담기 →", exact: true }).click();
   await expect(page.getByText(/현재 제공처의 이용 한도로 최신 정보를 확인하지 못했습니다/)).toBeVisible();
   await expect(page.getByText(/공식 장소를 모두 확인할 때까지 일정 사본은 담지 않습니다/)).toBeVisible();
 });

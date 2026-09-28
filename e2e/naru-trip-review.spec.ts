@@ -37,8 +37,8 @@ const saved = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getIte
 test('모델 연결 없이 일정 지각·귀가 미확인·휴식·추정 구간을 설명하고 여행을 보존한다', async ({ page }) => {
   const { chat, aiCalls } = await setup(page);
   const before = await saved(page);
-  await chat.locator('.naru-suggestions > summary').click();
-  await chat.getByRole('button', { name: '내 여행 점검', exact: true }).click();
+  await chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('일정 점검해줘');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
   const review = chat.getByRole('region', { name: '나루 여행 점검', exact: true });
   await expect(review).toBeFocused();
   await expect(review).toContainText('용지호수공원: 고정 시각 10:30보다 예상 도착이');
@@ -64,16 +64,16 @@ test('날짜 없는 여행 점검은 날짜 입력으로 연결하고 임의 날
   await expect(review).toContainText('담은 2곳은 그대로');
   expect(await saved(page)).toBe(before);
   await review.getByRole('button', { name: '날짜·출발지 정하기', exact: true }).click();
-  await expect(chat).toBeHidden();
-  await expect(page.locator('#itinerary-setup input').first()).toBeFocused();
+  await expect(chat).toBeVisible();
+  await expect(chat.locator('#itinerary-setup [data-trip-start]')).toBeFocused();
   expect(aiCalls()).toBe(0);
 });
 
 
 test('여행 점검은 PC·태블릿·모바일에서 넘치지 않고 기존 설정으로 연결된다', async ({ page }, info) => {
   const { chat } = await setup(page);
-  await chat.locator('.naru-suggestions > summary').click();
-  await chat.getByRole('button', { name: '내 여행 점검', exact: true }).click();
+  await chat.getByRole('textbox', { name: '나루에게 여행 질문하기', exact: true }).fill('일정 점검해줘');
+  await chat.getByRole('button', { name: '나루에게 보내기', exact: true }).click();
   const review = chat.getByRole('region', { name: '나루 여행 점검', exact: true });
   await expect(review).toBeVisible();
   for (const width of [1440, 960, 390]) {

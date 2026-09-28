@@ -104,7 +104,7 @@ test('mouse header dragging stays bounded and resets on size, close and compact 
 test('lower stories follow a vertical reading order, festival copy overlays photographs and the GitHub mark is centered', async ({ page }) => {
   await page.setViewportSize({ width: 2560, height: 1440 });
   await landing(page);
-  const stories = page.locator('.night-discover-grid > section');
+  const stories = page.locator('#departure, #community, .night-discover-festival');
   await expect(stories).toHaveCount(3);
   await stories.nth(1).scrollIntoViewIfNeeded();
   const boxes = await Promise.all((await stories.all()).map(story => story.boundingBox()));

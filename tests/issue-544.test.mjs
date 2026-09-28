@@ -53,7 +53,7 @@ test("issue 544 date control opens from the field and keyboard with a mobile tar
   assert.match(calendar, /event\.key === 'ArrowDown' && event\.altKey/);
   assert.match(calendar, /aria-haspopup="dialog"[^>]*onClick=\{open\}/);
   assert.match(styles, /min-height: 44px/);
-  assert.match(settings, /<AccessibleDateInput required value=\{start\}/);
+  assert.match(settings, /<AccessibleDateInput\b[^>]*\brequired value=\{start\}/);
   assert.match(settings, /id="itinerary-setup"/);
   assert.match(stage, /id === "itinerary" \? document\.getElementById\("itinerary-setup"\)/);
 });

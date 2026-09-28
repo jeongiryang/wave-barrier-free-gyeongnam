@@ -71,7 +71,16 @@ test("native place dialog makes the background inert and restores focus", async 
   assert.match(dialog, /<dialog/);
   assert.match(focus, /dialog.showModal\(\)/);
   assert.match(focus, /addEventListener\("cancel"/);
-  assert.match(focus, /previousFocus\.focus\(\{ preventScroll: true \}\)/);
+  const restore = focus.match(/const restore =[^]*?\n\s*};/)?.[0] || "";
+  assert.match(restore, /!target\?\.isConnected/);
+  assert.match(restore, /target === document\.body/);
+  assert.match(restore, /!target\.getClientRects\(\)\.length/);
+  assert.match(restore, /target\.matches\(":disabled"\)/);
+  assert.match(restore, /getComputedStyle\(target\)\.visibility === "hidden"/);
+  assert.match(restore, /target\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(restore, /return document\.activeElement === target/);
+  assert.match(focus, /if \(!restore\(previousFocus\) && naruReturn\?\.isConnected && naruReturn\.open\)/);
+  assert.match(focus, /matchMedia\("\(max-width:800px\)"\)\.matches \|\| !restore\([^]*?"#naru-message"[^]*?restore\(tab\)/);
   assert.doesNotMatch(dialog, /place.score.*%/);
 });
 test("public community reads exclude future field experiences without deleting user content", async () => {

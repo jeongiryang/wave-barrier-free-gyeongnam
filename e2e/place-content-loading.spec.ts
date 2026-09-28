@@ -1,6 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { chooseTripConditions, mockPlannerApi, mockPublicShellApi } from "./fixtures";
+import { mockPlannerApi, mockPublicShellApi, plan } from "./fixtures";
+import { chooseWaveOption } from './wave-select-fixture';
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/wave?action=place-audio*', route => route.fulfill({ json: { checkedAt: plan.generatedAt, stories: [] } }));
+});
 
 test("delayed detail content cannot move arrival controls during their first click", async ({ page }) => {
   await mockPlannerApi(page);
@@ -10,10 +15,10 @@ test("delayed detail content cannot move arrival controls during their first cli
   await page.route("**/features/planner/components/PlaceDecisionContent.tsx*", async route => { await pending; await route.continue(); });
   try {
     await page.goto("/planner");
-    await chooseTripConditions(page);
+    await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
     await page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "경남도립미술관", exact: true });
-    await expect(dialog.getByRole("status")).toContainText("상세 정보를 불러오는 중");
+    await expect(dialog.getByRole("status").filter({ hasText: "상세 정보를 불러오는 중" })).toBeVisible();
     const preview = dialog.locator("summary").filter({ hasText: /^주차·입구·시설 미리보기$/ });
     await expect(preview).toHaveCount(0);
     await expect(dialog.getByRole("button", { name: "일정에 추가", exact: true })).toBeEnabled();
@@ -37,7 +42,7 @@ for (const failed of [false, true]) test(`place details load on opening; ${faile
     return failed ? route.abort("failed") : route.continue();
   });
   await page.goto("/planner");
-  await chooseTripConditions(page);
+  await chooseWaveOption(page.getByRole('combobox', { name: '여행 지역', exact: true }), '창원');
   expect(contentRequests).toBe(0);
   const trigger = page.getByRole("button", { name: "경남도립미술관 상세 보기", exact: true });
   await trigger.click();

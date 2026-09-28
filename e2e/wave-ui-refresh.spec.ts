@@ -3,12 +3,15 @@ import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 import { mockPublicShellApi, mockPlannerApi } from './fixtures';
 
-test('Naru greeting stays legible in the compact hero with OS reduced motion enabled', async ({ page }) => {
+test('Naru scenery retains both approved images and cycles with OS reduced motion enabled', async ({ page }) => {
   await mockPublicShellApi(page); await mockPlannerApi(page);
   await page.goto('/planner');
   const story = page.locator('.naru-header-scene');
   await expect(story).toHaveAttribute('data-frame', '2', { timeout: 15000 });
-  await expect(story.locator('.naru-welcome-dialogue p:not([hidden])')).toHaveCount(2);
+  // Owner removed the dialogue decoration from this planner header.
+  await expect(story.locator('.naru-welcome-dialogue')).toHaveCount(0);
+  await expect(story.locator('picture')).toHaveCount(2);
+  await expect(story.locator('img.is-current')).toHaveCount(1);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(story).toHaveAttribute('data-frame', '4');
   await expect(story).toHaveAttribute('data-frame', '1');
@@ -27,6 +30,7 @@ test('all regions use API photos and whole-region selection highlights every bou
     return route.fulfill({ json: { photo: { title: `${region} 관광사진`, image: `https://tong.visitkorea.or.kr/${encodeURIComponent(region || '')}.webp`, location: `경상남도 ${region}`, photographer: '한국관광공사' } } });
   });
   await page.goto('/planner?region=' + encodeURIComponent('경남 전체'));
+  await expect(page.locator('#conditions')).toHaveAttribute('aria-busy', 'false');
   const toggle = page.getByRole('button', { name: '지도에서 지역 고르기' });
   if (await toggle.isVisible()) await toggle.click();
   const picker = page.locator('.region-picker-preview').first();

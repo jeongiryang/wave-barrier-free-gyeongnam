@@ -10,6 +10,6 @@ export default function LandingHeroCopy() {
   const copy = messages[locale === 'en' ? 'en' : 'ko'];
   // With playback controls removed, the main reading target stays still.
   return <div className="night-hero-headline">
-    <h1 id="landing-title" tabIndex={-1} aria-label={copy.join(' ')}><span className="night-hero-phrase" aria-hidden="true"><span>{copy[0]}</span><em>{copy[1]}</em></span></h1>
+    <h1 id="landing-title" tabIndex={-1} aria-label={copy.join(' ')}><span className="night-hero-phrase" aria-hidden="true"><span>{copy[0]}</span><span className="night-hero-accent" data-shadow={copy[1]}><em>{copy[1]}</em></span></span></h1>
   </div>;
 }
