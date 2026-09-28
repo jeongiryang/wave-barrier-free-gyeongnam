@@ -106,11 +106,96 @@ test('정보가 없는 곳도 목록에 남고 담기가 막히지 않는다', a
   await search(app.chat);
   const unconfirmed = app.chat.locator('[data-evidence-group=unconfirmed]').last();
   await expect(unconfirmed.locator('article')).toHaveCount(1);
-  const action = unconfirmed.locator('article > button:last-child');
+  const action = unconfirmed.getByRole('button', { name: '담기', exact: true });
   await expect(action).toBeEnabled();
   await expect(action).toHaveText('담기');
   await action.click();
-  await expect(unconfirmed.locator('article > button:last-child')).toHaveText('✓ 담았음');
+  await expect(unconfirmed.getByRole('button', { name: '✓ 담았음', exact: true })).toBeDisabled();
+  expect(app.errors).toEqual([]);
+});
+
+for (const viewport of [
+  { width: 1440, height: 960, theme: 'dark' },
+  { width: 960, height: 800, theme: 'light' },
+  { width: 390, height: 844, theme: 'dark' },
+]) test(`사진 여행지 카드가 ${viewport.width}px ${viewport.theme}에서 읽히고 상세·담기로 이어진다`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: viewport.width, height: viewport.height });
+  await page.addInitScript(theme => localStorage.setItem('wave-theme', theme), viewport.theme);
+  const records: Place[] = [
+    { ...mixed[0], id: '9101', name: '창원 오래된 골목과 실내 전시를 함께 둘러보는 아주 긴 이름의 합성 문화관',
+      city: '창원', address: '경상남도 창원시 의창구 합성문화로 123 전망 안내센터 2층',
+      summary: '실내 전시와 지역 문화를 둘러보는 합성 관광정보입니다.', image: 'https://wave.test/naru-card-photo.svg' },
+    { ...mixed[1], id: '9102', name: '창원 사진 응답 실패 합성 장소', image: 'https://wave.test/naru-card-missing.svg' },
+    { ...noneConfirmed[0], id: '9103', name: '창원 등록된 사진 없는 합성 장소', address: '', image: '' },
+  ];
+  const app = await setup(page, records, { chooseFacilities: true });
+
+  await page.route('https://wave.test/naru-card-photo.svg', route => route.fulfill({
+    contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400"><rect width="640" height="400" fill="#527c87"/></svg>',
+  }));
+  await page.route('https://wave.test/naru-card-missing.svg', route => {
+
+    return route.fulfill({ status: 404, body: '' });
+  });
+  await search(app.chat);
+  const results = app.chat.getByLabel('대화에서 찾은 여행지').last();
+  const cards = results.locator('[data-naru-place-card]');
+  await expect(cards).toHaveCount(3);
+  const cardFor = (name: string) => cards.filter({ has: page.getByRole('button', { name, exact: true }) });
+  const photoCard = cardFor(records[0].name);
+  await expect(photoCard.locator('.naru-place-name')).toHaveText(records[0].name);
+  await expect(photoCard).toContainText(records[0].address);
+  await photoCard.scrollIntoViewIfNeeded();
+  const photo = photoCard.locator('img');
+  await expect(photo).toHaveAttribute('alt', '');
+  await expect.poll(() => photo.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(photoCard.locator('.access-badge')).toHaveText('승강기 확인');
+  const failedCard = cardFor(records[1].name), absentCard = cardFor(records[2].name);
+  await failedCard.scrollIntoViewIfNeeded();
+  await expect(failedCard.getByText('사진 없음', { exact: true })).toBeVisible();
+  await expect(failedCard.locator('.access-badge')).toHaveText('승강기 없음');
+  await absentCard.scrollIntoViewIfNeeded();
+  await expect(absentCard.getByText('사진 없음', { exact: true })).toBeVisible();
+  await expect(absentCard).toContainText('주소 정보 미제공');
+  await expect(absentCard.locator('.access-badge')).toHaveText('승강기 정보 없음');
+
+  for (const card of await cards.all()) {
+    await card.scrollIntoViewIfNeeded();
+    expect(await card.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
+    for (const button of await card.getByRole('button').all()) {
+      await button.scrollIntoViewIfNeeded();
+      const box = (await button.boundingBox())!;
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+      expect(await button.evaluate(node => {
+        const rect = node.getBoundingClientRect();
+        return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+      })).toBe(true);
+    }
+  }
+  for (const region of await app.chat.locator('.naru-log,.naru-conversation-main').all()) {
+    expect(await region.evaluate(node => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(1);
+  }
+  expect((await new AxeBuilder({ page }).include('.naru-panel').analyze()).violations).toEqual([]);
+  await photoCard.locator('.naru-place-name').click();
+  const detail = page.getByRole('dialog', { name: records[0].name, exact: true });
+  await expect(detail).toBeVisible();
+  await expect(detail).toContainText(records[0].address);
+  await detail.getByRole('button', { name: '닫기', exact: true }).click();
+  await expect(app.chat).toBeVisible();
+  await expect(app.chat.locator(viewport.width <= 800 ? '#naru-tab-conversation' : '#naru-message')).toBeFocused();
+  await photoCard.getByRole('button', { name: '담기', exact: true }).click();
+  await expect(photoCard.getByRole('button', { name: '✓ 담았음', exact: true })).toBeDisabled();
+  await expect.poll(() => page.evaluate(() => {
+    const values = JSON.parse(localStorage.getItem('wave-current-trip-v1') || '{}').values || {};
+    return JSON.parse(values['wave-saved-places'] || '[]') as string[];
+  })).toContain(records[0].id);
+  await photoCard.scrollIntoViewIfNeeded();
+  await app.chat.screenshot({ path: testInfo.outputPath(`naru-place-cards-${viewport.width}-${viewport.theme}.png`) });
+  await expect(failedCard.locator('img')).toHaveCount(0);
+  await expect(failedCard.getByText('사진 없음', { exact: true })).toBeVisible();
   expect(app.errors).toEqual([]);
 });
 
