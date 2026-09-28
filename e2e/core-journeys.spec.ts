@@ -315,7 +315,10 @@ test("authenticated travelers can publish, like and comment without losing sessi
   await expect(commentInput).toHaveValue("");
   await commentInput.fill("다음 방문자에게도 도움이 되길 바랍니다.");
   await page.getByRole("button", { name: "댓글 등록" }).click();
-  await expect(page.getByText("다음 방문자에게도 도움이 되길 바랍니다.")).toBeVisible();
+  // The textarea already contains this text while the POST is pending. Wait
+  // for the returned comment in the list before inspecting draft cleanup.
+  await expect(page.locator(".comment-list").getByText("다음 방문자에게도 도움이 되길 바랍니다.", { exact: true })).toBeVisible();
+  await expect(commentInput).toHaveValue("");
   await expect(page.getByText("테스트 여행자").first()).toBeVisible();
   expect(await page.evaluate(() => Object.keys(sessionStorage).filter(key => key.startsWith("wave-community-comment-draft-v1:")))).toEqual([]);
 });

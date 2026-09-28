@@ -1,4 +1,16 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+/** Settle the actual scroll-triggered entry, including motion on ancestors. */
+export async function waitForRenderedEntry(target: Locator) {
+  await target.scrollIntoViewIfNeeded();
+  await target.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect.poll(() => target.evaluate(node => {
+    const animations = node.getAnimations({ subtree: true });
+    for (let parent = node.parentElement; parent; parent = parent.parentElement) animations.push(...parent.getAnimations());
+    return animations.filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length;
+  })).toBe(0);
+  await target.scrollIntoViewIfNeeded();
+}
 
 /** Render the glyph, its actual backdrop and an opaque glyph mask. Canvas decodes
  * Playwright's PNG bytes in the browser; no PNG package or external media call.
@@ -7,17 +19,10 @@ import { expect, test, type Page } from "@playwright/test";
 export async function paintedContrast(page: Page, selector: string, solidText = false, index = 0) {
   const target = page.locator(selector).nth(index);
   await page.evaluate(() => document.fonts.ready);
-  await target.scrollIntoViewIfNeeded();
   // Scrolling starts IntersectionObserver reveals on the next frame. A parent's
   // transform moves the glyph too, even though it isn't in the target's subtree.
   // Wait for that real entry before comparing the same pixels in three captures.
-  await target.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  await expect.poll(() => target.evaluate(node => {
-    const animations = node.getAnimations({ subtree: true });
-    for (let parent = node.parentElement; parent; parent = parent.parentElement) animations.push(...parent.getAnimations());
-    return animations.filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length;
-  })).toBe(0);
-  await target.scrollIntoViewIfNeeded();
+  await waitForRenderedEntry(target);
   const solidColor = solidText ? await target.evaluate(node => {
     const style = getComputedStyle(node), color = (style.color.match(/[\d.]+/g) || []).map(Number);
     if (color.length < 3 || (color[3] ?? 1) !== 1 || style.backgroundClip === 'text') throw new Error('Solid-text measurement requires an opaque text colour');

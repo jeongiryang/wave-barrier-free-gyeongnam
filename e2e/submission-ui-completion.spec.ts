@@ -4,6 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { mockPlannerApi, mockPublicShellApi, openItinerary, plan } from './fixtures';
 import { naruDialog } from './naru-tool-fixtures';
 import { prepareStory, storyReady } from './landing-contract';
+import { waitForRenderedEntry } from './painted-contrast';
 
 test.use({ storageState: { cookies: [], origins: [] }, contextOptions: { reducedMotion: 'reduce' } });
 
@@ -59,7 +60,7 @@ test('소개 마지막 영역과 푸터가 화면 폭에 맞고 수평 넘침이
   await prepareStory(page); await page.goto('/'); await storyReady(page);
   const footer = page.locator('.landing-page .landing-finale > .wave-balanced-footer');
   await footer.scrollIntoViewIfNeeded(); await expect(footer).toBeVisible();
-  await expect.poll(() => page.locator('#closing .landing-closing-copy').evaluate(node => node.getAnimations().filter(animation => animation.playState === 'running').length)).toBe(0);
+  await waitForRenderedEntry(page.locator('#closing .landing-closing-copy'));
   const measured = await footer.evaluate(node => {
     const box = node.getBoundingClientRect();
     return { left: box.left, right: box.right, width: document.documentElement.clientWidth,

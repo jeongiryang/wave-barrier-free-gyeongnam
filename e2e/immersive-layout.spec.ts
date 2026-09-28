@@ -30,6 +30,10 @@ for (const width of [1366, 2560, 3840]) test(`immersive landing and planner use 
   await page.goto('/planner');
   const workspace = page.locator('.simple-search-controls');
   await expect(workspace).toBeVisible();
+  // The server form is visible before preferences finish hydrating. Wait for
+  // their public readiness boundary before testing the legacy calm CSS hook.
+  await expect(page.locator('.wave-support-menu')).toHaveAttribute('aria-busy', 'false');
+  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   // The approved planner caps its form width on ultrawide displays so the
   // controls stay readable; its surrounding scenery still fills the viewport.
   const workspaceBox = (await workspace.boundingBox())!;
@@ -41,7 +45,8 @@ for (const width of [1366, 2560, 3840]) test(`immersive landing and planner use 
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect.poll(() => page.locator('.wave-night').first().evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('wave-ambient');
   await page.locator('html').evaluate(node => node.setAttribute('data-motion', 'calm'));
-  expect(await page.locator('.wave-night').first().evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('none');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'calm');
+  await expect.poll(() => page.locator('.wave-night').first().evaluate(node => getComputedStyle(node, '::before').animationName)).toBe('none');
   await expect(page.locator('a[href*="kakaomobility.com/launch/kakaot"]')).toHaveCount(0);
   await page.screenshot({ path: test.info().outputPath(`planner-${width}.png`) });
 });
