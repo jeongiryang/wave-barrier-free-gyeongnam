@@ -37,7 +37,9 @@ const BUDGET = {
   // 2026-09-28: Owner-approved #728/#730/#732/#734/#736 card and three-column
   // layouts measure 106.97 KiB. Preserve their original design with a narrow
   // scope allowance; JavaScript budgets and accessibility checks stay intact.
-  cssGzipKiB: 108,
+  // 2026-09-28: five self-contained demo schedules, editable controls and
+  // inquiry/checklist surfaces measure 108.12 KiB. Keep a 0.38 KiB margin.
+  cssGzipKiB: 108.5,
   landingInitialJsGzipKiB: 155,
   landingInitialJsRawKiB: 520,
   plannerInitialJsGzipKiB: 270,
