@@ -352,10 +352,10 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
     return ok ? planController.getPlan() : null;
   }
 
-  const inspectPlace = (place: Place) => { if (assistantOpen) { resumeAssistant.current = true; setAssistantOpen(false); } setSelectedPlace(place); };
+  const inspectPlace = (place: Place) => { if (assistantOpen) { window.dispatchEvent(new CustomEvent("wave:naru-place-details", { detail:place })); return; } setSelectedPlace(place); };
   const openInternalToolRef = useRef<(tool:string)=>void>(()=>{});
   useEffect(() => {
-    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'on-trip':key; if(toolSurfaceGroup(tool)) openInternalToolRef.current(tool); else if (event?.type !== "wave:planner-navigation" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
+    const hash = (event?: Event) => { const key=window.location.hash.slice(1); const tool=key==='departure-readiness'?'readiness':key==='more-trip-tools'?'on-trip':key; const group=toolSurfaceGroup(tool); if(group && group!=='browse' && group!=='planning') openInternalToolRef.current(tool); else if (event?.type !== "wave:planner-navigation" && ["conditions","places","itinerary","itinerary-map"].includes(key)) setAssistantOpen(false); };
     let pending: MutationObserver | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let deliveryFrame = 0;
@@ -392,7 +392,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   useEffect(() => () => assistantToolFocusCleanup.current?.(), []);
   function openAssistantTool(tool: string) {
     assistantToolFocusCleanup.current?.();
-    if (toolSurfaceGroup(tool)) { internalTools.open(tool); if (toolSurfaceGroup(tool) === "readiness") { setDepartureDetailsOpen(true); if (tool !== "readiness") setSecondaryOpen(true); } if (!assistantOpen) showAssistant(); return; }
+    if (toolSurfaceGroup(tool)) { if (["conditions","facilities","places","compare"].includes(tool)) stageView.changeStep("conditions"); else if (["dates","itinerary","map","save","share","calendar"].includes(tool)) { stageView.changeStep("itinerary"); setItineraryMapView(tool === "map"); } internalTools.open(tool); if (toolSurfaceGroup(tool) === "readiness") { setDepartureDetailsOpen(true); if (tool !== "readiness") setSecondaryOpen(true); } if (!assistantOpen) showAssistant(); return; }
     setAssistantOpen(false);
     stageView.changeView("guided");
     if (["conditions", "facilities"].includes(tool)) stageView.changeStep('conditions');
@@ -444,17 +444,17 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
   }
   const browsing = journey.activeStepId === "conditions" || journey.activeStepId === "places";
   const plannerStages = <div className="simple-stage-stream">
-    <div hidden={!browsing} className="simple-browse-view">
-      <PlannerConditionsPanel onRegionChange={regionChange.request} view="guided" question={stageView.conditionQuestion} onQuestion={stageView.changeQuestion} onItinerary={() => journey.goToStep("itinerary")} onGenerate={generatePlan} t={t} activePlaces={activePlaces} planController={planController} route={routePlanning} tripSelection={tripSelection} />
-      {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} weather={weather} weatherDate={travelStart} onGenerate={generatePlan} onSelectPlace={inspectPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
-    </div>
-    <div hidden={browsing} className="simple-itinerary-view">
+    <PlannerToolPortal group="browse"><div hidden={!browsing} className="simple-browse-view">
+      <PlannerConditionsPanel onRegionChange={regionChange.request} view="guided" question={stageView.conditionQuestion} onQuestion={stageView.changeQuestion} onItinerary={() => assistantOpen ? openAssistantTool("itinerary") : journey.goToStep("itinerary")} onGenerate={generatePlan} t={t} activePlaces={activePlaces} planController={planController} route={routePlanning} tripSelection={tripSelection} />
+      {region && <RecommendationWorkspace region={region} activePlaces={activePlaces} planController={planController} tripSelection={tripSelection} weather={weather} weatherDate={travelStart} onGenerate={generatePlan} onSelectPlace={inspectPlace} onRegionSelect={next => regionChange.request(next, () => stageView.changeStep("conditions", true))} onBuildItinerary={() => assistantOpen ? openAssistantTool("itinerary") : stageView.changeStep("itinerary", true)} onMore={async () => { await runPlan({ resetRouteData, resetAudio, page: plan?.pagination?.nextPage ?? (plan?.pagination?.page || 1) + 1 }, false); }} />}
+    </div></PlannerToolPortal>
+    <PlannerToolPortal group="planning"><div hidden={browsing} className="simple-itinerary-view">
       <TripReplacementNotice alternatives={alternatives} />
       <PlannerItineraryWorkspace active={!browsing || assistantMounted} onTool={openAssistantTool}
                 onStart={() => stageView.changeStep("conditions", true)}
                 alternativeTools={<><PlannerToolSection tools={["alternatives"]}><TripAlternativeTools trip={tripSelection} alternatives={alternatives} /></PlannerToolSection><PlannerToolSection tools={["course"]}><Suspense fallback={<LoadingState>코스 도구를 준비하고 있어요.</LoadingState>}><CourseExpansion trip={tripSelection} region={region} themes={theme} profiles={selected} plan={plan} current={planController.resultCurrent} onSelectPlace={inspectPlace}/></Suspense></PlannerToolSection><PlannerToolSection tools={["receipt"]}><button type="button" onClick={showAssistant}>나루에게 일정 변경 요청하기</button><PlannerServiceStatus locale={locale} keyHealth={keyHealth} effectiveProviders={effectiveProviders} transportProviders={transportProviders} providerErrors={providerErrors} liveCount={liveCount} dataErrors={dataErrors} plan={plan}/></PlannerToolSection></>}
                 mapView={itineraryMapView}
-                onMapViewChange={value => { setItineraryMapView(value); if (assistantOpen) { setAssistantOpen(false); stageView.changeStep("itinerary", true); if (embedded) router.push("/planner#itinerary"); } }}
+                onMapViewChange={value => { setItineraryMapView(value); if (assistantOpen) stageView.changeStep("itinerary", true); }}
                 canAddPlaces={planController.resultCurrent}
                 expanded={false}
                 weather={weather}
@@ -533,7 +533,7 @@ function PlannerWorkspaceContent({ active = true, onShow, embedded = false, laun
                 onRouteFromRichSpot={routeFromRichSpot}
               /></div>
       </details></PlannerToolPortal>}
-    </div>
+    </div></PlannerToolPortal>
   </div>;
 
   return (

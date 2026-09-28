@@ -15,6 +15,7 @@ import { localDistanceKilometres } from "../../../lib/device-location.js";
 import { plannerJson } from "../services/api";
 import type { Place } from "../types";
 import PlaceAudioGuide from "./PlaceAudioGuide";
+import LocalAmenityPreview from './LocalAmenityPreview';
 import styles from "./TravelExperience.module.css";
 import { buildEvidenceReviewQueue } from "../../../lib/evidence-cycle.js";
 const visibleSensoryKeys = ["mobility", "restroom"] as const;
@@ -171,6 +172,7 @@ export default function SensoryMap({
   return (
     <div className={styles.experience}>
       <h3>감각지도·지금 현장</h3>
+      {place && <LocalAmenityPreview place={place}/>}
       <p>
         여행자가 직접 관찰한 휠체어 이동·화장실 정보입니다. 관찰 후 2시간이
         지나면 현재 정보에서 제외해요. 제보가 없는 곳은 미확인입니다.

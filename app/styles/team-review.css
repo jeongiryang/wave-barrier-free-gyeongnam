@@ -1,0 +1,34 @@
+/* Team PDF 2026-09-28: bounded presentation, no global image blur. */
+.night-hero-search .wave-select-trigger{text-align:center!important;justify-content:center!important}
+.night-hero-search .wave-select-trigger::after{display:none}
+.local-amenity-preview{padding:16px;border:1px solid #5a92b3;border-radius:16px;margin:16px 0;background:#172e43;color:#fff}
+.local-amenity-preview p,.local-amenity-preview li{color:#e5eff9}
+.local-amenity-map{height:280px;width:100%;border-radius:12px;overflow:hidden;margin-top:12px;background:#e7f1ed}
+.local-amenity-marker{background:transparent;border:0}
+.local-red-location-pin{display:block;position:relative;width:28px;height:28px;border-radius:50% 50% 50% 0;background:#d92d20;border:3px solid #fff;transform:rotate(-45deg);margin:4px 8px;box-shadow:0 2px 6px #0006}
+.local-red-location-pin::after{content:'';position:absolute;inset:7px;border-radius:50%;background:white}
+html:root body .naru-panel.naru-friendly .naru-readback{vertical-align:middle;margin:8px 8px 12px 0!important;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;padding:0}
+html:root body .naru-panel.naru-friendly .naru-place-detail{background:white;padding:20px;border:1px solid var(--line);border-radius:20px;margin-bottom:20px;overflow-wrap:anywhere}
+html:root body .naru-panel.naru-friendly .naru-place-detail header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+html:root body .naru-panel.naru-friendly .naru-place-detail button{min-height:44px}
+.naru-detail-photo{aspect-ratio:16/9;overflow:hidden;border-radius:16px;margin:16px 0}
+.naru-detail-photo img{width:100%;height:100%;object-fit:cover}
+.naru-detail-facilities{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.naru-detail-facilities article{border:1px solid #cbd6ed;border-radius:12px;padding:12px}
+html:root body .naru-panel.naru-friendly .naru-hours-place{padding:16px;list-style:none;border:1px solid var(--line);border-radius:14px;background:#f8faff;margin:12px 0}
+html:root body .naru-panel.naru-friendly .naru-hours-place button{display:inline-flex;align-items:center;gap:8px;min-height:44px}
+html:root body .naru-panel.naru-friendly .naru-hours-place small{line-height:1.8}
+html:root body .naru-panel.naru-friendly .naru-proposal-place{display:flex;align-items:center;gap:12px;min-height:44px;width:100%;text-align:left;margin:0;padding:8px;white-space:normal}
+.naru-proposal-photo{width:96px;flex:0 0 96px;height:72px;border-radius:10px;overflow:hidden}
+.naru-proposal-photo img{width:100%;height:100%;object-fit:cover}
+.naru-panel [data-naru-tool-surface="browse"],.naru-panel [data-naru-tool-surface="planning"]{min-width:0}
+html:root body .naru-panel.naru-friendly .simple-stage-stream,html:root body .naru-panel.naru-friendly .simple-browse-view,html:root body .naru-panel.naru-friendly .simple-itinerary-view{width:100%;max-width:none;margin:0}
+html:root body .naru-panel.naru-friendly .simple-search-bar{max-width:100%}
+html:root body .naru-panel.naru-friendly .simple-itinerary-view .itinerary-workspace-layout{grid-template-columns:minmax(0,1fr)}
+@media(hover:hover){.festival-card:hover .festival-card-photo img,.places-section .simple-place-row:hover .simple-place-photo img{filter:blur(3px)}.festival-card .festival-card-photo img,.places-section .simple-place-row .simple-place-photo img{transition:filter .18s ease}}
+@media(prefers-reduced-motion:reduce){.festival-card .festival-card-photo img,.places-section .simple-place-row .simple-place-photo img{transition:none}}
+.local-festival-examples{margin:20px 0;padding:20px;border:1px solid #75a0bd;border-radius:20px;max-width:640px}
+.local-festival-examples .festival-card-photo{position:relative;display:block;width:100%;height:240px;overflow:hidden;border-radius:16px}
+.local-festival-examples img{width:100%;height:100%;object-fit:cover}
+.local-festival-examples .festival-card-photo span{position:absolute;bottom:12px;left:16px;background:#173147;color:white;padding:8px;border-radius:8px}
+@media(max-width:500px){.naru-proposal-photo{width:64px;flex-basis:64px;height:64px}html:root body .naru-panel.naru-friendly .naru-place-detail{padding:12px}}

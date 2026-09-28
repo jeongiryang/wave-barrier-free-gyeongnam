@@ -92,7 +92,12 @@ test('workspace tabs expose all 28 tools with keyboard and pointer targets', asy
   await expect(tabs.getByRole('tab', { name: '대화', exact: true })).toBeFocused();
   await tabs.getByRole('tab', { name: '여행 도구', exact: true }).click();
   await chat.getByRole('region', { name: '모든 여행 도구', exact: true }).getByRole('button', { name: '필요한 편의', exact: true }).click();
-  await expect(chat).toBeHidden(); await expect(page.locator('.simple-facility-trigger')).toBeFocused();
+  await expect(chat).toBeVisible();
+  const picker = page.getByRole('dialog', { name: '필요한 편의', exact: true });
+  await expect(picker).toBeVisible();
+  expect(await picker.evaluate(node => !!node.closest('.naru-panel'))).toBe(true);
+  await picker.getByRole('button', { name: '편의 선택 닫기', exact: true }).click();
+  await expect(chat.locator('.simple-facility-trigger')).toBeFocused();
   expect(prompts).toEqual([]); expect(journeys).toEqual([]);
 });
 
@@ -167,7 +172,7 @@ async function verifyGentleFollowup(page: Page, request: string) {
   await chat.getByRole('button',{name:'나루에게 보내기',exact:true}).click();
   const proposal=chat.getByRole('region',{name:'나루의 실제 일정안',exact:true});
   await expect(proposal).toContainText(original.name);
-  await expect(proposal).toContainText('20분');
+  await expect(proposal).not.toContainText('체류 60분 · 휴식 20분');
   expect(await state(page)).toEqual(before);
   await proposal.getByRole('button',{name:'이 일정으로 반영하기',exact:true}).click();
   await expect.poll(async()=>(await state(page)).schedule.breakMinutesByPlaceId['1001']).toBe(20);
