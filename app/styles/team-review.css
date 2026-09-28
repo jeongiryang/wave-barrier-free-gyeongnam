@@ -25,7 +25,8 @@ html:root body .naru-panel.naru-friendly .naru-proposal-place{display:flex;align
 html:root body .naru-panel.naru-friendly .simple-stage-stream,html:root body .naru-panel.naru-friendly .simple-browse-view,html:root body .naru-panel.naru-friendly .simple-itinerary-view{width:100%;max-width:none;margin:0}
 html:root body .naru-panel.naru-friendly .simple-search-bar{max-width:100%}
 html:root body .naru-panel.naru-friendly .simple-itinerary-view .itinerary-workspace-layout{grid-template-columns:minmax(0,1fr)}
-@media(hover:hover){.festival-card:hover .festival-card-photo img,.places-section .simple-place-row:hover .simple-place-photo img{filter:blur(3px)}.festival-card .festival-card-photo img,.places-section .simple-place-row .simple-place-photo img{transition:filter .18s ease}}
+.festival-card .festival-card-photo img,.places-section .simple-place-row .simple-place-photo img{filter:none!important;transform:none!important}
+@media(hover:hover){.festival-card:hover .festival-card-photo img,.places-section .simple-place-row:hover .simple-place-photo img{filter:blur(3px)!important}.festival-card .festival-card-photo img,.places-section .simple-place-row .simple-place-photo img{transition:filter .18s ease}}
 @media(prefers-reduced-motion:reduce){.festival-card .festival-card-photo img,.places-section .simple-place-row .simple-place-photo img{transition:none}}
 .local-festival-examples{margin:20px 0;padding:20px;border:1px solid #75a0bd;border-radius:20px;max-width:640px}
 .local-festival-examples .festival-card-photo{position:relative;display:block;width:100%;height:240px;overflow:hidden;border-radius:16px}
