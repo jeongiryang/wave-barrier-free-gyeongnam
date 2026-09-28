@@ -61,8 +61,12 @@ export default function PlaceDecisionDialog(props: PlaceDecisionDialogProps) {
         <h2 id="place-modal-title" lang={originalLanguage(place.name)} tabIndex={-1}>{place.name}</h2><p lang={originalLanguage(place.address || place.summary)}>{place.address || place.summary}</p>
         {en && <p className="original-language-note">Place names, addresses and facility evidence are shown in their original language, which may be Korean. Visitor stories are not translated.</p>}
         <PlaceSaveAction key={`${place.id}:${props.explorationAction?.key || "regular"}`} saved={props.saved} canSave={props.canSave} explorationAction={props.explorationAction} onToggleSaved={props.onToggleSaved} en={en} />
-        <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}><PlaceDecisionContent {...props} location={location} /></Suspense>
-        <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} onClose={onClose} onOpenRestrooms={onClose} /></Suspense></details>
+        {/* Keep controls below the lazy detail body unavailable until its layout
+            exists, so loading it cannot move a preview button during a click. */}
+        <Suspense fallback={<LoadingState>{en ? "Loading place details…" : "상세 정보를 불러오는 중…"}</LoadingState>}>
+          <PlaceDecisionContent {...props} location={location} />
+          <details><summary>주차·입구·시설 미리보기</summary><Suspense fallback={<LoadingState>주차·입구 정보를 준비하고 있어요.</LoadingState>}><PlaceArrivalPreview key={place.id} place={place} onClose={onClose} onOpenRestrooms={onClose} /></Suspense></details>
+        </Suspense>
         <Suspense fallback={null}><PlaceAudioGuide key={place.id} id={place.id} guidance={props.guidancePreferences} /></Suspense>
         {/* 한 손 조작: 위 닫기 버튼은 습관대로 남기고, 엄지가 닿는 내용 맨 아래에도
             같은 동작의 닫기를 하나 더 둔다. 좁은 화면에서만 보이므로 768px 이상

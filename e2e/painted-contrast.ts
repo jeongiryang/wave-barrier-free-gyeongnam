@@ -8,9 +8,16 @@ export async function paintedContrast(page: Page, selector: string, solidText = 
   const target = page.locator(selector).first();
   await page.evaluate(() => document.fonts.ready);
   await target.scrollIntoViewIfNeeded();
-  // Entry animation can move child glyphs without moving the measured container.
-  // Finish that real entry before comparing the same pixels across three captures.
-  await expect.poll(() => target.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length)).toBe(0);
+  // Scrolling starts IntersectionObserver reveals on the next frame. A parent's
+  // transform moves the glyph too, even though it isn't in the target's subtree.
+  // Wait for that real entry before comparing the same pixels in three captures.
+  await target.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect.poll(() => target.evaluate(node => {
+    const animations = node.getAnimations({ subtree: true });
+    for (let parent = node.parentElement; parent; parent = parent.parentElement) animations.push(...parent.getAnimations());
+    return animations.filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length;
+  })).toBe(0);
+  await target.scrollIntoViewIfNeeded();
   const solidColor = solidText ? await target.evaluate(node => {
     const style = getComputedStyle(node), color = (style.color.match(/[\d.]+/g) || []).map(Number);
     if (color.length < 3 || (color[3] ?? 1) !== 1 || style.backgroundClip === 'text') throw new Error('Solid-text measurement requires an opaque text colour');
