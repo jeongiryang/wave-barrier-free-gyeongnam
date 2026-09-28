@@ -244,7 +244,7 @@ html:root body .wave-night .naru-help-examples :is(p,h2,h3){color:var(--naru-ink
 html:root body .wave-night .naru-help-examples article{background:#ffffffa8;border:0;border-radius:16px;padding:16px}
 html:root body .wave-night .naru-help-examples button{min-height:44px;padding:10px 14px;border:0;border-radius:12px;background:var(--naru-user);color:var(--naru-ink);text-align:left;font-size:14px;line-height:1.6}
 
-html:root body .wave-night .policy-summary>div>p{color:#8bdcef}
+
 html:root body .landing-page #closing{height:auto;min-height:0;overflow:visible}
 html:root body .landing-page #closing .landing-closing-copy{padding-block:24px}
 html:root body .wave-night .place-modal .modal-body>button{min-height:48px}
@@ -265,15 +265,13 @@ html:root[data-color-assist=on] body .status-shape{display:inline-block}
 @media(max-width:600px){html:root :is(.planner-simple,body:has(.community-detail-page)) .naru-discovery{left:8px;right:auto;flex-direction:row-reverse}html:root :is(.planner-simple,body:has(.community-detail-page)) .naru-welcome-bubble{left:0;right:auto}}
 @media(prefers-reduced-motion:reduce){html:root,html:root body *{scroll-behavior:auto!important}html:root body :is(.simple-region,.simple-region *,.community-list .community-skeleton-card,.naru-welcome-bubble *){animation:none!important;transition:none!important}}
 
-html:root body .wave-night .map-unavailable{background:#163b59}
+
 
 html:root body .wave-night .route-mode-sections button{grid-template-columns:auto minmax(72px,1fr) minmax(0,auto)}
 html:root body .scenic-page .night-festival-preview-cards>a>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 html:root body .scenic-page .simple-region-link>div>span{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
 
-html:root body .wave-night :is(.night-region-shortcuts button[aria-pressed=true],.region-picker-list button[aria-pressed=true] span){color:#fff;opacity:1}
+
 @media(min-width:901px){html:root body .wave-night .route-map-shell.drawer-open .map-controls-layout{right:396px}}
 html:root body .map-panel{container-type:inline-size}
 @container(max-width:720px){html:root body .wave-night .route-map-shell:not(.expanded,:fullscreen){&.drawer-open{grid-template-columns:minmax(0,1fr)}.map-side-drawer{grid-column:1;position:absolute;inset:auto 8px 8px;max-height:50%;border:0;border-radius:18px}&.drawer-open .map-controls-layout{right:12px;flex-direction:row}}}
-
-html:root[data-theme=dark] body .wave-night :is(.map-crowd-legend small,.crowd-forecast-label){color:#bedde8}

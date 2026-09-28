@@ -1,6 +1,6 @@
 /* Sky, lavender and mint from the Naru launcher; preserve the workspace's viewport handling. */
 html:root body .naru-panel.naru-workspace.naru-friendly {
-  --ink:#293c55;--ink-soft:#4e6178;--muted:#576980;--paper:#f0f5fc;--surface:#ffffff;--surface-deep:#e4edf8;--white:#fff;--line:#c4d2e5;--accent:#565caf;--blue:#565caf;--blue-dark:#444a94;--on-blue:#fff;--on-accent:#fff;--onaccent:#fff;
+  --ink:#293c55;--ink-soft:#4e6178;--muted:#576980;--paper:#f0f5fc;--surface:#ffffff;--surface-deep:#e4edf8;--white:#fff;--line:#c4d2e5;--accent:#565caf;--blue:#565caf;--blue-dark:#444a94;--on-blue:#fff;--on-accent:#fff;
   background:var(--naru-canvas);color:var(--ink);color-scheme:light;
 }
 html:root body .naru-panel.naru-friendly .naru-heading { min-height:72px;padding-block:10px; }

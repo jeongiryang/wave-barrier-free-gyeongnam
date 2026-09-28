@@ -4,7 +4,6 @@ import Link from 'next/link';
 import NaruAvatar from '../../../components/NaruAvatar';
 import NightIcon from '../../../components/NightIcon';
 import usePreviewPlayback from './usePreviewPlayback';
-import './landing-previews.css';
 
 const exchanges = [
   { question: '부모님과 천천히 쉬어가는 여행을 하고 싶어요.', answer: '좋아요. 걷는 시간과 쉬는 시간을 함께 살펴볼게요. 어디로 떠날까요?', region: '지역 고르기', companion: '부모님과', pace: '여유롭게' },
