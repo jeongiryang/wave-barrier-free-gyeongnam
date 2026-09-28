@@ -23,6 +23,21 @@ async function expectNoSeriousA11yIssues(page: import("@playwright/test").Page) 
   expect(results.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);
 }
 
+/** Each independent journey creates its own schedule through the real controls. */
+async function createMuseumSchedule(page: import("@playwright/test").Page) {
+  const museum = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
+  await museum.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
+  await expect(page.locator(".simple-results")).toBeVisible();
+  await page.locator(".wave-header .wave-my-trips").click();
+  const setup = page.locator(".simple-initial-setup");
+  await expect(setup).toContainText("경남도립미술관");
+  await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
+  await setup.getByLabel("마지막 날", { exact: true }).fill("2026-09-20");
+  await setup.getByLabel("하루 시작", { exact: true }).fill("10:00");
+  await chooseWaveOption(setup.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
+  await setup.getByRole("button", { name: "시간표 만들기", exact: true }).click();
+}
+
 test.beforeEach(async ({ page }) => {
   pageErrors.set(page, trackPageErrors(page));
 });
@@ -103,6 +118,92 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
   // planner-stage-jump separately covers both reduced and ordinary motion.
   await page.emulateMedia({ reducedMotion: "reduce" });
   const api = await mockPlannerApi(page, { preserveView: true });
+  const mobileLayout = (page.viewportSize()?.width || 1440) < 1024;
+  const screens = page.locator(".wave-header");
+  await page.goto("/planner");
+  const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
+  await expect(region).toBeEnabled();
+  await chooseWaveOption(region, "창원");
+  const museumCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
+  const parkCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
+  await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
+  await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
+
+  const detailButton = museumCard.getByRole("button", { name: "경남도립미술관 상세정보", exact: true });
+  await detailButton.focus(); await detailButton.click();
+  const dialog = page.getByRole("dialog", { name: "경남도립미술관", exact: true });
+  await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();
+  const close = dialog.getByRole("button", { name: "닫기", exact: true });
+  const firstControl = dialog.locator('button:visible:not([disabled]), a:visible[href], input:visible:not([disabled]), select:visible, textarea:visible, summary:visible, [tabindex="0"]:visible').first();
+  await firstControl.focus(); await page.keyboard.press("Shift+Tab");
+  // The approved centered detail is modal on desktop and mobile.
+  expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
+  await expect(page.locator(":modal")).toHaveCount(1);
+  await expect(dialog.getByRole("link", { name: "정보 이용 안내 (새 창)", exact: true })).toBeVisible();
+  await close.focus(); await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0); await expect(detailButton).toBeFocused();
+
+  await createMuseumSchedule(page);
+  // Mobile hides the same timetable while the map is selected; inspect its
+  // shared schedule now and require it to be visible when returning below.
+  const itinerary = page.getByRole("region", { name: "날짜별 여행 일정", exact: true, includeHidden: true });
+  const arrival = itinerary.locator("#itinerary-stop-1001 time").first();
+  if (mobileLayout) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();
+  await expect(page.locator(".simple-itinerary-map .leaflet-container")).toBeVisible();
+  await expect(arrival).toHaveText("10:25 도착 예정");
+  await expect(itinerary.locator(".simple-timing-mode")).toContainText("이동 기준 도착");
+  await expect(itinerary.locator("#itinerary-stop-1001 .simple-leg-time")).toBeHidden();
+  if (mobileLayout) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true }).click();
+  await expect(itinerary).toBeVisible();
+  await page.getByRole("button", { name: "여행 설정", exact: true }).click();
+  const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
+  await settings.getByLabel("하루 시작", { exact: true }).fill("09:00");
+  await settings.getByRole("button", { name: "적용", exact: true }).click();
+  await expect(arrival).toHaveText("09:25 도착 예정");
+  const visitTimetable = itinerary.locator(".simple-timing-mode details");
+  await visitTimetable.getByText("방문 시간표", { exact: true }).click();
+  await expect(visitTimetable).toContainText("관람·휴식·고정 방문을 포함한 시간표입니다.");
+  await expect(visitTimetable.locator("li").first()).toContainText(/경남도립미술관.*09:25.*관람 \d+분/);
+  await visitTimetable.getByText("방문 시간표", { exact: true }).click();
+
+  await screens.locator(".night-search-link").click();
+  await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
+  // The first trip-menu entry above covers pointer input. Cover keyboard
+  // re-entry here without competing with the result page's smooth scroll.
+  await screens.locator(".wave-my-trips").focus();
+  await expect(screens.locator(".wave-my-trips")).toBeFocused();
+  await screens.locator(".wave-my-trips").press("Enter");
+  await expect(itinerary.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
+  await openNaruTool(page, "오디오 가이드·후기");
+  await expect(page.getByRole("link", { name: "여행 후기 작성", exact: true })).toHaveAttribute("href", /draft=journal/);
+  await closeNaruTool(page);
+  if (!mobileLayout) await itinerary.locator('#itinerary-stop-1002 .simple-stop-title h3 button').click();
+  await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
+  await page.getByRole("dialog", { name: "용지호수공원 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
+  await expect(itinerary.locator("#itinerary-stop-1002")).toHaveCount(0);
+  await screens.locator(".night-search-link").click();
+  await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
+  await screens.locator(".wave-my-trips").focus();
+  await expect(screens.locator(".wave-my-trips")).toBeFocused();
+  await screens.locator(".wave-my-trips").press("Enter");
+  expect(api.enrichmentRequestCount()).toBe(0);
+  await openNaruTool(page, "출발 전 확인");
+  await page.locator(".travel-layers > summary").click();
+  await expect(page.getByRole("heading", { name: /기준월의 관심을\s*살펴봅니다\./ })).toBeVisible();
+  await expect.poll(api.enrichmentRequestCount).toBe(1);
+  await expect(page.locator(".demand-insight")).toContainText("지역 관광자원 수요지수의 최신 가용월 자료가 제공되면 표시합니다.");
+  await page.reload();
+  await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toBeVisible();
+  await expect(page.locator("#itinerary-stop-1001 time").first()).toHaveText("09:25 도착 예정");
+  await expect(page.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
+  await expectNoSeriousA11yIssues(page);
+});
+
+test("planner preserves a manually selected route when an automatic response finishes late", async ({ page }) => {
+  // Keep this request race independent of the save/reload journey so neither
+  // must spend its runtime budget on the other's complete user workflow.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockPlannerApi(page, { preserveView: true });
   let releaseAutomatic!: () => void;
   const automaticHeld = new Promise<void>(resolve => { releaseAutomatic = resolve; });
   let carRequests = 0;
@@ -111,50 +212,17 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await route.fallback();
   });
   const mobileLayout = (page.viewportSize()?.width || 1440) < 1024;
-  const screens = page.locator(".wave-header");
   try {
     await page.goto("/planner");
     const region = page.getByRole("combobox", { name: "여행 지역", exact: true });
     await expect(region).toBeEnabled();
     await chooseWaveOption(region, "창원");
-    const museumCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "경남도립미술관" }) });
-    const parkCard = page.locator(".simple-place-row").filter({ has: page.getByRole("heading", { name: "용지호수공원" }) });
-    await expect(museumCard.getByRole("img", { name: "경남도립미술관 관광사진" })).toBeVisible();
-    await expect(parkCard.getByText("공식 사진을 확인할 수 없어요", { exact: true })).toBeVisible();
-
-    const detailButton = museumCard.getByRole("button", { name: "경남도립미술관 상세정보", exact: true });
-    await detailButton.focus(); await detailButton.click();
-    const dialog = page.getByRole("dialog", { name: "경남도립미술관", exact: true });
-    await expect(dialog.getByRole("heading", { name: "경남도립미술관", exact: true })).toBeFocused();
-    const close = dialog.getByRole("button", { name: "닫기", exact: true });
-    const firstControl = dialog.locator('button:visible:not([disabled]), a:visible[href], input:visible:not([disabled]), select:visible, textarea:visible, summary:visible, [tabindex="0"]:visible').first();
-    await firstControl.focus(); await page.keyboard.press("Shift+Tab");
-    // The approved centered detail is modal on desktop and mobile.
-    expect(await dialog.evaluate(element => element.contains(document.activeElement))).toBe(true);
-    await expect(page.locator(":modal")).toHaveCount(1);
-    await expect(dialog.getByRole("link", { name: "정보 이용 안내 (새 창)", exact: true })).toBeVisible();
-    await close.focus(); await page.keyboard.press("Escape");
-    await expect(dialog).toHaveCount(0); await expect(detailButton).toBeFocused();
-
-    await museumCard.getByRole("button", { name: "경남도립미술관 일정에 담기", exact: true }).click();
-    await expect(page.locator(".simple-results")).toBeVisible();
-    await screens.locator(".wave-my-trips").click();
-    const setup = page.locator(".simple-initial-setup");
-    await expect(setup).toContainText("경남도립미술관");
-    await setup.getByLabel("시작일", { exact: true }).fill("2026-09-20");
-    await setup.getByLabel("마지막 날", { exact: true }).fill("2026-09-20");
-    await setup.getByLabel("하루 시작", { exact: true }).fill("10:00");
-    await chooseWaveOption(setup.getByRole("combobox", { name: "이동 수단", exact: true }), "car");
-    await setup.getByRole("button", { name: "시간표 만들기", exact: true }).click();
-    // Mobile hides the same timetable while the map is selected; inspect its
-    // shared schedule now and require it to be visible when returning below.
+    await createMuseumSchedule(page);
     const itinerary = page.getByRole("region", { name: "날짜별 여행 일정", exact: true, includeHidden: true });
     const arrival = itinerary.locator("#itinerary-stop-1001 time").first();
     if (mobileLayout) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "지도", exact: true }).click();
     await expect(page.locator(".simple-itinerary-map .leaflet-container")).toBeVisible();
     await expect(arrival).toHaveText("10:25 도착 예정");
-    await expect(itinerary.locator(".simple-timing-mode")).toContainText("이동 기준 도착");
-    await expect(itinerary.locator("#itinerary-stop-1001 .simple-leg-time")).toBeHidden();
     await openNaruTool(page, '이동 구간 확인');
     await expect.poll(() => carRequests).toBe(2);
     await expect(page.locator(".coverage-actions button").first()).toHaveAttribute("aria-busy", "true");
@@ -177,48 +245,6 @@ test("planner supports decision, save, route-aware schedule and focus restoratio
     await expect(arrival).toHaveText("10:25 도착 예정");
     if (mobileLayout) await page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true }).click();
     await expect(itinerary).toBeVisible();
-    await page.getByRole("button", { name: "여행 설정", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "여행 설정", exact: true });
-    await settings.getByLabel("하루 시작", { exact: true }).fill("09:00");
-    await settings.getByRole("button", { name: "적용", exact: true }).click();
-    await expect(arrival).toHaveText("09:25 도착 예정");
-    const visitTimetable = itinerary.locator(".simple-timing-mode details");
-    await visitTimetable.getByText("방문 시간표", { exact: true }).click();
-    await expect(visitTimetable).toContainText("관람·휴식·고정 방문을 포함한 시간표입니다.");
-    await expect(visitTimetable.locator("li").first()).toContainText(/경남도립미술관.*09:25.*관람 \d+분/);
-    await visitTimetable.getByText("방문 시간표", { exact: true }).click();
-
-    await screens.locator(".night-search-link").click();
-    await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
-    // The first trip-menu entry above covers pointer input. Cover keyboard
-    // re-entry here without competing with the result page's smooth scroll.
-    await screens.locator(".wave-my-trips").focus();
-    await expect(screens.locator(".wave-my-trips")).toBeFocused();
-    await screens.locator(".wave-my-trips").press("Enter");
-    await expect(itinerary.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
-    await openNaruTool(page, "오디오 가이드·후기");
-    await expect(page.getByRole("link", { name: "여행 후기 작성", exact: true })).toHaveAttribute("href", /draft=journal/);
-    await closeNaruTool(page);
-    if (!mobileLayout) await itinerary.locator('#itinerary-stop-1002 .simple-stop-title h3 button').click();
-    await page.getByRole("button", { name: "용지호수공원 일정 수정", exact: true }).click();
-    await page.getByRole("dialog", { name: "용지호수공원 수정", exact: true }).getByRole("button", { name: "일정에서 빼기", exact: true }).click();
-    await expect(itinerary.locator("#itinerary-stop-1002")).toHaveCount(0);
-    await screens.locator(".night-search-link").click();
-    await parkCard.getByRole("button", { name: "용지호수공원 일정에 담기", exact: true }).click();
-    await screens.locator(".wave-my-trips").focus();
-    await expect(screens.locator(".wave-my-trips")).toBeFocused();
-    await screens.locator(".wave-my-trips").press("Enter");
-    expect(api.enrichmentRequestCount()).toBe(0);
-    await openNaruTool(page, "출발 전 확인");
-    await page.locator(".travel-layers > summary").click();
-    await expect(page.getByRole("heading", { name: /기준월의 관심을\s*살펴봅니다\./ })).toBeVisible();
-    await expect.poll(api.enrichmentRequestCount).toBe(1);
-    await expect(page.locator(".demand-insight")).toContainText("지역 관광자원 수요지수의 최신 가용월 자료가 제공되면 표시합니다.");
-    await page.reload();
-    await expect(page.getByRole("region", { name: "날짜별 여행 일정" })).toBeVisible();
-    await expect(page.locator("#itinerary-stop-1001 time").first()).toHaveText("09:25 도착 예정");
-    await expect(page.locator("#itinerary-stop-1002")).toContainText("용지호수공원");
-    await expectNoSeriousA11yIssues(page);
   } finally { releaseAutomatic(); }
 });
 
