@@ -211,6 +211,51 @@ test('explicit Tongyeong count and exclusions repair a mistaken model region', (
 
 
 const fallbackEnv = { WAVE_AI_FALLBACK_BASE_URL: 'https://backup.example/v1', WAVE_AI_FALLBACK_MODEL: 'backup', WAVE_AI_FALLBACK_TOKEN: 'backup-test-token' };
+const threeServerEnv = { ...fallbackEnv, WAVE_AI_SECONDARY_BASE_URL: 'https://secondary.example/v1', WAVE_AI_SECONDARY_MODEL: 'secondary', WAVE_AI_SECONDARY_TOKEN: 'secondary-test-token' };
+
+test('two unavailable servers fall through to the secondary with its own model and credentials', async () => {
+  const h = handler((_context, _options, url) => {
+    if (!url.includes('secondary.example')) throw new ProviderRequestError({ kind: 'upstream_error' });
+    return { choices: [{ message: { content: JSON.stringify({ reply: '통영으로 설정할게요.', proposal: { action: 'settings', region: '통영' } }) } }] };
+  }, true, threeServerEnv);
+  const result = await (await h.run(request())).json();
+  assert.equal(result.source, 'local-llm');
+  assert.equal(result.proposal.region, '통영');
+  assert.equal(h.calls.length, 3);
+  assert.equal(h.calls[2].options.headers.Authorization, 'Bearer secondary-test-token');
+  const primary = JSON.parse(h.calls[0].options.body), secondary = JSON.parse(h.calls[2].options.body);
+  assert.deepEqual(secondary.messages, primary.messages);
+  assert.equal(secondary.model, 'secondary');
+  assert.deepEqual(JSON.parse(JSON.stringify(h.diagnostics.at(-1))), ['naru_chat_complete', { route: 'secondary', mode: 'buffered' }]);
+});
+
+test('three-server health visits only as far as the first ready server', async () => {
+  for (const readyIndex of [0, 1, 2]) {
+    let visited = 0;
+    const h = handler(() => ({ ready: visited++ === readyIndex }), true, threeServerEnv);
+    const response = await h.run(new Request('https://wave.example/api/assistant'));
+    assert.equal((await response.json()).available, true);
+    assert.equal(h.calls.length, readyIndex + 1);
+  }
+});
+
+test('three-server exhaustion never loops and duplicate endpoints are attempted once', async () => {
+  for (const env of [threeServerEnv, { ...threeServerEnv, WAVE_AI_SECONDARY_BASE_URL: fallbackEnv.WAVE_AI_FALLBACK_BASE_URL }]) {
+    const h = handler(() => { throw new ProviderRequestError({ kind: 'timeout' }); }, true, env);
+    assert.equal((await h.run(request())).status, 503);
+    assert.equal(h.calls.length, env === threeServerEnv ? 3 : 2);
+  }
+});
+
+test('caller cancellation and backup authentication failure do not trigger another server', async () => {
+  const cancelled = new AbortController();
+  const h = handler(() => { cancelled.abort(); throw new ProviderRequestError({ kind: 'timeout' }); }, true, threeServerEnv);
+  assert.equal((await h.run(new Request(request(), { signal: cancelled.signal }))).status, 503);
+  assert.equal(h.calls.length, 1);
+  const auth = handler((_context, _options, url) => { throw new ProviderRequestError({ kind: url.includes('backup.example') ? 'auth_error' : 'upstream_error' }); }, true, threeServerEnv);
+  assert.equal((await auth.run(request())).status, 503);
+  assert.equal(auth.calls.length, 2);
+});
 test('preserving dates while adjusting a route returns the grounded model proposal through the handler', async () => {
   const modelProposal = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change' };
   const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '조정안을 준비할게요.', proposal: modelProposal }) } }] }));

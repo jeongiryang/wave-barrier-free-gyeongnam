@@ -96,41 +96,47 @@ export async function handleAssistant(request: Request) {
   // A separate requester per incoming conversation prevents URL-only in-flight
   // deduplication from sharing one visitor's private answer with another.
   const primaryRequester = createProviderRequester();
-  let providerRoute: 'primary' | 'fallback' = 'primary';
+  let providerRoute: 'primary' | 'fallback' | 'secondary' = 'primary';
   let providerStage = 'request';
   const failureCategory = (error: unknown) => error instanceof ProviderRequestError
     ? (['timeout', 'upstream_error', 'rate_limited', 'auth_error', 'access_restricted', 'quota_exhausted', 'malformed_response'].includes(error.failure.kind) ? error.failure.kind : 'provider_error')
     : error instanceof SyntaxError ? 'invalid_json' : 'invalid_response';
   const requestProvider: typeof primaryRequester = async (context, url, options) => {
-    const fallbackBase = process.env.WAVE_AI_FALLBACK_BASE_URL;
-    const fallbackModel = process.env.WAVE_AI_FALLBACK_MODEL;
-    const fallbackToken = process.env.WAVE_AI_FALLBACK_TOKEN;
-    if (!fallbackBase || !fallbackModel || !fallbackToken) return primaryRequester(context, url, options);
-    // Retry inference only before returning any response bytes. Model output is
-    // still validated and applied by the existing single confirmation path.
-    const fallbackUrl = endpointFor(fallbackBase, context.operation === 'health' ? 'health' : 'chat/completions');
-    if (fallbackUrl.href === url) return primaryRequester(context, url, options);
-    const primaryControl = new AbortController();
-    const primaryTimer = setTimeout(() => primaryControl.abort(), context.operation === 'health' ? 3000 : 15000);
-    const boundedSignal = primaryControl.signal;
-    const primaryOptions = { ...options, signal: options?.signal
-      ? AbortSignal.any([options.signal, boundedSignal]) : boundedSignal };
-    try {
-      const response = await primaryRequester(context, url, primaryOptions);
-      if (context.operation !== 'health') return response;
-      const health = await response.json();
-      if (record(health) && health.ready === true) return response;
-    } catch (error) {
-      if (options?.signal?.aborted) throw error;
-      if (!(error instanceof ProviderRequestError) || !['timeout', 'upstream_error', 'rate_limited'].includes(error.failure.kind)) throw error;
-      console.warn('naru_provider_failover', { operation: context.operation === 'health' ? 'health' : 'chat', category: failureCategory(error) });
-    } finally { clearTimeout(primaryTimer); }
-    if (options?.signal?.aborted) throw new Error('cancelled');
-    providerRoute = 'fallback';
-    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${fallbackToken}` };
-    const body = typeof options?.body === 'string'
-      ? JSON.stringify({ ...JSON.parse(options.body), model: fallbackModel }) : options?.body;
-    return createProviderRequester()(context, fallbackUrl.href, { ...options, headers, body });
+    const providers = [{ url, options, route: 'primary' as typeof providerRoute, requester: primaryRequester }];
+    const seen = new Set([url]);
+    for (const [prefix, route] of [['WAVE_AI_FALLBACK', 'fallback'], ['WAVE_AI_SECONDARY', 'secondary']] as const) {
+      const base = process.env[`${prefix}_BASE_URL`];
+      const model = process.env[`${prefix}_MODEL`];
+      const token = process.env[`${prefix}_TOKEN`];
+      if (!base || !model || !token) continue;
+      const target = endpointFor(base, context.operation === 'health' ? 'health' : 'chat/completions').href;
+      if (seen.has(target)) continue;
+      seen.add(target);
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+      const body = typeof options?.body === 'string' ? JSON.stringify({ ...JSON.parse(options.body), model }) : options?.body;
+      providers.push({ url: target, options: { ...options, headers, body }, route, requester: createProviderRequester() });
+    }
+    // Each server is attempted once, only before returning response bytes. The
+    // original 45s chat / 8s health deadline and caller cancellation cover all hops.
+    for (const [index, provider] of providers.entries()) {
+      if (options?.signal?.aborted) throw new Error('cancelled');
+      providerRoute = provider.route;
+      const hasNext = index < providers.length - 1;
+      const control = new AbortController();
+      const timer = hasNext ? setTimeout(() => control.abort(), context.operation === 'health' ? 2500 : 15000) : undefined;
+      const signal = options?.signal ? AbortSignal.any([options.signal, control.signal]) : control.signal;
+      try {
+        const response = await provider.requester(context, provider.url, { ...provider.options, signal });
+        if (!hasNext || context.operation !== 'health') return response;
+        const health = await response.json();
+        if (record(health) && health.ready === true) return response;
+      } catch (error) {
+        if (options?.signal?.aborted || !hasNext) throw error;
+        if (!(error instanceof ProviderRequestError) || !['timeout', 'upstream_error', 'rate_limited'].includes(error.failure.kind)) throw error;
+        console.warn('naru_provider_failover', { operation: context.operation === 'health' ? 'health' : 'chat', category: failureCategory(error) });
+      } finally { clearTimeout(timer); }
+    }
+    throw new Error('No provider response');
   };
   const base = process.env.WAVE_AI_BASE_URL;
   const model = process.env.WAVE_AI_MODEL;
