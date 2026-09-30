@@ -30,7 +30,7 @@ def warm_model(open_url=urllib.request.urlopen, monotonic=time.monotonic,
         'model': env.get('WAVE_GATEWAY_MODEL', 'gemma4:26b'),
         'stream': False, 'keep_alive': -1,
         'options': {'num_gpu': int(env.get('WAVE_OLLAMA_GPU_LAYERS', '0')),
-                    'num_ctx': 8192, 'num_thread': 8, 'num_batch': 256,
+                    'num_ctx': 16384, 'num_thread': 8, 'num_batch': 256,
                     'draft_num_predict': 0},
     }
     request = urllib.request.Request(base + '/api/generate',

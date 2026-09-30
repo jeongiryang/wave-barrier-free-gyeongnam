@@ -114,6 +114,16 @@ function load({ streamFlag, respond, extraEnv = {} }) {
 
 const backupEnv = { WAVE_AI_FALLBACK_BASE_URL: 'https://backup.example/v1/', WAVE_AI_FALLBACK_MODEL: 'backup-fixture', WAVE_AI_FALLBACK_TOKEN: 'backup-synthetic-token' };
 
+test('stream can reach the third server before any response bytes', async () => {
+  const h = load({ streamFlag: '1', extraEnv: { ...backupEnv, WAVE_AI_SECONDARY_BASE_URL: 'https://secondary.example/v1', WAVE_AI_SECONDARY_MODEL: 'secondary-fixture', WAVE_AI_SECONDARY_TOKEN: 'secondary-synthetic-token' }, respond: url => url.includes('secondary.example')
+    ? ndjson(chunks('준비했어요.')) : Response.json({ error: 'unavailable' }, { status: 503 }) });
+  assert.equal((await frames(await h.call())).at(-1).type, 'done');
+  assert.equal(h.sent.length, 3);
+  assert.deepEqual(h.sent[0].body.messages, h.sent[2].body.messages);
+  assert.equal(h.sent[2].body.model, 'secondary-fixture');
+  assert.deepEqual(JSON.parse(JSON.stringify(h.diagnostics.at(-1))), ['naru_chat_complete', { route: 'secondary', mode: 'stream' }]);
+});
+
 test('stream failover happens once before bytes and reports only completed backup route', async () => {
   const h = load({ streamFlag: '1', extraEnv: backupEnv, respond: url => url.includes('backup.example')
     ? ndjson(chunks('PRIVATE_REPLY')) : Response.json({ error: 'PRIVATE_UPSTREAM_ERROR' }, { status: 503 }) });
