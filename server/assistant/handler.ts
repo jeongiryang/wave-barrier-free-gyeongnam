@@ -20,6 +20,7 @@ settings: region(경남 전체 또는 경남 18시군), profiles([${FACILITIES.m
 아이 동행이나 고령자 동행만으로 특정 시설을 필수로 만들지 마세요. 기존에 선택한 시설은 앱에서 유지합니다. 사용자가 명시한 시설만 추가합니다. 피로는 최신 발화에 직접 말했을 때만 고려합니다.
 create-itinerary: 여행/코스 생성, 가고 싶은 여행을 말한 경우. region,profiles,themes는 settings와 같음. start/end(YYYY-MM-DD, 최대7일), indoor(boolean, 비/실내 요청), pace(relaxed|standard), transport(walk|bicycle|transit|car), originRegion(출발 시군), festival(특정 축제명 또는 any). 명시한 조건만 넣고 기존 조건은 앱이 유지. 불명확한 지역은 생략하여 경남 전체로 탐색. 날짜를 말하지 않으면 현재 기간으로 제안. 당일치기는 기존 여행의 첫날 또는 명시한 날짜의 start=end. 날짜가 전혀 없으면 날짜를 한 번 물어보세요. 오늘로 임의 설정하지 마세요. 이번 토요일 등은 context.today 기준 실제 날짜로 계산. 축제 넣기 요청도 create-itinerary,festival:any로 검색부터 수행.
 adapt-itinerary: 현재 일정 수정·비 대응·피곤함·휴무 대안. date(context.days 중 해당일), indoor, pace, reason(rain|fatigue|change|closed). 나머지 여행 조건 유지. 둘째 날은 context.days[1].
+이미 담은 장소를 유지하며 더 여유롭게 바꾸라는 요청은 adapt-itinerary,pace:relaxed,reason:change입니다. '날짜와 이동수단은 그대로 유지해'는 변경할 항목이 아니라 보존할 조건입니다. 새 여행을 만들거나 날짜·이동수단 변경으로 처리하지 마세요.
 set-dates: start,end. recalculate-route: 기존 장소·날짜·순서·고정 방문·편의·휴식을 유지하고 이동 경로만 재계산. 이동수단만 명확히 바꾸면 transport(walk|bicycle|transit|car)를 포함. save-trip: 현재 여행을 내 여행에 저장. 링크 공유는 tool:share. 일정이나 장소의 선정 이유·근거를 요청하면 tool:receipt. add/remove/details/alternatives: context.places의 실제 placeId 필요. move: placeId,direction(up|down). visit/break: placeId,minutes. day: context.days의 date. start-time/deadline: time(HH:MM). tool: tool(${ASSISTANT_TOOLS.join(', ')}). search/readiness/compare/next/undo/help는 추가 인수 없음.
 최신 발화가 '여행 날짜만 내일로 바꿔줘.'이면 set-dates,start/end:context.today의 다음날이며 create-itinerary/adapt-itinerary가 아닙니다. 날짜/기간만 변경하면 장소·지역·필수 편의·고정 방문·휴식은 유지합니다. 방문일이 새 기간 밖이면 앱이 날짜 도구에서 이동을 확인합니다. 부정·질문·모호한 날짜나 날짜와 장소를 함께 바꾸라는 요청은 한 가지씩 확인하세요.
 명확한 요청은 반드시 proposal을 함께 반환하세요. 확인 버튼은 앱이 표시하므로 다시 동의를 물으면서 proposal을 생략하지 마세요. action은 정확한 영어 이름이며 함수를 호출하는 문자열이 아닙니다.
@@ -70,6 +71,17 @@ function systemMessages(content: string) {
   }
   messages.push({ role: 'system', content });
   return messages;
+}
+
+// Server-only normalization: a coordinated preservation clause must not be
+// mistaken for a mixed date edit by the shared client/offline grounder. Keep the
+// original model input and all actual date edits; change no browser code.
+function groundingMessages(messages: { role: string; content: string }[]) {
+  const last = messages.at(-1);
+  if (!last || last.role !== 'user' || /[?？]|(?:까요|나요|할까|어때|어떨까|괜찮아|가능해)\s*[.!。！]*$/i.test(last.content)) return messages;
+  const preservation = /(?:날짜|기간)(?:\s*(?:와|과|및|,)\s*(?:(?:기존|고정|담은|선택한)\s*)?(?:날짜|기간|장소|방문|체류\s*시간|휴식\s*시간|이동수단|교통수단))*(?:만|를|을|는|은|도)?\s*(?:(?:모두|전부|그대로)\s*)*(유지|보존)(하고|하며|하면서|하되|해\s*(?:줘|주세요)|해요|해|하세요)(?!\s*(?:싶|있|없|않|안|못))(?=[\s.!。！]|$)/g;
+  const content = last.content.replace(preservation, (_match, verb: string, ending: string) => `날짜는 그대로 ${verb}${ending}`);
+  return content === last.content ? messages : [...messages.slice(0, -1), { ...last, content }];
 }
 
 // 말·실행 분리 출력 형식. 위 instructions의 안전 규칙과 판단 기준은 그대로
@@ -186,7 +198,7 @@ export async function handleAssistant(request: Request) {
   const release = () => { active--; clearTimeout(timer); request.signal.removeEventListener('abort', abort); };
   // 제안은 전부 도착한 뒤에만 여기로 들어온다. 부분 파싱한 JSON으로 동작을 실행하지 않는다.
   const finalize = (replyText: unknown, rawProposal: unknown, strict: boolean) => {
-    const grounded = groundAssistantProposal(rawProposal, messages, context);
+    const grounded = groundAssistantProposal(rawProposal, groundingMessages(messages), context);
     const checked = validateAssistantAction(grounded, places.map(place => place.id));
     if (grounded && !checked && strict) throw new Error('invalid-action');
     const reply = rawProposal && !grounded ? '바꿀 항목을 한 가지만 구체적으로 알려주세요. 기존 일정은 그대로예요.'

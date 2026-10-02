@@ -90,6 +90,9 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
 });
 
 test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유지한 실제 일정과 지도를 연다", async ({ page }) => {
+  // Own the RAF lifecycle from navigation onward; installing halfway through
+  // live map/scroll work mixes native handles with the later paused test clock.
+  await page.clock.install();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });
@@ -123,7 +126,6 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
 
   const searchAction = tabs.locator(".night-search-link");
   await searchAction.focus();
-  await page.clock.install();
   await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
   await page.evaluate(() => {
     const original = Element.prototype.scrollIntoView;
