@@ -30,12 +30,25 @@ for (const theme of ["light", "dark"]) for (const size of [0, 1]) test(`editoria
     await page.setViewportSize({ width, height: 960 });
     await page.goto("/");
     await storyReady(page);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     for (const id of chapterIds) {
       if (id === "naru") await openLandingTools(page);
       const scene = page.locator(`#${id}`);
       await scene.evaluate(node => node.scrollIntoView({ behavior: "instant", block: "center" }));
       await expect(scene).toBeVisible();
-      await expect.poll(() => scene.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length)).toBe(0);
+      // Scroll-triggered reveal starts in an IntersectionObserver callback.
+      // A single immediate zero can precede that callback; include ancestors
+      // and retain all descendant animations, checking across rendered frames.
+      await expect.poll(() => scene.evaluate(async node => {
+        const finiteRunning = () => {
+          const animations = node.getAnimations({ subtree: true });
+          for (let ancestor = node.parentElement; ancestor; ancestor = ancestor.parentElement) animations.push(...ancestor.getAnimations());
+          return animations.filter(animation => animation.playState === "running" && animation.effect?.getTiming().iterations !== Infinity).length;
+        };
+        const before = finiteRunning();
+        await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+        return { before, after: finiteRunning() };
+      })).toEqual({ before: 0, after: 0 });
       expect((await new AxeBuilder({ page }).include(`#${id}`).analyze()).violations).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await scene.screenshot({ path: test.info().outputPath(`${id}-${theme}-${width}.png`) });

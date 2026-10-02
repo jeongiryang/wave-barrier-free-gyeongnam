@@ -5,6 +5,9 @@ for (const width of [1440,960,390]) test(`isolated demo at ${width}px previews a
  await mockPublicShellApi(page); await page.setViewportSize({width,height:900});
  await page.addInitScript(()=>localStorage.setItem('wave-saved-places',JSON.stringify(['real-sentinel'])));
  await page.goto('/demo'); await expect(page.getByRole('heading',{name:'[시연] 일정 기능 살펴보기'})).toBeVisible();
+ // The streamed heading can precede client hydration. The existing guarded
+ // action becomes enabled only after the demo's interactive state is ready.
+ await expect(page.getByRole('button',{name:'첫 방문 뒤 20분 쉬기',exact:true})).toBeEnabled();
  const stories=page.locator('#demo-community');
  await expect(stories.locator('article')).toHaveCount(3);
  await expect(stories.locator('small')).toHaveText(['여행 후기','여행 질문','시설 제보']);

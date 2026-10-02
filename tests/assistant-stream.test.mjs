@@ -114,6 +114,14 @@ function load({ streamFlag, respond, extraEnv = {} }) {
 
 const backupEnv = { WAVE_AI_FALLBACK_BASE_URL: 'https://backup.example/v1/', WAVE_AI_FALLBACK_MODEL: 'backup-fixture', WAVE_AI_FALLBACK_TOKEN: 'backup-synthetic-token' };
 
+test('stream completion preserves a relaxation proposal with coordinated date and mode preservation', async () => {
+  const proposal = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change', start: '2027-01-01', end: '2027-01-01' };
+  const h = load({ streamFlag: '1', respond: () => ndjson(chunks(`변경안을 살펴볼게요.${NARU_PROPOSAL_DELIMITER}${JSON.stringify(proposal)}`)) });
+  const done = (await frames(await h.call({ messages: [{ role: 'user', content: '담은 장소를 유지하고 더 여유롭게 바꿔줘. 날짜와 이동수단은 그대로 유지해.' }], context: { days: ['2026-10-04'], transport: 'car', profiles: ['route'], places: [] } }))).at(-1);
+  assert.equal(done.type, 'done');
+  assert.deepEqual(JSON.parse(JSON.stringify(done.proposal)), { action: 'adapt-itinerary', profiles: ['route'], pace: 'relaxed', reason: 'change' });
+});
+
 test('stream can reach the third server before any response bytes', async () => {
   const h = load({ streamFlag: '1', extraEnv: { ...backupEnv, WAVE_AI_SECONDARY_BASE_URL: 'https://secondary.example/v1', WAVE_AI_SECONDARY_MODEL: 'secondary-fixture', WAVE_AI_SECONDARY_TOKEN: 'secondary-synthetic-token' }, respond: url => url.includes('secondary.example')
     ? ndjson(chunks('준비했어요.')) : Response.json({ error: 'unavailable' }, { status: 503 }) });

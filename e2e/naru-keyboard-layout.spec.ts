@@ -238,6 +238,13 @@ test('asking for help never replaces the readable answer with a fixed wall of to
   expect((await log.boundingBox())!.height).toBeGreaterThan(180);
   await log.getByText('모든 여행 도구 펼치기', { exact: true }).click();
   await expect(log.locator('.naru-tools button')).toHaveCount(28);
+  // Expanding content need not fire a scroll event. Read earlier content before
+  // expecting the action that returns a reader to the latest answer.
+  const readingBounds = (await log.boundingBox())!;
+  await page.mouse.move(readingBounds.x + readingBounds.width / 2, readingBounds.y + readingBounds.height / 2);
+  await page.mouse.wheel(0, -(await log.evaluate(node => node.scrollHeight)));
+  await expect.poll(() => log.evaluate(node => node.scrollTop)).toBe(0);
+  await expect(log.locator('.naru-tools button')).toHaveCount(28);
   const latest = chat.getByRole('button', { name: '최신 답변으로', exact: true });
   await expect(latest).toBeVisible();
   expect((await log.boundingBox())!.height).toBeGreaterThan(180);

@@ -72,6 +72,10 @@ async function assertSettledMarkers(page: Page, info: TestInfo, label: string, e
 
 for (const reducedMotion of ["no-preference", "reduce"] as const) {
   test(`real Leaflet keeps dated photo markers clear through day changes and mobile resize: ${reducedMotion}`, async ({ page }, info) => {
+    // The full-motion case includes five settled geometry captures and a resize.
+    // CI reached the final SDK assertion with every geometry check passing but
+    // exhausted the original 45s case budget; individual assertions stay at 8s.
+    if (reducedMotion === "no-preference") test.setTimeout(60_000);
     const pageErrors: { message: string; stack?: string; at: string }[] = [];
     page.on("pageerror", error => pageErrors.push({ message: error.message, stack: error.stack, at: new Date().toISOString() }));
     try {
@@ -114,9 +118,20 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       await editor.getByRole("button", { name: "적용", exact: true }).click();
       await expect.poll(() => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem("wave-current-trip-v1") || "{}").values?.["wave-trip-schedule-v1"] || "{}").scheduleAssignments)).toEqual({ "1001": today, "1002": tomorrow });
       const selectDay = async (date: string) => {
-        const timetable = page.getByRole("group", { name: "일정 보기 방식", exact: true }).getByRole("button", { name: "시간표", exact: true });
-        if (await timetable.count()) await timetable.click();
+        const controls = page.getByRole("group", { name: "일정 보기 방식", exact: true });
+        // The browser viewport changes before React commits its media-query
+        // layout. A one-shot count() can still see the previous desktop view and
+        // skip the mobile time/map toggle, leaving dated tabs hidden indefinitely.
+        if (await page.evaluate(() => matchMedia("(min-width:1024px)").matches)) {
+          await expect(controls).toHaveCount(0);
+        } else {
+          await expect(controls).toBeVisible();
+          const timetable = controls.getByRole("button", { name: "시간표", exact: true });
+          await timetable.click();
+          await expect(timetable).toHaveAttribute("aria-pressed", "true");
+        }
         const tab = page.locator(".simple-day-tabs").getByRole("button", { name: new RegExp(date.slice(5).replace("-", "/") + "$") });
+        await expect(tab).toBeVisible();
         await tab.click();
         await expect(tab).toHaveAttribute("aria-pressed", "true");
         await ensureMapView(page);

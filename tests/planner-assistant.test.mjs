@@ -50,6 +50,40 @@ function handler(responder, configured = true, extraEnv = {}) {
 }
 const request = (body = { messages: [{ role: 'user', content: '여행지 찾아줘' }], context: { places: [] } }, origin = 'https://wave.example') => new Request('https://wave.example/api/assistant', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
+test('a coordinated date and transport preservation clause does not block a current-trip relaxation', async () => {
+  const ctx = { region: '창원', days: ['2026-10-04'], transport: 'car', profiles: ['route'], savedIds: ['2782761'], places: [{ id: '2782761', name: '죽동마을', city: '창원' }] };
+  const proposal = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change', start: '2027-01-01', end: '2027-01-01', transport: 'walk' };
+  for (const preservation of ['날짜와 이동수단은 그대로 유지해.', '기간과 교통수단을 모두 보존해줘.', '날짜와 이동수단은 유지하고', '날짜와 고정 방문, 이동수단은 그대로 유지해 주세요.']) {
+    const text = preservation.endsWith('하고') ? `${preservation} 담은 장소를 더 여유롭게 바꿔줘.` : `담은 장소를 유지하고 더 여유롭게 바꿔줘. ${preservation}`;
+    const body = { messages: [{ role: 'user', content: text }], context: ctx };
+    const before = JSON.stringify(body);
+    const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '변경안을 살펴볼게요.', proposal }) } }] }));
+    const response = await h.run(request(body));
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.deepEqual(result.proposal, { action: 'adapt-itinerary', profiles: ['route'], pace: 'relaxed', reason: 'change' }, text);
+    assert.equal(JSON.stringify(body), before);
+    assert.equal(JSON.parse(h.calls[0].options.body).messages.at(-1).content, text, 'normalization does not rewrite the model input');
+  }
+});
+
+test('preservation normalization still rejects questions, negation and actual mixed date changes', async () => {
+  const proposal = { action: 'adapt-itinerary', pace: 'relaxed', reason: 'change' };
+  for (const text of [
+    '담은 장소를 유지하고 더 여유롭게 바꿔도 될까? 날짜와 이동수단은 그대로 유지해.',
+    '날짜와 이동수단은 유지하고 휴식을 늘리지 마.',
+    '날짜와 이동수단은 유지하고 싶지 않아. 내일로 바꿔줘.',
+    '날짜를 내일로 바꾸고 이동수단은 유지하고 더 여유롭게 바꿔줘.',
+    '날짜와 이동수단은 유지해. 날짜를 내일로 바꾸고 장소도 바꿔줘.',
+    '날짜와 이동수단은 유지해. 여행 기간은 3일로 늘리고 장소도 바꿔줘.',
+  ]) {
+    const h = handler(() => ({ choices: [{ message: { content: JSON.stringify({ reply: '확인할게요.', proposal }) } }] }));
+    const response = await h.run(request({ messages: [{ role: 'user', content: text }], context: { days: ['2026-10-04'], places: [] } }));
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).proposal, null, text);
+  }
+});
+
 test('full trusted instructions fit the gateway message limits in both tones with six history turns', async () => {
   for (const tone of ['standard', 'gyeongnam']) {
     const h = handler();

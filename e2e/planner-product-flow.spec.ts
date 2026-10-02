@@ -90,6 +90,9 @@ test("390px·768px·1440px에서 지역 검색·담기·날짜 설정은 단일 
 });
 
 test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유지한 실제 일정과 지도를 연다", async ({ page }) => {
+  // Own the RAF lifecycle from navigation onward; installing halfway through
+  // live map/scroll work mixes native handles with the later paused test clock.
+  await page.clock.install();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockPublicShellApi(page);
   await mockPlannerApi(page, { preserveView: true });
@@ -123,8 +126,6 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
 
   const searchAction = tabs.locator(".night-search-link");
   await searchAction.focus();
-  await page.clock.install();
-  await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
   await page.evaluate(() => {
     const original = Element.prototype.scrollIntoView;
     const trace = { calls: [] as string[] };
@@ -137,6 +138,23 @@ test("랜딩 딥링크와 두 화면 탭·헤더는 현재 날짜·편의를 유
   await page.keyboard.press("Enter");
   await expect(page.locator("#conditions")).toBeVisible();
   await expect(page.getByRole("button", { name: "필요한 편의 · 1개", exact: true })).toBeVisible();
+  // Header search scrolls to #places. Visible conditions do not prove that
+  // native smooth navigation has settled before the RAF clock is paused.
+  let previousScroll = -1;
+  let settledSamples = 0;
+  await expect.poll(async () => {
+    const state = await page.locator("#places").evaluate(section => {
+      const margin = parseFloat(getComputedStyle(section).scrollMarginTop) || 0;
+      const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      const maximum = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+      const destination = Math.min(maximum, Math.max(0, scrollY + section.getBoundingClientRect().top - margin - padding));
+      return { y: scrollY, distance: Math.abs(scrollY - destination) };
+    });
+    settledSamples = state.distance <= 1 && state.y === previousScroll ? settledSamples + 1 : 0;
+    previousScroll = state.y;
+    return settledSamples;
+  }, { intervals: [50, 50, 100] }).toBeGreaterThanOrEqual(2);
+  await page.clock.pauseAt(await page.evaluate(() => Date.now()) + 1_000);
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   const itineraryAction = page.locator(".wave-header").locator(".wave-my-trips");
   await itineraryAction.focus();
