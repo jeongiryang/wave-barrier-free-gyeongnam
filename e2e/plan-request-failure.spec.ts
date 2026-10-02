@@ -11,6 +11,11 @@ for (const failure of ["timeout", "server", "offline"] as const) for (const en o
     await page.goto("/planner");
     await chooseTripConditions(page);
     await page.getByRole("button", { name: `경남도립미술관 ${en ? "add to itinerary" : "일정에 담기"}`, exact: true }).click();
+    if (failure === "offline") {
+      // Adding the first stop lazily loads the date picker and its stylesheet.
+      // Test a prepared trip's API failure after that existing control is ready.
+      await expect(page.locator('#itinerary-setup .wave-date-open').first()).toBeEnabled();
+    }
     let release = () => {};
     const gate = new Promise<void>(resolve => { release = resolve; });
     let attempts = 0;
