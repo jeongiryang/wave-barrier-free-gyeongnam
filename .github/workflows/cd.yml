@@ -111,6 +111,18 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: node scripts/capture-production-deployment.mjs
 
+      - name: Deployed revision migration policy
+        if: ${{ !inputs.preflight_only }}
+        id: migration_policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          PREVIOUS_DEPLOYMENT_ID: ${{ steps.previous_production.outputs.deployment_id }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: node scripts/check-deployment-migration-policy.mjs
+
       - name: 승격 전 Production 후보 배포
         id: candidate
         env:
@@ -162,7 +174,7 @@ jobs:
           retention-days: 30
 
       - name: 후보 환경 검증과 커뮤니티 migration
-        if: ${{ !inputs.preflight_only }}
+        if: ${{ !inputs.preflight_only && steps.migration_policy.outputs.mode == 'apply' }}
         env:
           CANDIDATE_URL: ${{ steps.candidate.outputs.url }}
           COMMUNITY_MIGRATION_TOKEN: ${{ steps.migration_token.outputs.value }}

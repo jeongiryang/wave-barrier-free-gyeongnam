@@ -87,9 +87,11 @@ test("manual preflight is Owner-only, exact-CI-gated and cannot mutate DB, alias
   assert.ok(ci > 0 && ci < steps.findIndex((step) => step.name === "의존성 설치"));
   const inspect = steps.findIndex((step) => /X-Wave-Migration-Mode: inspect/.test(step.run || ""));
   assert.ok(inspect > 0 && inspect < steps.findIndex((step) => step.name === "후보 환경 검증과 커뮤니티 migration"));
-  for (const name of ["Production Cron secret 보장", "후보 환경 검증과 커뮤니티 migration", "프로덕션 승격", "프로덕션 health와 실패 시 rollback"]) {
+  for (const name of ["Production Cron secret 보장", "프로덕션 승격", "프로덕션 health와 실패 시 rollback"]) {
     assert.equal(steps.find((step) => step.name === name).if, "${{ !inputs.preflight_only }}");
   }
+  assert.equal(steps.find((step) => step.name === "후보 환경 검증과 커뮤니티 migration").if,
+    "${{ !inputs.preflight_only && steps.migration_policy.outputs.mode == 'apply' }}");
   assert.match(steps[inspect].run, /check-database-preflight.mjs/);
   assert.doesNotMatch(steps[inspect].run, /printf[^\n|]+\$response[^\n|]+>>?\s*"?\$(?:GITHUB|RUNNER)/);
 });
