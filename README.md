@@ -1,19 +1,35 @@
 <div align="center">
   <img src="./public/favicon.svg" width="88" alt="W.A.V.E 로고" />
   <h1>W.A.V.E</h1>
-  <p><strong>공공데이터로 확인된 경남 여행 편의 정보를 보여 주고, 확인되지 않은 것은 확인되지 않았다고 알려 주는 Web 서비스입니다.</strong></p>
+  <p>경남 여행지 탐색부터 일정 설계, 지도와 관광지 편의정보까지.</p>
 
   <p>
     <a href="https://wave-barrier-free-gyeongnam.vercel.app/"><img alt="W.A.V.E 서비스 열기" src="https://img.shields.io/badge/서비스_열기-0078BD?style=for-the-badge&logo=vercel&logoColor=white" /></a>
-    <a href="https://wave-barrier-free-gyeongnam.vercel.app/api/health"><img alt="서비스 설정 상태 확인" src="https://img.shields.io/badge/설정_상태-0B7285?style=for-the-badge" /></a>
+    <a href="#실행과-저장소-구조"><img alt="로컬 실행" src="https://img.shields.io/badge/로컬_실행-181717?style=for-the-badge&logo=github&logoColor=white" /></a>
   </p>
 
   <p>
     <a href="https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/workflows/ci.yml"><img alt="CI 상태" src="https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/workflows/ci.yml/badge.svg" /></a>
     <a href="https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/workflows/cd.yml"><img alt="배포 상태" src="https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/workflows/cd.yml/badge.svg" /></a>
-    <img alt="Node.js 22" src="https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white" />
+    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+    <img alt="React" src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" />
+    <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" />
+    <img alt="Vercel" src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
   </p>
 </div>
+
+<p align="center">
+  <a href="https://wave-barrier-free-gyeongnam.vercel.app/"><img src="docs/media/demo.gif" width="960" alt="WAVE 여행 설계, 통영 관광지 목록, 관광지 상세와 편의정보" /></a>
+</p>
+
+<p align="center">여행 설계 · 관광지 탐색 · 상세 편의정보</p>
+
+## 주요 기능
+
+- **여행지 찾기** — 경남 지역과 편의 조건으로 장소를 찾고 공식 시설 정보를 확인합니다.
+- **일정과 지도** — 날짜·방문 순서·이동을 편집하고 일정을 저장하거나 공유합니다.
+- **여행 가이드 나루** — 같은 일정을 대화로 편집하고 변경 전후를 확인합니다.
+- **여행 기록** — 여행집·사진 코스·공개 여행 후기를 연결합니다.
 
 ## 문서 바로가기
 
@@ -23,8 +39,13 @@
 [시연](docs/demo-script.md) · [이미지·지도 출처](docs/assets-and-licenses.md) ·
 [제품 고도화·검증](docs/product-upgrade-20260912.md) · [CI 기준](docs/ci-validation.md)
 
+<details>
+<summary>운영·공모전 참고</summary>
+
 > 현재 화면 기준은 [Simple is Best 개편](docs/design/simple-wave-20260913.md)이며, 구현·로컬 검증과 실제 배포를 구분해 기록합니다. 최신 운영 배포는 [CD 실행 결과](https://github.com/jeongiryang/wave-barrier-free-gyeongnam/actions/workflows/cd.yml)에서 확인할 수 있습니다. 공모전 최종 제출 캡처와 사람 확인 항목은 [출시 준비 기록](docs/launch-readiness-status.md)을 따릅니다.
 > 참가 부문은 **① 웹·앱 개발 부문**, 팀명은 **WAVE**, 접수 서비스명은 **사회적 약자 관광 편의 제공앱**입니다. 서비스 브랜드는 **W.A.V.E**, 유형은 **Web**, 특화 지역은 **경상남도**이며 1차 심사자료 마감은 **2026-09-21 16:00 KST**입니다. [공식 근거와 사람 확인 항목](docs/contest-compliance.md), [제출 원고](docs/submission/development-entry-draft.md)를 확인하세요. 기존 34e6021 검토 PDF는 역사적 초안이며 최종 제출본이 아닙니다.
+
+</details>
 
 ## 핵심 사용자 여정
 
